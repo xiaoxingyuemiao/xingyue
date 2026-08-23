@@ -198,6 +198,7 @@
         <!-- 拦截 SDK 对 unpkg.com 的版本检查请求（网络无法访问时返回模拟响应，避免初始化失败） -->
         <script>
             (function () {
+                // 1) 拦截 fetch
                 var realFetch = window.fetch;
                 window.fetch = function (input, init) {
                     var url = typeof input === "string" ? input : (input && input.url) || "";
@@ -211,6 +212,36 @@
                         }));
                     }
                     return realFetch.apply(this, arguments);
+                };
+                // 2) 拦截 XMLHttpRequest（双保险）
+                var realOpen = XMLHttpRequest.prototype.open;
+                XMLHttpRequest.prototype.open = function (method, url) {
+                    if (typeof url === "string" && url.indexOf("unpkg.com") !== -1) {
+                        var fake = {
+                            status: 200,
+                            responseText: JSON.stringify({ name: "oh-my-live2d", version: "0.19.3" }),
+                            statusText: "OK"
+                        };
+                        var self = this;
+                        try {
+                            Object.defineProperty(self, "responseText", { get: function () { return fake.responseText; } });
+                            Object.defineProperty(self, "response", { get: function () { return fake.responseText; } });
+                            Object.defineProperty(self, "status", { get: function () { return fake.status; } });
+                        } catch (e) { /* 忽略 */ }
+                        setTimeout(function () {
+                            try {
+                                if (self.onreadystatechange) {
+                                    self.readyState = 4;
+                                    self.onreadystatechange.call(self);
+                                }
+                                if (self.onload) {
+                                    self.onload.call(self);
+                                }
+                            } catch (e) { /* 忽略 */ }
+                        }, 0);
+                        return;
+                    }
+                    return realOpen.apply(this, arguments);
                 };
             })();
         </script>
