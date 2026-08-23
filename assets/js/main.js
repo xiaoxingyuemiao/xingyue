@@ -543,12 +543,13 @@ const Live2D = {
             return null;
         }
         const container = this.container();
+        this.modelScale = this.computeScale();
         return factory({
             el: container,
             parentElement: container,
             models: [{
                 path: path,
-                scale: this.computeScale(),
+                scale: this.modelScale,
                 anchor: [0.5, 0.5],
             }],
             // 舞台铺满容器
@@ -630,32 +631,43 @@ const Live2D = {
 
     /* ---------------- 布局 ---------------- */
 
-    // 把模型移动到画布中心（模型尺寸就位后；用 SDK 的 setModelAnchor/setModelPosition）
-    centerModel() {
+    // 模型适配画布：按画布尺寸自动缩放（模型完整放入画布）+ 居中
+    fitModelToCanvas() {
         const om = this.om;
-        const container = this.container();
-        const canvas = container && container.querySelector("canvas");
+        const canvas = this.container() && this.container().querySelector("canvas");
         if (!om || !canvas) {
             return false;
         }
-        if (typeof om.setModelAnchor !== "function" || typeof om.setModelPosition !== "function") {
+        if (
+            typeof om.setModelScale !== "function" ||
+            typeof om.setModelAnchor !== "function" ||
+            typeof om.setModelPosition !== "function"
+        ) {
             return true; // 版本不支持也没关系，不阻塞
         }
         const size = om.modelSize;
-        if (!size || !size.width) {
+        if (!size || !size.width || !size.height) {
             return false; // 模型还没加载完成，稍后再试
         }
         try {
+            const cw = canvas.width;
+            const ch = canvas.height;
+            // 缩放：让模型四周留 5% 边距完整放入画布（过小的模型不放大）
+            const fit = Math.min((cw * 0.95) / size.width, (ch * 0.95) / size.height, 1);
+            if (fit < 0.999) {
+                this.modelScale = this.modelScale * fit;
+                om.setModelScale(this.modelScale);
+            }
             // 锚点 = 模型中心，位置 = 画布中心 → 模型居中
             om.setModelAnchor({ x: 0.5, y: 0.5 });
-            om.setModelPosition({ x: canvas.width / 2, y: canvas.height / 2 });
+            om.setModelPosition({ x: cw / 2, y: ch / 2 });
             return true;
         } catch (e) {
             return false;
         }
     },
 
-    // 修正布局：隐藏 SDK 自带 UI、舞台铺满容器、模型居中、画布视口居中
+    // 修正布局：隐藏 SDK 自带 UI、舞台铺满容器、模型适配画布居中、画布视口居中
     // （模型异步加载，模型尺寸未就位时自动重试）
     fixLayout(attempts) {
         const container = this.container();
@@ -681,7 +693,7 @@ const Live2D = {
             }
         }
 
-        if (!container.querySelector("canvas") || !this.centerModel()) {
+        if (!container.querySelector("canvas") || !this.fitModelToCanvas()) {
             // 模型或画布还没就位，稍后再试
             setTimeout(() => this.fixLayout(count + 1), 500);
             return;
