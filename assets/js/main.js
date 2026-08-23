@@ -459,7 +459,8 @@ const Live2D = {
         }
     },
 
-    // 应用窗口变换：拖动 / 缩放 / 旋转整个画布
+    // 应用窗口变换：窗口固定在整个网页正中间，
+    // 拖动 / 缩放 / 旋转叠加在居中偏移上
     applyWin() {
         const container = document.getElementById("live2d-container");
         const canvas = container && container.querySelector("canvas");
@@ -467,12 +468,30 @@ const Live2D = {
             return;
         }
         const w = this.win;
-        const transform =
-            "translate(" + w.dx + "px, " + w.dy + "px) " +
-            "scale(" + w.scale + ") rotate(" + w.rotation + "deg)";
+        // 窗口尺寸（可自行调整；模型大小由 scale 控制）
+        if (canvas.style.width !== "500px") {
+            canvas.style.width = "500px";
+        }
+        if (canvas.style.height !== "700px") {
+            canvas.style.height = "700px";
+        }
+        // 固定定位到视口中心
+        if (canvas.style.position !== "fixed") {
+            canvas.style.position = "fixed";
+        }
+        if (canvas.style.left !== "50%") {
+            canvas.style.left = "50%";
+        }
+        if (canvas.style.top !== "50%") {
+            canvas.style.top = "50%";
+        }
         if (canvas.style.transformOrigin !== "center center") {
             canvas.style.transformOrigin = "center center";
         }
+        // 居中 + 拖动偏移（calc 叠加）+ 缩放 + 旋转
+        const transform =
+            "translate(calc(-50% + " + w.dx + "px), calc(-50% + " + w.dy + "px)) " +
+            "scale(" + w.scale + ") rotate(" + w.rotation + "deg)";
         if (canvas.style.transform !== transform) {
             canvas.style.transform = transform;
         }
