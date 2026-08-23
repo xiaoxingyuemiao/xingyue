@@ -395,17 +395,17 @@ const Live2D = {
     om: null,
     currentPath: null,
 
-    // 等待 SDK 脚本加载完成（module 异步执行，需要轮询等待）
+    // 等待 SDK 脚本加载完成（普通 script 加载，同步可用；保险起见轮询）
     waitForSDK(timeout) {
         const limit = timeout || 8000;
         return new Promise((resolve) => {
-            if (window.OhMyLive2D) {
+            if (window.loadOml2d || window.OhMyLive2D) {
                 resolve(true);
                 return;
             }
             const start = Date.now();
             const timer = setInterval(() => {
-                if (window.OhMyLive2D) {
+                if (window.loadOml2d || window.OhMyLive2D) {
                     clearInterval(timer);
                     resolve(true);
                 } else if (Date.now() - start > limit) {
@@ -414,6 +414,29 @@ const Live2D = {
                 }
             }, 100);
         });
+    },
+
+    // 创建实例（兼容 0.19 的 loadOml2d 与 0.2 的 OhMyLive2D 两种 API）
+    createInstance(path) {
+        const container = document.getElementById("live2d-container");
+        if (window.loadOml2d) {
+            return window.loadOml2d({
+                el: container,
+                parentElement: container,
+                models: [{ path: path, scale: 0.2 }],
+                statusBar: { disable: true },
+                tips: { disable: true },
+            });
+        }
+        if (window.OhMyLive2D) {
+            return new window.OhMyLive2D({
+                el: container,
+                modelPath: path,
+                width: 300,
+                height: 480,
+            });
+        }
+        return null;
     },
 
     // 初始化：等 SDK 就绪，加载默认模型；失败时在占位文字上显示原因
@@ -426,19 +449,15 @@ const Live2D = {
 
         const ready = await this.waitForSDK();
         if (!ready) {
-            const reason = window.__omlError || "SDK 加载超时（可能是网络无法访问 CDN）";
-            console.warn("Live2D SDK 加载失败：", reason);
-            this.showPlaceholder("Live2D 加载失败：" + reason);
+            console.warn("Live2D SDK 加载失败（本地 vendor 与 CDN 均不可用）");
+            this.showPlaceholder("Live2D 加载失败：SDK 文件缺失或网络无法访问 CDN（请把 SDK 文件放进 assets/vendor/）");
             return false;
         }
         try {
-            this.om = new window.OhMyLive2D({
-                el: document.getElementById("live2d-container"),
-                modelPath: this.getDefaultPath(),
-                width: 300,
-                height: 480,
-            });
-            this.om.open();
+            this.om = this.createInstance(this.getDefaultPath());
+            if (!this.om) {
+                throw new Error("无法创建 Live2D 实例");
+            }
             this.currentPath = this.getDefaultPath();
             this.hidePlaceholder();
             return true;
@@ -479,7 +498,7 @@ const Live2D = {
         return "assets/live2d/default/ARGNori.model3.json";
     },
 
-    // 切换角色 → 切换模型
+    // 切换角色 → 切换模型（销毁重建，兼容两种 API）
     async switchRole(role) {
         if (!this.om) {
             return;
@@ -489,24 +508,27 @@ const Live2D = {
             return;
         }
         try {
-            if (typeof this.om.setModelPath === "function") {
-                this.om.setModelPath(path);
-            } else {
-                // 旧版 SDK 回退：重建实例
-                this.om.close();
-                this.om = new window.OhMyLive2D({
-                    el: document.getElementById("live2d-container"),
-                    modelPath: path,
-                    width: 300,
-                    height: 480,
-                });
-                this.om.open();
+            // 清理旧实例
+            try {
+                if (typeof this.om.stageSlideOut === "function") {
+                    this.om.stageSlideOut();
+                }
+            } catch {
+                // 忽略
+            }
+            const container = document.getElementById("live2d-container");
+            if (container) {
+                container.innerHTML = "";
+            }
+            this.om = this.createInstance(path);
+            if (!this.om) {
+                throw new Error("无法创建 Live2D 实例");
             }
             this.currentPath = path;
             this.hidePlaceholder();
         } catch (error) {
             console.warn("Live2D 模型切换失败：", error);
-            this.showPlaceholder();
+            this.showPlaceholder("Live2D 模型切换失败：" + (error && error.message ? error.message : error));
         }
     },
 
