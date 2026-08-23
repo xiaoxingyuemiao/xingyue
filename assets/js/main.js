@@ -432,34 +432,42 @@ const Live2D = {
             });
             window.__om = this.om; // 调试钩子
             console.log("Live2D 模型加载中……");
-            this.centerModel();
+            // 画布出现后居中；模型加载完成后 SDK 可能重置位置，再校准一次
+            this.waitCanvas(() => {
+                this.centerModel();
+                setTimeout(() => this.centerModel(), 1500);
+            });
         } catch (error) {
             console.warn("Live2D 加载失败：", error);
         }
     },
 
-    // 模型加载完成后水平垂直居中（轮询 modelSize 就绪）
-    centerModel(attempts) {
+    // 等待画布出现（模型加载会创建 canvas），就绪后回调
+    waitCanvas(done, attempts) {
+        const container = document.getElementById("live2d-container");
+        const canvas = container && container.querySelector("canvas");
+        if (canvas) {
+            done();
+            return;
+        }
+        const count = attempts || 0;
+        if (count > 30) {
+            return; // 最多等 9 秒
+        }
+        setTimeout(() => this.waitCanvas(done, count + 1), 300);
+    },
+
+    // 模型居中：锚点 = 模型中心，位置 = 画布中心（canvas 像素坐标）
+    centerModel() {
         const om = this.om;
         const container = document.getElementById("live2d-container");
         const canvas = container && container.querySelector("canvas");
         if (!om || !canvas) {
             return;
         }
-        const count = attempts || 0;
-        if (count > 20) {
-            return;
-        }
-        const size = om.modelSize;
-        if (!size || !size.width || !size.height) {
-            // 模型还没加载完，稍后再试
-            setTimeout(() => this.centerModel(count + 1), 500);
-            return;
-        }
         try {
-            // 锚点 = 模型中心，位置 = 画布中心 → 模型居中
             om.setModelAnchor({ x: 0.5, y: 0.5 });
-            om.setModelPosition({ x: canvas.width / 2 + 1000, y: canvas.height / 2 });
+            om.setModelPosition({ x: canvas.width / 2, y: canvas.height / 2 });
             console.log("Live2D 模型已居中");
         } catch (error) {
             console.warn("Live2D 居中失败：", error);
