@@ -399,13 +399,13 @@ const Live2D = {
     waitForSDK(timeout) {
         const limit = timeout || 8000;
         return new Promise((resolve) => {
-            if (window.loadOml2d || window.OhMyLive2D) {
+            if (this.getFactory()) {
                 resolve(true);
                 return;
             }
             const start = Date.now();
             const timer = setInterval(() => {
-                if (window.loadOml2d || window.OhMyLive2D) {
+                if (this.getFactory()) {
                     clearInterval(timer);
                     resolve(true);
                 } else if (Date.now() - start > limit) {
@@ -416,27 +416,44 @@ const Live2D = {
         });
     },
 
+    // 获取 SDK 工厂函数（兼容不同版本的挂载位置）
+    getFactory() {
+        // 0.19 版：UMD 导出到 window.OML2D.loadOml2d
+        if (window.OML2D && typeof window.OML2D.loadOml2d === "function") {
+            return window.OML2D.loadOml2d;
+        }
+        // 其他挂载位置
+        if (typeof window.loadOml2d === "function") {
+            return window.loadOml2d;
+        }
+        if (typeof window.OhMyLive2D === "function") {
+            return window.OhMyLive2D;
+        }
+        return null;
+    },
+
     // 创建实例（兼容 0.19 的 loadOml2d 与 0.2 的 OhMyLive2D 两种 API）
     createInstance(path) {
         const container = document.getElementById("live2d-container");
-        if (window.loadOml2d) {
-            return window.loadOml2d({
-                el: container,
-                parentElement: container,
-                models: [{ path: path, scale: 0.2 }],
-                statusBar: { disable: true },
-                tips: { disable: true },
-            });
+        const factory = this.getFactory();
+        if (!factory) {
+            return null;
         }
-        if (window.OhMyLive2D) {
-            return new window.OhMyLive2D({
+        if (factory === window.OhMyLive2D) {
+            return new factory({
                 el: container,
                 modelPath: path,
                 width: 300,
                 height: 480,
             });
         }
-        return null;
+        return factory({
+            el: container,
+            parentElement: container,
+            models: [{ path: path, scale: 0.2 }],
+            statusBar: { disable: true },
+            tips: { disable: true },
+        });
     },
 
     // 初始化：等 SDK 就绪，加载默认模型；失败时在占位文字上显示原因
