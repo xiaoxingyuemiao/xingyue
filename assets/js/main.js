@@ -466,7 +466,8 @@ const Live2D = {
     },
 
     getDefaultPath() {
-        return "assets/live2d/default/";
+        // 默认模型：指向具体模型配置文件（Cubism4/5 为 xxx.model3.json）
+        return "assets/live2d/default/ARGNori.model3.json";
     },
 
     // 切换角色 → 切换模型
@@ -500,32 +501,42 @@ const Live2D = {
         }
     },
 
-    // 情绪 → 模型动作（模型里没有对应的 motion 时会被 SDK 忽略，不影响聊天）
+    // 情绪 → 模型表现（候选列表：动作组名 + 表情名都尝试，
+    // SDK 会忽略不存在的目标；模型没有对应资源时不影响聊天）
     playEmotion(emotion) {
         if (!this.om || !emotion) {
             return;
         }
         const map = {
-            "开心": "happy",
-            "难过": "sad",
-            "生气": "angry",
-            "害羞": "shy",
-            "惊讶": "surprise",
-            "委屈": "wronged",
-            "平静": "normal",
-            "困": "sleepy",
-            "累": "tired",
+            "开心": ["Reactions", "13_Happy", "happy"],
+            "难过": ["08_Tears", "05_Dark", "sad"],
+            "生气": ["Reactions", "03_Angry", "angry"],
+            "害羞": ["04_Shy", "shy"],
+            "惊讶": ["Reactions", "14_Surprised", "surprise"],
+            "委屈": ["08_Tears", "06_Speechless", "wronged"],
+            "平静": ["00_Default", "normal"],
+            "困": ["Sleep", "sleepy"],
+            "累": ["Sleep", "tired"],
         };
-        const motion = map[emotion];
-        if (!motion) {
+        const targets = map[emotion];
+        if (!targets) {
             return;
         }
-        try {
-            if (typeof this.om.motion === "function") {
-                this.om.motion(motion);
+        for (const target of targets) {
+            try {
+                if (typeof this.om.motion === "function") {
+                    this.om.motion(target);
+                }
+            } catch {
+                // 目标不存在时忽略
             }
-        } catch {
-            // 模型没有该动作时忽略
+            try {
+                if (typeof this.om.expression === "function") {
+                    this.om.expression(target);
+                }
+            } catch {
+                // 目标不存在时忽略
+            }
         }
     },
 

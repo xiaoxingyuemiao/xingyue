@@ -37,5 +37,6 @@ xingyao/
 ## 提示
 
 - 角色切换时模型自动跟随（星瑶 → xingyao/，月瓷 → yueci/，我的角色用自己配置的路径）
-- 「我的角色」在设置页 → 角色设定 → 编辑角色 里可以填自己的模型路径
-- 官方角色（星瑶/月瓷）的模型路径在 `assets/data/official-roles.js` 的 `model` 字段配置（后台维护，页面不展示）
+- **模型路径要填到具体的配置文件**（Cubism4/5 是 `xxx.model3.json`，Cubism2 是 `model.json`），例如：`assets/live2d/default/ARGNori.model3.json`；填目录路径可能无法被自动识别
+- 「我的角色」在设置页 → 角色设定 → 编辑角色 里可以填自己的模型文件路径
+- 官方角色（星瑶/月瓷）的模型路径在 `assets/data/official-roles.js` 的 `model` 字段配置（后台维护，页面不展示）；留空则使用 default 模型
