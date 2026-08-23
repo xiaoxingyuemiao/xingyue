@@ -473,6 +473,57 @@ const Live2D = {
         });
     },
 
+    // 修正 Live2D 布局：舞台铺满容器、模型画布居中、隐藏 SDK 自带 UI（对话框等）
+    // 模型是异步加载的，canvas 出现前会重试
+    fixLayout(attempts) {
+        const container = document.getElementById("live2d-container");
+        if (!container) {
+            return;
+        }
+        const count = attempts || 0;
+        if (count > 10) {
+            return;
+        }
+
+        let fixed = false;
+
+        for (const el of container.children) {
+            // 舞台（stage）铺满容器
+            el.style.position = "absolute";
+            el.style.left = "0";
+            el.style.top = "0";
+            el.style.width = "100%";
+            el.style.height = "100%";
+            el.style.margin = "0";
+            el.style.right = "auto";
+            el.style.bottom = "auto";
+
+            let canvas = null;
+            for (const child of el.querySelectorAll("*")) {
+                if (child.tagName.toLowerCase() === "canvas") {
+                    canvas = child;
+                } else {
+                    // 隐藏 SDK 自带 UI：对话框、提示条、按钮、状态栏等
+                    child.style.display = "none";
+                }
+            }
+
+            if (canvas) {
+                // 模型画布在舞台正中间
+                canvas.style.position = "absolute";
+                canvas.style.left = "50%";
+                canvas.style.top = "50%";
+                canvas.style.transform = "translate(-50%, -50%)";
+                fixed = true;
+            }
+        }
+
+        if (!fixed) {
+            // canvas 还没创建（模型仍在加载），稍后再试
+            setTimeout(() => this.fixLayout(count + 1), 500);
+        }
+    },
+
     // 初始化：等 SDK 就绪，加载默认模型；失败时在占位文字上显示原因
     async init() {
         // 本地 file:// 打开时浏览器禁止读取本地模型文件，直接提示
@@ -494,6 +545,7 @@ const Live2D = {
             }
             this.currentPath = this.getDefaultPath();
             this.hidePlaceholder();
+            this.fixLayout(0);
             return true;
         } catch (error) {
             console.warn("Live2D 初始化失败：", error);
@@ -567,6 +619,7 @@ const Live2D = {
             }
             this.currentPath = path;
             this.hidePlaceholder();
+            this.fixLayout(0);
         } catch (error) {
             console.warn("Live2D 模型切换失败：", error);
             this.showPlaceholder("Live2D 模型切换失败：" + (error && error.message ? error.message : error));
