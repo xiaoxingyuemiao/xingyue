@@ -195,18 +195,25 @@
         </div>
 
 
-        <!-- 拦截 SDK 对 unpkg.com 的版本检查请求（网络无法访问时返回模拟响应，避免初始化失败） -->
+        <!-- 拦截 SDK 对外部网络请求（unpkg 版本检查、hitokoto 一言，均无法访问），返回模拟响应避免初始化失败 -->
         <script>
             (function () {
+                function mockResp(url) {
+                    if (url.indexOf("unpkg.com") !== -1) {
+                        return JSON.stringify({ name: "oh-my-live2d", version: "0.19.3" });
+                    }
+                    if (url.indexOf("hitokoto.cn") !== -1) {
+                        return JSON.stringify({ hitokoto: "欢迎来到星月小窝", from: "星月小窝", from_who: "" });
+                    }
+                    return null;
+                }
                 // 1) 拦截 fetch
                 var realFetch = window.fetch;
                 window.fetch = function (input, init) {
                     var url = typeof input === "string" ? input : (input && input.url) || "";
-                    if (url.indexOf("unpkg.com") !== -1) {
-                        return Promise.resolve(new Response(JSON.stringify({
-                            name: "oh-my-live2d",
-                            version: "0.19.3"
-                        }), {
+                    var body = mockResp(url);
+                    if (body !== null) {
+                        return Promise.resolve(new Response(body, {
                             status: 200,
                             headers: { "Content-Type": "application/json" }
                         }));
@@ -216,17 +223,13 @@
                 // 2) 拦截 XMLHttpRequest（双保险）
                 var realOpen = XMLHttpRequest.prototype.open;
                 XMLHttpRequest.prototype.open = function (method, url) {
-                    if (typeof url === "string" && url.indexOf("unpkg.com") !== -1) {
-                        var fake = {
-                            status: 200,
-                            responseText: JSON.stringify({ name: "oh-my-live2d", version: "0.19.3" }),
-                            statusText: "OK"
-                        };
+                    var body = typeof url === "string" ? mockResp(url) : null;
+                    if (body !== null) {
                         var self = this;
                         try {
-                            Object.defineProperty(self, "responseText", { get: function () { return fake.responseText; } });
-                            Object.defineProperty(self, "response", { get: function () { return fake.responseText; } });
-                            Object.defineProperty(self, "status", { get: function () { return fake.status; } });
+                            Object.defineProperty(self, "responseText", { get: function () { return body; } });
+                            Object.defineProperty(self, "response", { get: function () { return body; } });
+                            Object.defineProperty(self, "status", { get: function () { return 200; } });
                         } catch (e) { /* 忽略 */ }
                         setTimeout(function () {
                             try {
