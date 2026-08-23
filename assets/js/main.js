@@ -409,9 +409,8 @@ const Live2D = {
         bound: false,
     },
 
-    // 应用画布变换：只包含用户的拖动 / 缩放 / 旋转
-    // （画布本身由 CSS 铺满容器，容器固定竖直尺寸并居中，
-    //   变换原点在画布中心 = 模型中心，旋转自然围绕模型中心）
+    // 应用画布变换：画布 fixed 钉在视口中心（不依赖容器定位），
+    // 变换包含居中 + 用户拖动 / 缩放 / 旋转，原点为画布中心 = 模型中心
     applyTransform() {
         const container = document.getElementById("live2d-container");
         if (!container) {
@@ -423,8 +422,24 @@ const Live2D = {
         }
         const it = this.interaction;
         const transform =
+            "translate(-50%, -50%) " +
             "translate(" + it.dx + "px, " + it.dy + "px) " +
             "scale(" + it.scale + ") rotate(" + it.rotation + "deg)";
+        if (canvas.style.position !== "fixed") {
+            canvas.style.position = "fixed";
+        }
+        if (canvas.style.left !== "50%") {
+            canvas.style.left = "50%";
+        }
+        if (canvas.style.top !== "50%") {
+            canvas.style.top = "50%";
+        }
+        if (canvas.style.width !== "360px") {
+            canvas.style.width = "360px";
+        }
+        if (canvas.style.height !== "760px") {
+            canvas.style.height = "760px";
+        }
         if (canvas.style.transformOrigin !== "center") {
             canvas.style.transformOrigin = "center";
         }
@@ -615,7 +630,7 @@ const Live2D = {
             parentElement: container,
             models: [{
                 path: path,
-                scale: this.computeScale(),
+                scale: 0.15,
                 // 锚点居中：模型在画布内居中完整显示
                 anchor: [0.5, 0.5],
             }],
