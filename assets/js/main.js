@@ -416,11 +416,19 @@ const Live2D = {
         });
     },
 
-    // 初始化：等 SDK 就绪，加载默认模型
+    // 初始化：等 SDK 就绪，加载默认模型；失败时在占位文字上显示原因
     async init() {
+        // 本地 file:// 打开时浏览器禁止读取本地模型文件，直接提示
+        if (location.protocol === "file:") {
+            this.showPlaceholder("本地打开无法加载 Live2D（浏览器限制），请访问 GitHub Pages 线上地址");
+            return false;
+        }
+
         const ready = await this.waitForSDK();
         if (!ready) {
-            console.warn("Live2D SDK 加载失败（可能是网络问题），显示占位");
+            const reason = window.__omlError || "SDK 加载超时（可能是网络无法访问 CDN）";
+            console.warn("Live2D SDK 加载失败：", reason);
+            this.showPlaceholder("Live2D 加载失败：" + reason);
             return false;
         }
         try {
@@ -436,6 +444,7 @@ const Live2D = {
             return true;
         } catch (error) {
             console.warn("Live2D 初始化失败：", error);
+            this.showPlaceholder("Live2D 模型加载失败：" + (error && error.message ? error.message : error));
             return false;
         }
     },
@@ -545,10 +554,13 @@ const Live2D = {
         // TODO: 接入 TTS 后调用模型音频/嘴型接口
     },
 
-    showPlaceholder() {
+    showPlaceholder(message) {
         const el = document.getElementById("live2d-placeholder");
         if (el) {
             el.style.display = "flex";
+            if (message) {
+                el.textContent = message;
+            }
         }
     },
 

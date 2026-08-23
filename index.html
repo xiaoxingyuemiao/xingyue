@@ -195,10 +195,21 @@
         </div>
 
 
-        <!-- Live2D SDK（oh-my-live2d，支持不同 SDK 版本的模型） -->
+        <!-- Live2D SDK（oh-my-live2d，支持不同 SDK 版本的模型；多 CDN 备用加载） -->
         <script type="module">
-            import { OhMyLive2D } from "https://cdn.jsdelivr.net/npm/oh-my-live2d/+esm";
-            window.OhMyLive2D = OhMyLive2D;
+            window.__omlError = "";
+            try {
+                const { OhMyLive2D } = await import("https://cdn.jsdelivr.net/npm/oh-my-live2d@0.19.3/+esm");
+                window.OhMyLive2D = OhMyLive2D;
+            } catch (e1) {
+                try {
+                    const { OhMyLive2D } = await import("https://esm.sh/oh-my-live2d@0.19.3");
+                    window.OhMyLive2D = OhMyLive2D;
+                } catch (e2) {
+                    window.__omlError = "SDK 加载失败：" + (e1 && e1.message || e1) + " / " + (e2 && e2.message || e2);
+                    console.error("oh-my-live2d 加载失败", e1, e2);
+                }
+            }
         </script>
 
         <script src="assets/data/official-roles.js"></script>
