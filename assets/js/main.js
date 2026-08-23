@@ -487,8 +487,16 @@ const Live2D = {
 
         let fixed = false;
 
-        for (const el of container.children) {
-            // 舞台（stage）铺满容器
+        for (const el of Array.from(container.children)) {
+            const canvas = el.querySelector("canvas");
+
+            if (!canvas) {
+                // SDK 自带 UI（对话框、提示条、按钮等，容器的直接子元素）：全部隐藏
+                el.style.display = "none";
+                continue;
+            }
+
+            // 舞台（stage）：铺满容器
             el.style.position = "absolute";
             el.style.left = "0";
             el.style.top = "0";
@@ -498,24 +506,19 @@ const Live2D = {
             el.style.right = "auto";
             el.style.bottom = "auto";
 
-            let canvas = null;
+            // 舞台内除画布外的元素也全部隐藏
             for (const child of el.querySelectorAll("*")) {
-                if (child.tagName.toLowerCase() === "canvas") {
-                    canvas = child;
-                } else {
-                    // 隐藏 SDK 自带 UI：对话框、提示条、按钮、状态栏等
+                if (child.tagName.toLowerCase() !== "canvas") {
                     child.style.display = "none";
                 }
             }
 
-            if (canvas) {
-                // 模型画布在舞台正中间
-                canvas.style.position = "absolute";
-                canvas.style.left = "50%";
-                canvas.style.top = "50%";
-                canvas.style.transform = "translate(-50%, -50%)";
-                fixed = true;
-            }
+            // 模型画布在舞台正中间
+            canvas.style.position = "absolute";
+            canvas.style.left = "50%";
+            canvas.style.top = "50%";
+            canvas.style.transform = "translate(-50%, -50%)";
+            fixed = true;
         }
 
         if (!fixed) {
