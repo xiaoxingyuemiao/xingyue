@@ -402,8 +402,27 @@ function roleItemEl(role, active) {
 // 先让模型出现，后续再逐步添加：居中适配 / 交互 / 情绪动作
 // ================================
 
+// ================================
+// Live2D：模型固定渲染在"窗口"（画布）上，
+// 鼠标操作的是窗口本身（拖动 / 中键缩放 / Ctrl+中键旋转）
+// ================================
+
 const Live2D = {
     om: null,
+
+    // 窗口状态：拖动偏移 / 缩放 / 旋转
+    win: {
+        dx: 0,
+        dy: 0,
+        scale: 1,
+        rotation: 0,
+        dragging: false,
+        startX: 0,
+        startY: 0,
+        startDx: 0,
+        startDy: 0,
+        bound: false,
+    },
 
     async init() {
         // SDK 已由 index.html 加载（window.OML2D.loadOml2d）
@@ -423,6 +442,8 @@ const Live2D = {
                 models: [{
                     path: "assets/live2d/default/ARGNori.model3.json",
                     scale: 0.1,
+                    // 锚点左上角：模型固定渲染，位置由"窗口"控制
+                    anchor: [0, 0],
                 }],
                 // 关闭 SDK 自带 UI
                 statusBar: { disable: true },
@@ -432,53 +453,79 @@ const Live2D = {
             });
             window.__om = this.om; // 调试钩子
             console.log("Live2D 模型加载中……");
-            // 画布出现后居中；模型加载完成后 SDK 可能重置位置，再校准一次
-            this.waitCanvas(() => {
-                this.centerModel();
-                setTimeout(() => this.centerModel(), 1500);
-            });
+            this.bindWindowInteractions();
         } catch (error) {
             console.warn("Live2D 加载失败：", error);
         }
     },
 
-    // 等待画布出现（模型加载会创建 canvas），就绪后回调
-    waitCanvas(done, attempts) {
+    // 应用窗口变换：拖动 / 缩放 / 旋转整个画布
+    applyWin() {
         const container = document.getElementById("live2d-container");
         const canvas = container && container.querySelector("canvas");
-        if (canvas) {
-            done();
+        if (!canvas) {
             return;
         }
-        const count = attempts || 0;
-        if (count > 30) {
-            return; // 最多等 9 秒
+        const w = this.win;
+        const transform =
+            "translate(" + w.dx + "px, " + w.dy + "px) " +
+            "scale(" + w.scale + ") rotate(" + w.rotation + "deg)";
+        if (canvas.style.transformOrigin !== "center center") {
+            canvas.style.transformOrigin = "center center";
         }
-        setTimeout(() => this.waitCanvas(done, count + 1), 300);
+        if (canvas.style.transform !== transform) {
+            canvas.style.transform = transform;
+        }
     },
 
-    // 模型居中：锚点 = 模型中心，位置 = 画布中心（canvas 像素坐标）
-    // 模型对象未就绪时会报错，自动重试直到成功
-    centerModel(attempts) {
-        const om = this.om;
-        const container = document.getElementById("live2d-container");
-        const canvas = container && container.querySelector("canvas");
-        if (!om || !canvas) {
+    // 鼠标动"窗口"：拖动 / 中键缩放 / Ctrl+中键旋转（捕获阶段，避免被 SDK 拦截）
+    bindWindowInteractions() {
+        if (this.win.bound) {
             return;
         }
-        const count = attempts || 0;
-        try {
-            om.setModelAnchor({ x: 0.5, y: 0.5 });
-            om.setModelPosition({ x: canvas.width / 2, y: canvas.height / 2 });
-            console.log("Live2D 模型已居中");
-        } catch (error) {
-            if (count < 20) {
-                // 模型对象还没创建完成，稍后重试（最多 10 秒）
-                setTimeout(() => this.centerModel(count + 1), 500);
-            } else {
-                console.warn("Live2D 居中失败：", error);
-            }
+        this.win.bound = true;
+
+        const stageEl = document.querySelector(".live2d-stage") || document.getElementById("live2d-container");
+        if (!stageEl) {
+            return;
         }
+        const w = this.win;
+
+        stageEl.addEventListener("pointerdown", (e) => {
+            w.dragging = true;
+            w.startX = e.clientX;
+            w.startY = e.clientY;
+            w.startDx = w.dx;
+            w.startDy = w.dy;
+            e.preventDefault();
+        }, true);
+
+        window.addEventListener("pointermove", (e) => {
+            if (!w.dragging) {
+                return;
+            }
+            w.dx = w.startDx + (e.clientX - w.startX);
+            w.dy = w.startDy + (e.clientY - w.startY);
+            this.applyWin();
+        }, true);
+
+        window.addEventListener("pointerup", () => {
+            w.dragging = false;
+        }, true);
+
+        stageEl.addEventListener("wheel", (e) => {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? -1 : 1;
+            if (e.ctrlKey) {
+                // 旋转窗口
+                w.rotation = Math.round((w.rotation + delta * 5) * 10) / 10;
+            } else {
+                // 缩放窗口
+                const factor = delta > 0 ? 0.93 : 1.07;
+                w.scale = Math.min(5, Math.max(0.1, w.scale * factor));
+            }
+            this.applyWin();
+        }, { passive: false, capture: true });
     },
 };
 
