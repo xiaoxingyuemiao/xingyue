@@ -406,12 +406,38 @@ body {
 
 /* 容器用绝对定位铺满舞台（避免 flex 布局导致宽度塌陷） */
 .live2d-container {
-    position: absolute;
+    position: absolute !important;
 
-    inset: 0;
+    left: 0 !important;
+    top: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
 
-    width: auto;
-    height: auto;
+    width: auto !important;
+    height: auto !important;
+
+    min-width: 400px !important;
+    min-height: 300px !important;
+}
+
+/* 舞台铺满容器 */
+.live2d-container > div {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* 模型画布铺满舞台 */
+.live2d-container canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* 隐藏 SDK 自带的一切 UI（对话框、提示条、按钮等） */
+.live2d-container *:not(canvas) {
+    display: none !important;
 }
 
 /* 舞台铺满容器（SDK 默认是 0x0 锚点，不铺满的话模型会跑到角落） */
