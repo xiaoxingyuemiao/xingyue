@@ -152,11 +152,11 @@ function getActiveProvider() {
     }
 }
 
-// 读取当前正在使用的角色设定（设置页"角色设定"里添加并切换）
+// 读取当前使用的角色会话 id：优先"我的角色"，没有则使用官方"星瑶"的会话
 function getActiveRoleId() {
     try {
         const store = JSON.parse(localStorage.getItem(SETTINGS_KEY));
-        if (store && Array.isArray(store.roles)) {
+        if (store && Array.isArray(store.roles) && store.roles.length > 0) {
             const role = store.roles.find((r) => r.id === store.activeRoleId) || store.roles[0];
             if (role && role.id) {
                 return role.id;
@@ -165,21 +165,55 @@ function getActiveRoleId() {
     } catch {
         // 读取失败用默认
     }
-    return "role-default";
+    return "official-xingyao";
 }
 
-function getActiveRolePrompt() {
+// 聊天用的 System Prompt：
+// 1) 优先"我的角色"里当前选中的角色
+// 2) 没有则使用官方"星瑶"设定（站长本地覆盖 → 服务器 official-roles.json）
+async function getActiveSystemPrompt() {
     try {
         const store = JSON.parse(localStorage.getItem(SETTINGS_KEY));
-        if (store && Array.isArray(store.roles)) {
+        if (store && Array.isArray(store.roles) && store.roles.length > 0) {
             const role = store.roles.find((r) => r.id === store.activeRoleId) || store.roles[0];
             if (role && role.prompt) {
                 return role.prompt;
             }
         }
     } catch {
-        // 读取失败用默认
+        // 读取失败继续走官方设定
     }
+
+    return getOfficialRolePrompt("星瑶");
+}
+
+// 读取官方角色的设定：站长本地覆盖优先，其次服务器上的 JSON
+async function getOfficialRolePrompt(name) {
+    try {
+        const override = JSON.parse(localStorage.getItem("xingyue_official_override"));
+        if (override && Array.isArray(override.roles)) {
+            const r = override.find((x) => x.name === name);
+            if (r && r.prompt) {
+                return r.prompt;
+            }
+        }
+    } catch {
+        // 忽略
+    }
+
+    try {
+        const response = await fetch("assets/data/official-roles.json");
+        if (response.ok) {
+            const data = await response.json();
+            const r = (data.roles || []).find((x) => x.name === name);
+            if (r && r.prompt) {
+                return r.prompt;
+            }
+        }
+    } catch {
+        // 本地 file:// 打开时 fetch 可能失败，返回空
+    }
+
     return "";
 }
 
@@ -401,7 +435,7 @@ async function askXingyao() {
 
     // 组装消息：当前角色设定 + 最近 20 条对话
     const messages = [
-        { role: "system", content: getActiveRolePrompt() },
+        { role: "system", content: await getActiveSystemPrompt() },
         ...chatHistory.slice(-20).map((m) => ({
             role: m.isUser ? "user" : "assistant",
             content: m.text,
