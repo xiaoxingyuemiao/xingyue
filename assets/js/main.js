@@ -436,12 +436,19 @@ const Live2D = {
             return;
         }
         try {
+            // 解密官方模型（.l2d 加密容器 → blob URL），当前固定加载 default
+            let modelInfo = null;
+            try {
+                modelInfo = await window.L2DModels.ensure("default");
+            } catch (e) {
+                console.warn("官方模型解密加载失败：", e);
+            }
             this.om = factory({
                 el: container,
                 parentElement: container,
                 models: [{
-                    path: "assets/live2d/default/ARGNori.model3.json",
-                    scale: 0.1,
+                    path: modelInfo ? modelInfo.entryUrl : "assets/live2d/default/ARGNori.model3.json",
+                    scale: modelInfo ? modelInfo.scale : 0.1,
                     // 锚点左上角：模型固定渲染，位置由"窗口"控制
                     anchor: [0, 0],
                 }],

@@ -7,10 +7,11 @@
 // 加密成单个 .l2d 文件：assets/live2d/<模型名>.l2d
 //
 // 容器格式（version 1）：
-//   magic "XYL2D" (5B) + ver (1B) + iv (12B) + tag (16B) + ciphertext
+//   magic "XYL2D" (5B) + ver (1B) + iv (12B) + 密文（ciphertext + tag 16B 拼接）
 //   明文：u32 entryLen + entry(UTF-8) + u32 fileCount
 //         + 每个文件：u32 pathLen + path(UTF-8) + u32 dataLen + data
 //   加密：AES-256-GCM，密钥 = SHA-256(SEED)
+//   （密文必须自带 tag 尾部，Web Crypto 的 decrypt 要求这样）
 // ================================
 
 const fs = require("fs");
@@ -140,12 +141,13 @@ function packModel(name, entry) {
     const enc = Buffer.concat([cipher.update(plain), cipher.final()]);
     const tag = cipher.getAuthTag();
 
+    // 密文 = ciphertext + tag（Web Crypto decrypt 要求 tag 拼在末尾）
     const out = Buffer.concat([
         Buffer.from("XYL2D", "ascii"),
         Buffer.from([1]),
         iv,
-        tag,
         enc,
+        tag,
     ]);
 
     const outPath = path.join(LIVE2D_DIR, name + ".l2d");
@@ -160,8 +162,8 @@ function verify(outPath) {
     if (buf.toString("ascii", 0, 5) !== "XYL2D") throw new Error("magic 错误");
     if (buf[5] !== 1) throw new Error("版本不支持");
     const iv = buf.subarray(6, 18);
-    const tag = buf.subarray(18, 34);
-    const enc = buf.subarray(34);
+    const enc = buf.subarray(18, buf.length - 16); // 去掉末尾 16B tag
+    const tag = buf.subarray(buf.length - 16);
     const key = deriveKey(SEED);
     const decipher = crypto.createDecipheriv("aes-256-gcm", key, iv);
     decipher.setAuthTag(tag);
