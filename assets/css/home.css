@@ -698,11 +698,11 @@ body {
 .role-picker {
     position: absolute;
 
-    /* 与输入框同宽同右偏移，左边缘与输入框左边缘保持一条直线 */
-    right: 20px;
+    /* 宽度恢复固定大小；right 用 calc 让左边缘与输入框左边缘保持一条直线 */
+    right: calc(21% + 20px - min(180px, 21%));
     bottom: 75px;
 
-    width: 21%;
+    width: min(180px, 21%);
 
     z-index: 8;
 
