@@ -411,6 +411,16 @@ body {
     height: 100%;
 }
 
+/* 强制 SDK 舞台在容器内居中（覆盖 SDK 自带的右下角定位） */
+.live2d-container > div {
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    right: auto !important;
+    bottom: auto !important;
+    transform: translate(-50%, -50%) !important;
+}
+
 /* ==============================
    聊天（右侧窄栏，与输入框左沿对齐）
    ============================== */
