@@ -546,9 +546,6 @@ const Live2D = {
             models: [{
                 path: path,
                 scale: 0.15,
-                // 锚点居中、无偏移，确保模型在舞台正中间
-                anchor: [0.5, 0.5],
-                position: [0, 0],
             }],
             // 舞台铺满容器（模型画布 canvas 由 CSS 居中）
             stageStyle: {
@@ -608,6 +605,24 @@ const Live2D = {
 
             // 模型画布居中（含用户拖动/缩放/旋转状态）
             this.applyTransform();
+
+            // 画布尺寸兜底：若容器宽度塌陷导致画布异常窄，强制设置显示尺寸
+            const cw = canvas.getBoundingClientRect().width;
+            if (cw < 120) {
+                const ratio = canvas.height / canvas.width;
+                const vw = window.innerWidth;
+                let w = Math.round(vw * 0.4);
+                if (w < 300) {
+                    w = 300;
+                }
+                if (w > 500) {
+                    w = 500;
+                }
+                canvas.style.width = w + "px";
+                canvas.style.height = Math.round(w * ratio) + "px";
+                this.applyTransform();
+            }
+
             fixed = true;
         }
 
