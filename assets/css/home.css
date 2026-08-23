@@ -376,7 +376,7 @@ body {
     z-index: 0;
 }
 
-/* ---------- Live2D ---------- */
+/* ---------- Live2D（铺满整个主空间，聊天区浮在上面） ---------- */
 
 .live2d-stage {
     position: absolute;
@@ -384,7 +384,7 @@ body {
     left: 0;
     top: 0;
 
-    width: 75%;
+    width: 100%;
     height: 100%;
 
     display: flex;

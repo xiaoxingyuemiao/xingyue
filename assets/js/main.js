@@ -395,6 +395,99 @@ const Live2D = {
     om: null,
     currentPath: null,
 
+    // 交互状态：拖动偏移 / 缩放 / 旋转（用户自己控制模型）
+    interaction: {
+        dx: 0,
+        dy: 0,
+        scale: 1,
+        rotation: 0,
+        dragging: false,
+        startX: 0,
+        startY: 0,
+        startDx: 0,
+        startDy: 0,
+        bound: false,
+    },
+
+    // 应用画布变换：居中 + 用户拖动 / 缩放 / 旋转
+    applyTransform() {
+        const container = document.getElementById("live2d-container");
+        if (!container) {
+            return;
+        }
+        const canvas = container.querySelector("canvas");
+        if (!canvas) {
+            return;
+        }
+        const it = this.interaction;
+        canvas.style.position = "absolute";
+        canvas.style.left = "50%";
+        canvas.style.top = "50%";
+        canvas.style.transform =
+            "translate(calc(-50% + " + it.dx + "px), calc(-50% + " + it.dy + "px)) " +
+            "scale(" + it.scale + ") rotate(" + it.rotation + "deg)";
+    },
+
+    // 绑定交互：鼠标拖动模型、中键滑动缩放、Ctrl+中键滑动旋转
+    bindInteractions() {
+        if (this.interaction.bound) {
+            return;
+        }
+        this.interaction.bound = true;
+
+        const container = document.getElementById("live2d-container");
+        if (!container) {
+            return;
+        }
+        const it = this.interaction;
+
+        // 拖动
+        container.addEventListener("pointerdown", (e) => {
+            it.dragging = true;
+            it.startX = e.clientX;
+            it.startY = e.clientY;
+            it.startDx = it.dx;
+            it.startDy = it.dy;
+            e.preventDefault();
+        });
+        window.addEventListener("pointermove", (e) => {
+            if (!it.dragging) {
+                return;
+            }
+            it.dx = it.startDx + (e.clientX - it.startX);
+            it.dy = it.startDy + (e.clientY - it.startY);
+            this.applyTransform();
+        });
+        window.addEventListener("pointerup", () => {
+            it.dragging = false;
+        });
+
+        // 中键滑动缩放 / Ctrl+中键滑动旋转
+        container.addEventListener("wheel", (e) => {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? -1 : 1;
+            if (e.ctrlKey) {
+                // 旋转
+                it.rotation = Math.round((it.rotation + delta * 5) * 10) / 10;
+            } else {
+                // 缩放
+                const factor = delta > 0 ? 0.93 : 1.07;
+                it.scale = Math.min(4, Math.max(0.15, it.scale * factor));
+            }
+            this.applyTransform();
+        }, { passive: false });
+    },
+
+    // 重置交互状态（角色切换后）
+    resetInteraction() {
+        const it = this.interaction;
+        it.dx = 0;
+        it.dy = 0;
+        it.scale = 1;
+        it.rotation = 0;
+        it.dragging = false;
+    },
+
     // 等待 SDK 脚本加载完成（普通 script 加载，同步可用；保险起见轮询）
     waitForSDK(timeout) {
         const limit = timeout || 8000;
@@ -513,11 +606,8 @@ const Live2D = {
                 }
             }
 
-            // 模型画布在舞台正中间
-            canvas.style.position = "absolute";
-            canvas.style.left = "50%";
-            canvas.style.top = "50%";
-            canvas.style.transform = "translate(-50%, -50%)";
+            // 模型画布居中（含用户拖动/缩放/旋转状态）
+            this.applyTransform();
             fixed = true;
         }
 
@@ -548,6 +638,7 @@ const Live2D = {
             }
             this.currentPath = this.getDefaultPath();
             this.hidePlaceholder();
+            this.bindInteractions();
             this.fixLayout(0);
             return true;
         } catch (error) {
@@ -620,6 +711,7 @@ const Live2D = {
             if (!this.om) {
                 throw new Error("无法创建 Live2D 实例");
             }
+            this.resetInteraction();
             this.currentPath = path;
             this.hidePlaceholder();
             this.fixLayout(0);
