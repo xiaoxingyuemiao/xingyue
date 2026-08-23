@@ -25,11 +25,3 @@ Desktop.ini
 node_modules/
 dist/
 build/
-
-# ==============================
-# Live2D 模型明文文件：绝不入库！
-# 仓库里只保留加密后的 *.l2d 单文件（用 tools/pack-live2d.js 生成）
-# ==============================
-assets/live2d/default/
-assets/live2d/xingyao/
-assets/live2d/yueci/

@@ -1,0 +1,31 @@
+{
+	"Version": 3,
+	"FileReferences": {
+		"Moc": "kuma maid.moc3",
+		"Textures": [
+			"kuma maid.4096/texture_00.png",
+			"kuma maid.4096/texture_01.png",
+			"kuma maid.4096/texture_02.png",
+			"kuma maid.4096/texture_03.png",
+			"kuma maid.4096/texture_04.png",
+			"kuma maid.4096/texture_05.png"
+		],
+		"Physics": "kuma maid.physics3.json",
+		"DisplayInfo": "kuma maid.cdi3.json"
+	},
+	"Groups": [
+		{
+			"Target": "Parameter",
+			"Name": "EyeBlink",
+			"Ids": [
+				"ParamEyeLOpen",
+				"ParamEyeROpen"
+			]
+		},
+		{
+			"Target": "Parameter",
+			"Name": "LipSync",
+			"Ids": []
+		}
+	]
+}

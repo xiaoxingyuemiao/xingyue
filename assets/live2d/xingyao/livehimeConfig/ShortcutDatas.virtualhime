@@ -1,0 +1,107 @@
+{
+  "SwitchMode": 0,
+  "RemoveAllExpKeys": [
+    0,
+    0,
+    0
+  ],
+  "MotionShortcutKeyDatas": {},
+  "ExpShortcutKeyDatas": {
+    "0.0.exp3.json": {
+      "ExpName": "0.0.exp3.json",
+      "IsEnable": true,
+      "IsGlobal": true,
+      "Keys": [
+        0,
+        0,
+        0
+      ],
+      "Mode": 1,
+      "FadeDuration": 0.5
+    },
+    "》《.exp3.json": {
+      "ExpName": "》《.exp3.json",
+      "IsEnable": true,
+      "IsGlobal": true,
+      "Keys": [
+        0,
+        0,
+        0
+      ],
+      "Mode": 1,
+      "FadeDuration": 0.5
+    },
+    "哭哭.exp3.json": {
+      "ExpName": "哭哭.exp3.json",
+      "IsEnable": false,
+      "IsGlobal": false,
+      "Keys": [
+        0,
+        0,
+        0
+      ],
+      "Mode": 1,
+      "FadeDuration": 0.5
+    },
+    "换衣.exp3.json": {
+      "ExpName": "换衣.exp3.json",
+      "IsEnable": true,
+      "IsGlobal": true,
+      "Keys": [
+        306,
+        113,
+        0
+      ],
+      "Mode": 1,
+      "FadeDuration": 0.5
+    },
+    "无语.exp3.json": {
+      "ExpName": "无语.exp3.json",
+      "IsEnable": true,
+      "IsGlobal": true,
+      "Keys": [
+        0,
+        0,
+        0
+      ],
+      "Mode": 1,
+      "FadeDuration": 0.5
+    },
+    "淫纹.exp3.json": {
+      "ExpName": "淫纹.exp3.json",
+      "IsEnable": false,
+      "IsGlobal": false,
+      "Keys": [
+        0,
+        0,
+        0
+      ],
+      "Mode": 1,
+      "FadeDuration": 0.5
+    },
+    "爱心.exp3.json": {
+      "ExpName": "爱心.exp3.json",
+      "IsEnable": false,
+      "IsGlobal": false,
+      "Keys": [
+        0,
+        0,
+        0
+      ],
+      "Mode": 1,
+      "FadeDuration": 0.5
+    },
+    "非常危险慎点.exp3.json": {
+      "ExpName": "非常危险慎点.exp3.json",
+      "IsEnable": false,
+      "IsGlobal": false,
+      "Keys": [
+        0,
+        0,
+        0
+      ],
+      "Mode": 1,
+      "FadeDuration": 0.5
+    }
+  }
+}
