@@ -664,7 +664,8 @@ const Live2D = {
         this.applyTransform();
     },
 
-    // 画布变换：视口居中 + 用户拖动 / 缩放 / 旋转（原点 = 画布中心 = 模型中心）
+    // 画布变换：尺寸=容器尺寸（像素），fixed 视口居中，
+    // + 用户拖动 / 缩放 / 旋转（原点 = 画布中心 = 模型中心）
     applyTransform() {
         const container = this.container();
         if (!container) {
@@ -675,6 +676,8 @@ const Live2D = {
             return;
         }
         const it = this.interaction;
+        const cw = container.clientWidth || 360;
+        const ch = container.clientHeight || 760;
         const transform =
             "translate(-50%, -50%) " +
             "translate(" + it.dx + "px, " + it.dy + "px) " +
@@ -687,6 +690,12 @@ const Live2D = {
         }
         if (canvas.style.top !== "50%") {
             canvas.style.top = "50%";
+        }
+        if (canvas.style.width !== cw + "px") {
+            canvas.style.width = cw + "px";
+        }
+        if (canvas.style.height !== ch + "px") {
+            canvas.style.height = ch + "px";
         }
         if (canvas.style.transformOrigin !== "center") {
             canvas.style.transformOrigin = "center";

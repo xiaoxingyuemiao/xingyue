@@ -434,11 +434,7 @@ body {
     height: 100% !important;
 }
 
-/* 画布铺满舞台（位置与交互变换由 JS 控制） */
-.live2d-container canvas {
-    width: 100% !important;
-    height: 100% !important;
-}
+/* 画布：尺寸与位置完全由 JS 控制（fixed 视口居中），CSS 不干预 */
 
 /* 隐藏 SDK 自带 UI：只隐藏不含画布的容器，保留舞台（canvas 的父级） */
 .live2d-container > div:not(:has(canvas)) {
