@@ -443,8 +443,23 @@ const Live2D = {
         if (!container) {
             return;
         }
-        for (const el of container.querySelectorAll("*")) {
-            if (el.tagName.toLowerCase() !== "canvas" && el.style.display !== "none") {
+        // 找到舞台（含画布的元素），舞台及其内部保留
+        let stage = null;
+        for (const el of Array.from(container.children)) {
+            if (el.querySelector("canvas")) {
+                stage = el;
+                break;
+            }
+        }
+        for (const el of Array.from(container.querySelectorAll("*"))) {
+            if (el.tagName.toLowerCase() === "canvas") {
+                continue;
+            }
+            // 跳过舞台及其内部元素（模型要保留显示）
+            if (stage && (el === stage || stage.contains(el))) {
+                continue;
+            }
+            if (el.style.display !== "none") {
                 el.style.display = "none";
             }
         }
