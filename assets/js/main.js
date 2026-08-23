@@ -754,6 +754,8 @@ const Live2D = {
             if (!this.om) {
                 throw new Error("无法创建 Live2D 实例");
             }
+            // 调试钩子：方便在控制台检查模型渲染尺寸
+            window.__om = this.om;
             this.currentPath = this.getDefaultPath();
             this.hidePlaceholder();
             this.bindInteractions();
@@ -831,6 +833,7 @@ const Live2D = {
             if (!this.om) {
                 throw new Error("无法创建 Live2D 实例");
             }
+            window.__om = this.om;
             this.resetInteraction();
             this.currentPath = path;
             this.hidePlaceholder();
