@@ -133,12 +133,14 @@
                 <div class="background"></div>
 
 
-                <!-- Live2D -->
+                <!-- Live2D（支持 Cubism 2 / 4 / 5 各 SDK 模型） -->
                 <div class="live2d-stage">
 
-                    <div class="live2d-placeholder">
+                    <div class="live2d-placeholder" id="live2d-placeholder">
                         Live2D
                     </div>
+
+                    <div class="live2d-container" id="live2d-container"></div>
 
                 </div>
 
@@ -192,6 +194,12 @@
 
         </div>
 
+
+        <!-- Live2D SDK（oh-my-live2d，支持不同 SDK 版本的模型） -->
+        <script type="module">
+            import { OhMyLive2D } from "https://cdn.jsdelivr.net/npm/oh-my-live2d/+esm";
+            window.OhMyLive2D = OhMyLive2D;
+        </script>
 
         <script src="assets/data/official-roles.js"></script>
         <script src="assets/js/main.js"></script>

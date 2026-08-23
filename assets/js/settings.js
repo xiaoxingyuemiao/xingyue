@@ -60,6 +60,7 @@ const roleModalClose = document.querySelector("#role-modal-close");
 const roleModalTitle = document.querySelector("#role-modal-title");
 const rName = document.querySelector("#r-name");
 const rPrompt = document.querySelector("#r-prompt");
+const rModel = document.querySelector("#r-model");
 const rSave = document.querySelector("#r-save");
 const rStatus = document.querySelector("#r-status");
 
@@ -362,6 +363,7 @@ function renderRoles() {
 function openRoleModal(role) {
     rName.value = role ? role.name : "";
     rPrompt.value = role ? role.prompt : "";
+    rModel.value = role ? role.model || "" : "";
     rStatus.textContent = "";
     editingRoleId = role ? role.id : null;
     roleModalTitle.textContent = role ? "编辑角色" : "添加角色";
@@ -384,6 +386,7 @@ roleModalOverlay.addEventListener("click", (event) => {
 rSave.addEventListener("click", () => {
     const name = rName.value.trim() || "未命名角色";
     const prompt = rPrompt.value.trim();
+    const model = rModel.value.trim();
     if (!prompt) {
         rStatus.textContent = "请填写角色设定内容";
         return;
@@ -404,11 +407,11 @@ rSave.addEventListener("click", () => {
         // 编辑已有角色
         const idx = store.roles.findIndex((x) => x.id === editingRoleId);
         if (idx !== -1) {
-            store.roles[idx] = { ...store.roles[idx], name: finalName, prompt: prompt };
+            store.roles[idx] = { ...store.roles[idx], name: finalName, prompt: prompt, model: model };
         }
     } else {
         // 新增角色
-        store.roles.push({ id: "role-" + Date.now(), name: finalName, prompt: prompt });
+        store.roles.push({ id: "role-" + Date.now(), name: finalName, prompt: prompt, model: model });
         if (!store.activeRoleId) {
             store.activeRoleId = store.roles[store.roles.length - 1].id;
         }

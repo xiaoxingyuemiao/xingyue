@@ -273,10 +273,11 @@ document.addEventListener("click", (event) => {
     closeRolePicker();
 });
 
-// 选中角色：保存 → 关闭面板 → 加载该角色的对话历史
+// 选中角色：保存 → 关闭面板 → 切换 Live2D 模型 → 加载该角色的对话历史
 function pickRole(role) {
     saveChatRole({ kind: role.kind, id: role.id, name: role.name });
     closeRolePicker();
+    Live2D.switchRole(role);
     chatHistory = loadChat();
     renderChat();
     updateExpandBtn();
@@ -382,6 +383,182 @@ function roleItemEl(role, active) {
         pickRole(role);
     });
     return btn;
+}
+
+// ================================
+// Live2D 管理器
+// （oh-my-live2d SDK，支持 Cubism 2 / 4 / 5 各版本模型；
+//   封装了加载 / 切换 / 情绪动作，个别 API 不可用时优雅降级）
+// ================================
+
+const Live2D = {
+    om: null,
+    currentPath: null,
+
+    // 等待 SDK 脚本加载完成（module 异步执行，需要轮询等待）
+    waitForSDK(timeout) {
+        const limit = timeout || 8000;
+        return new Promise((resolve) => {
+            if (window.OhMyLive2D) {
+                resolve(true);
+                return;
+            }
+            const start = Date.now();
+            const timer = setInterval(() => {
+                if (window.OhMyLive2D) {
+                    clearInterval(timer);
+                    resolve(true);
+                } else if (Date.now() - start > limit) {
+                    clearInterval(timer);
+                    resolve(false);
+                }
+            }, 100);
+        });
+    },
+
+    // 初始化：等 SDK 就绪，加载默认模型
+    async init() {
+        const ready = await this.waitForSDK();
+        if (!ready) {
+            console.warn("Live2D SDK 加载失败（可能是网络问题），显示占位");
+            return false;
+        }
+        try {
+            this.om = new window.OhMyLive2D({
+                el: document.getElementById("live2d-container"),
+                modelPath: this.getDefaultPath(),
+                width: 300,
+                height: 480,
+            });
+            this.om.open();
+            this.currentPath = this.getDefaultPath();
+            this.hidePlaceholder();
+            return true;
+        } catch (error) {
+            console.warn("Live2D 初始化失败：", error);
+            return false;
+        }
+    },
+
+    // 角色 → 模型目录：官方角色用后台配置，我的角色用自己配置的，都没有用默认
+    getRoleModelPath(role) {
+        let model = "";
+
+        if (role.kind === "official") {
+            const official = window.OFFICIAL_ROLES && Array.isArray(window.OFFICIAL_ROLES.roles)
+                ? window.OFFICIAL_ROLES.roles
+                : [];
+            const r = official.find((x) => x.name === role.name);
+            model = r && r.model ? r.model : "";
+        } else {
+            try {
+                const store = JSON.parse(localStorage.getItem(SETTINGS_KEY));
+                const r = store && Array.isArray(store.roles)
+                    ? store.roles.find((x) => x.id === role.id)
+                    : null;
+                model = r && r.model ? r.model : "";
+            } catch {
+                // 忽略
+            }
+        }
+
+        return model || this.getDefaultPath();
+    },
+
+    getDefaultPath() {
+        return "assets/live2d/default/";
+    },
+
+    // 切换角色 → 切换模型
+    async switchRole(role) {
+        if (!this.om) {
+            return;
+        }
+        const path = this.getRoleModelPath(role);
+        if (this.currentPath === path) {
+            return;
+        }
+        try {
+            if (typeof this.om.setModelPath === "function") {
+                this.om.setModelPath(path);
+            } else {
+                // 旧版 SDK 回退：重建实例
+                this.om.close();
+                this.om = new window.OhMyLive2D({
+                    el: document.getElementById("live2d-container"),
+                    modelPath: path,
+                    width: 300,
+                    height: 480,
+                });
+                this.om.open();
+            }
+            this.currentPath = path;
+            this.hidePlaceholder();
+        } catch (error) {
+            console.warn("Live2D 模型切换失败：", error);
+            this.showPlaceholder();
+        }
+    },
+
+    // 情绪 → 模型动作（模型里没有对应的 motion 时会被 SDK 忽略，不影响聊天）
+    playEmotion(emotion) {
+        if (!this.om || !emotion) {
+            return;
+        }
+        const map = {
+            "开心": "happy",
+            "难过": "sad",
+            "生气": "angry",
+            "害羞": "shy",
+            "惊讶": "surprise",
+            "委屈": "wronged",
+            "平静": "normal",
+            "困": "sleepy",
+            "累": "tired",
+        };
+        const motion = map[emotion];
+        if (!motion) {
+            return;
+        }
+        try {
+            if (typeof this.om.motion === "function") {
+                this.om.motion(motion);
+            }
+        } catch {
+            // 模型没有该动作时忽略
+        }
+    },
+
+    // 预留：TTS 嘴型同步（未来接入 TTS 后，在这里把音频交给 SDK 驱动嘴巴）
+    speak(text) {
+        // TODO: 接入 TTS 后调用模型音频/嘴型接口
+    },
+
+    showPlaceholder() {
+        const el = document.getElementById("live2d-placeholder");
+        if (el) {
+            el.style.display = "flex";
+        }
+    },
+
+    hidePlaceholder() {
+        const el = document.getElementById("live2d-placeholder");
+        if (el) {
+            el.style.display = "none";
+        }
+    },
+};
+
+// 解析回复开头的情绪标记：【情绪：开心】正文……
+function parseEmotion(reply) {
+    const match = reply.match(/^【情绪[:：]([^】]+)】/);
+    if (match) {
+        return {
+            emotion: match[1].trim(),
+            text: reply.slice(match[0].length).trim(),
+        };
+    }
+    return { emotion: null, text: reply };
 }
 
 // 历史对话保留对数（设置页可调整，默认 3 对）
@@ -600,9 +777,13 @@ async function askXingyao() {
     // 先显示三点跳动的等待气泡
     const typingEl = appendTypingElement();
 
-    // 组装消息：当前角色设定 + 最近 20 条对话
+    // 组装消息：当前角色设定（附加情绪规则）+ 最近 20 条对话
+    const basePrompt = await getActiveSystemPrompt();
+    const systemPrompt = basePrompt +
+        "\n\n【情绪规则】每次回复的开头先用【情绪：X】标记你此刻的情绪（X 从：开心、难过、生气、害羞、惊讶、委屈、平静 中选择一个），随后才是回复内容。例如：【情绪：开心】今天天气不错呀。";
+
     const messages = [
-        { role: "system", content: await getActiveSystemPrompt() },
+        { role: "system", content: systemPrompt },
         ...chatHistory.slice(-20).map((m) => ({
             role: m.isUser ? "user" : "assistant",
             content: m.text,
@@ -632,7 +813,11 @@ async function askXingyao() {
         const reply = data.choices?.[0]?.message?.content?.trim() || "……（没有收到回复）";
 
         typingEl.remove();
-        addMessage(getChatRoleName(), reply, false);
+
+        // 解析情绪标记 → 控制 Live2D 表情动作；正文去掉标记后显示
+        const parsed = parseEmotion(reply);
+        Live2D.playEmotion(parsed.emotion);
+        addMessage(getChatRoleName(), parsed.text || "……", false);
     } catch (error) {
         typingEl.remove();
         addMessage(getChatRoleName(), "呜……连接失败了（" + error.message + "）。去「设置」页面检查一下 API 配置吧～", false);
@@ -653,6 +838,9 @@ chatInput.addEventListener("keydown", (event) => {
 renderChat();
 updateExpandBtn();
 renderUserInfo();
+
+// 初始化 Live2D（异步加载默认模型，不影响页面进入）
+Live2D.init();
 
 // 检查用户是否第一次访问网站
 const isFirstVisit = localStorage.getItem("xingyue_visited");
