@@ -451,7 +451,17 @@ const Live2D = {
             el: container,
             parentElement: container,
             models: [{ path: path, scale: 0.2 }],
+            // 舞台在容器内居中（SDK 默认定位在右下角）
+            stageStyle: {
+                position: "absolute",
+                left: "50%",
+                top: "50%",
+                transform: "translate(-50%, -50%)",
+            },
+            // 关闭 SDK 自带 UI：状态栏 / 菜单按钮（换衣、休息、设置等）/ 欢迎气泡
             statusBar: { disable: true },
+            menus: { disable: true },
+            sayHello: false,
             tips: { disable: true },
         });
     },
