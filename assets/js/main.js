@@ -391,11 +391,19 @@ function roleItemEl(role, active) {
 //   封装了加载 / 切换 / 情绪动作，个别 API 不可用时优雅降级）
 // ================================
 
-const Live2D = {
-    om: null,
-    currentPath: null,
+// ================================
+// Live2D 管理器（oh-my-live2d 0.19）
+// 加载/切换模型、居中显示、用户交互（拖动 / 中键缩放 / Ctrl+中键旋转）、
+// 情绪动作驱动。所有 WebGL 资源在重建前释放，防止上下文泄漏。
+// ================================
 
-    // 交互状态：拖动偏移 / 缩放 / 旋转（用户自己控制模型）
+const Live2D = {
+    om: null,               // SDK 实例（loadOml2d 返回）
+    currentPath: null,      // 当前模型配置文件路径
+    initialized: false,     // 是否已完成初始化
+    resizeTimer: null,
+
+    // 用户交互状态：拖动偏移 / 缩放 / 旋转
     interaction: {
         dx: 0,
         dy: 0,
@@ -409,10 +417,256 @@ const Live2D = {
         bound: false,
     },
 
-    // 应用画布变换：画布 fixed 钉在视口中心 + 用户拖动 / 缩放 / 旋转
-    // （画布显示尺寸由 CSS 统一控制：min(360px,88vw) × min(760px,88vh)）
+    /* ---------------- SDK ---------------- */
+
+    // 获取 SDK 工厂函数（0.19 版挂载在 window.OML2D.loadOml2d）
+    getFactory() {
+        if (window.OML2D && typeof window.OML2D.loadOml2d === "function") {
+            return window.OML2D.loadOml2d;
+        }
+        if (typeof window.loadOml2d === "function") {
+            return window.loadOml2d;
+        }
+        return null;
+    },
+
+    // 等待 SDK 脚本就绪
+    waitForSDK(timeout) {
+        const limit = timeout || 8000;
+        return new Promise((resolve) => {
+            if (this.getFactory()) {
+                resolve(true);
+                return;
+            }
+            const start = Date.now();
+            const timer = setInterval(() => {
+                if (this.getFactory()) {
+                    clearInterval(timer);
+                    resolve(true);
+                } else if (Date.now() - start > limit) {
+                    clearInterval(timer);
+                    resolve(false);
+                }
+            }, 100);
+        });
+    },
+
+    /* ---------------- 生命周期 ---------------- */
+
+    async init() {
+        if (this.initialized) {
+            return;
+        }
+        // 无论视口宽窄都先注册 resize 监听（窗口变化后自动适配）
+        this.setupResizeListener();
+
+        if (location.protocol === "file:") {
+            this.showPlaceholder("本地打开无法加载 Live2D（浏览器限制），请访问 GitHub Pages 线上地址");
+            return;
+        }
+
+        const ready = await this.waitForSDK();
+        if (!ready) {
+            this.showPlaceholder("Live2D SDK 加载失败（请检查 assets/vendor 下的 SDK 文件）");
+            return;
+        }
+
+        try {
+            this.om = this.createInstance(this.getDefaultPath());
+            this.currentPath = this.getDefaultPath();
+            window.__om = this.om; // 调试钩子
+            this.initialized = true;
+            this.bindInteractions();
+            this.setupObserver();
+            this.fixLayout();
+            this.hidePlaceholder();
+        } catch (error) {
+            console.warn("Live2D 初始化失败：", error);
+            this.showPlaceholder("Live2D 加载失败：" + (error && error.message ? error.message : error));
+        }
+    },
+
+    // 销毁实例：释放 WebGL 上下文（必须，否则多次重建会崩溃）
+    destroyInstance() {
+        if (!this.om) {
+            return;
+        }
+        try {
+            if (typeof this.om.destroy === "function") {
+                this.om.destroy();
+            } else if (typeof this.om.dispose === "function") {
+                this.om.dispose();
+            }
+        } catch {
+            // 忽略
+        }
+        try {
+            if (typeof this.om.stageSlideOut === "function") {
+                this.om.stageSlideOut();
+            }
+        } catch {
+            // 忽略
+        }
+        this.om = null;
+    },
+
+    // 重新加载当前模型（窗口大小变化后 scale 需重算）
+    reloadModel() {
+        if (!this.om || !this.currentPath) {
+            return;
+        }
+        this.destroyInstance();
+        const container = this.container();
+        if (container) {
+            container.innerHTML = "";
+        }
+        try {
+            this.om = this.createInstance(this.currentPath);
+            window.__om = this.om;
+            this.resetInteraction();
+            this.fixLayout();
+        } catch (error) {
+            console.warn("Live2D 重载失败：", error);
+        }
+    },
+
+    /* ---------------- 模型 ---------------- */
+
+    container() {
+        return document.getElementById("live2d-container");
+    },
+
+    // 创建实例（oh-my-live2d 0.19：loadOml2d + models 数组）
+    createInstance(path) {
+        const factory = this.getFactory();
+        if (!factory) {
+            return null;
+        }
+        const container = this.container();
+        return factory({
+            el: container,
+            parentElement: container,
+            models: [{
+                path: path,
+                scale: this.computeScale(),
+                anchor: [0.5, 0.5],
+            }],
+            // 舞台铺满容器
+            stageStyle: {
+                position: "absolute",
+                left: 0,
+                top: 0,
+                width: "100%",
+                height: "100%",
+            },
+            // 关闭 SDK 自带 UI
+            statusBar: { disable: true },
+            menus: { disable: true },
+            sayHello: false,
+            tips: { disable: true },
+        });
+    },
+
+    // 模型 scale：窗口 360×760 时 0.15，窗口缩小时等比缩小，保证模型完整
+    computeScale() {
+        const fit = Math.min(
+            1,
+            (window.innerWidth * 0.88) / 360,
+            (window.innerHeight * 0.88) / 760
+        );
+        return Math.round(Math.max(0.05, 0.15 * fit) * 1000) / 1000;
+    },
+
+    // 默认模型（角色没有配置模型时使用）
+    getDefaultPath() {
+        return "assets/live2d/default/ARGNori.model3.json";
+    },
+
+    // 角色 → 模型文件路径（官方角色用后台配置，我的角色用自己配置，缺省用默认）
+    getRoleModelPath(role) {
+        let model = "";
+        if (role.kind === "official") {
+            const official = window.OFFICIAL_ROLES && Array.isArray(window.OFFICIAL_ROLES.roles)
+                ? window.OFFICIAL_ROLES.roles
+                : [];
+            const r = official.find((x) => x.name === role.name);
+            model = r && r.model ? r.model : "";
+        } else {
+            try {
+                const store = JSON.parse(localStorage.getItem(SETTINGS_KEY));
+                const r = store && Array.isArray(store.roles)
+                    ? store.roles.find((x) => x.id === role.id)
+                    : null;
+                model = r && r.model ? r.model : "";
+            } catch {
+                // 忽略
+            }
+        }
+        return model || this.getDefaultPath();
+    },
+
+    // 切换角色 → 切换模型
+    switchRole(role) {
+        const path = this.getRoleModelPath(role);
+        if (this.om && this.currentPath === path) {
+            return;
+        }
+        this.destroyInstance();
+        const container = this.container();
+        if (container) {
+            container.innerHTML = "";
+        }
+        this.resetInteraction();
+        try {
+            this.om = this.createInstance(path);
+            this.currentPath = path;
+            window.__om = this.om;
+            this.fixLayout();
+        } catch (error) {
+            console.warn("Live2D 模型切换失败：", error);
+            this.showPlaceholder("Live2D 模型切换失败：" + (error && error.message ? error.message : error));
+        }
+    },
+
+    /* ---------------- 布局 ---------------- */
+
+    // 修正布局：隐藏 SDK 自带 UI、舞台铺满容器、画布视口居中
+    // （模型异步加载，画布未出现时自动重试）
+    fixLayout(attempts) {
+        const container = this.container();
+        if (!container) {
+            return;
+        }
+        const count = attempts || 0;
+        if (count > 10) {
+            return;
+        }
+
+        this.cleanSDKUI();
+
+        if (!container.querySelector("canvas")) {
+            setTimeout(() => this.fixLayout(count + 1), 500);
+            return;
+        }
+
+        // 舞台铺满容器
+        for (const el of Array.from(container.children)) {
+            if (el.querySelector("canvas")) {
+                el.style.position = "absolute";
+                el.style.left = "0";
+                el.style.top = "0";
+                el.style.width = "100%";
+                el.style.height = "100%";
+                el.style.margin = "0";
+            }
+        }
+
+        this.applyTransform();
+    },
+
+    // 画布变换：视口居中 + 用户拖动 / 缩放 / 旋转（原点 = 画布中心 = 模型中心）
     applyTransform() {
-        const container = document.getElementById("live2d-container");
+        const container = this.container();
         if (!container) {
             return;
         }
@@ -442,9 +696,9 @@ const Live2D = {
         }
     },
 
-    // 守护：隐藏 SDK 自带 UI + 保持画布居中（SDK 异步操作后自动恢复）
+    // 隐藏 SDK 自带 UI（对话框、提示条、按钮等），保留舞台与画布
     cleanSDKUI() {
-        const container = document.getElementById("live2d-container");
+        const container = this.container();
         if (!container) {
             return;
         }
@@ -460,7 +714,6 @@ const Live2D = {
             if (el.tagName.toLowerCase() === "canvas") {
                 continue;
             }
-            // 跳过舞台及其内部元素（模型要保留显示）
             if (stage && (el === stage || stage.contains(el))) {
                 continue;
             }
@@ -468,15 +721,14 @@ const Live2D = {
                 el.style.display = "none";
             }
         }
-        this.applyTransform();
     },
 
-    // 观察容器变化，防止 SDK 覆盖我们的样式（防抖处理，避免循环触发）
+    // 守护：SDK 异步操作后恢复我们的样式（防抖，避免循环触发）
     setupObserver() {
         if (this.observer) {
             return;
         }
-        const container = document.getElementById("live2d-container");
+        const container = this.container();
         if (!container) {
             return;
         }
@@ -489,6 +741,7 @@ const Live2D = {
             requestAnimationFrame(() => {
                 this.observerPending = false;
                 this.cleanSDKUI();
+                this.applyTransform();
             });
         });
         this.observer.observe(container, {
@@ -499,21 +752,23 @@ const Live2D = {
         });
     },
 
-    // 绑定交互：鼠标拖动模型、中键滑动缩放、Ctrl+中键滑动旋转
+    /* ---------------- 用户交互 ---------------- */
+
+    // 拖动 / 中键缩放 / Ctrl+中键旋转（捕获阶段，避免被 SDK 内部事件拦截）
     bindInteractions() {
         if (this.interaction.bound) {
             return;
         }
         this.interaction.bound = true;
 
-        const container = document.getElementById("live2d-container");
-        if (!container) {
+        // 绑定到整个舞台区域（主空间），操作区域更大更方便
+        const stageEl = document.querySelector(".live2d-stage") || this.container();
+        if (!stageEl) {
             return;
         }
         const it = this.interaction;
 
-        // 拖动（捕获阶段监听：先于 SDK 内部事件处理，避免被 PIXI 吞掉）
-        container.addEventListener("pointerdown", (e) => {
+        stageEl.addEventListener("pointerdown", (e) => {
             it.dragging = true;
             it.startX = e.clientX;
             it.startY = e.clientY;
@@ -521,6 +776,7 @@ const Live2D = {
             it.startDy = it.dy;
             e.preventDefault();
         }, true);
+
         window.addEventListener("pointermove", (e) => {
             if (!it.dragging) {
                 return;
@@ -529,90 +785,22 @@ const Live2D = {
             it.dy = it.startDy + (e.clientY - it.startY);
             this.applyTransform();
         }, true);
+
         window.addEventListener("pointerup", () => {
             it.dragging = false;
         }, true);
 
-        // 中键滑动缩放 / Ctrl+中键滑动旋转（捕获阶段监听）
-        container.addEventListener("wheel", (e) => {
+        stageEl.addEventListener("wheel", (e) => {
             e.preventDefault();
             const delta = e.deltaY > 0 ? -1 : 1;
             if (e.ctrlKey) {
-                // 旋转
                 it.rotation = Math.round((it.rotation + delta * 5) * 10) / 10;
             } else {
-                // 缩放
                 const factor = delta > 0 ? 0.93 : 1.07;
                 it.scale = Math.min(4, Math.max(0.15, it.scale * factor));
             }
             this.applyTransform();
         }, { passive: false, capture: true });
-    },
-
-    // 重新加载当前模型（窗口大小变化后重新计算 scale 适配）
-    // 注意：重建前必须销毁旧实例，否则 WebGL 上下文泄漏导致渲染崩溃
-    reloadModel() {
-        if (!this.om || !this.currentPath) {
-            return;
-        }
-        this.destroyInstance();
-        try {
-            const container = document.getElementById("live2d-container");
-            if (container) {
-                container.innerHTML = "";
-            }
-            this.om = this.createInstance(this.currentPath);
-            window.__om = this.om;
-            this.resetInteraction();
-            this.fixLayout(0);
-        } catch (error) {
-            console.warn("Live2D 重载失败：", error);
-        }
-    },
-
-    // 销毁实例：释放 WebGL 上下文（防止泄漏导致 shader/纹理错乱）
-    destroyInstance() {
-        if (!this.om) {
-            return;
-        }
-        try {
-            if (typeof this.om.destroy === "function") {
-                this.om.destroy();
-            } else if (typeof this.om.dispose === "function") {
-                this.om.dispose();
-            }
-        } catch {
-            // 忽略
-        }
-        try {
-            if (typeof this.om.stageSlideOut === "function") {
-                this.om.stageSlideOut();
-            }
-        } catch {
-            // 忽略
-        }
-        this.om = null;
-    },
-
-    // 监听窗口 / 页面缩放变化，自动重新适配模型（长防抖，避免频繁重建）
-    setupResizeListener() {
-        if (this.resizeBound) {
-            return;
-        }
-        this.resizeBound = true;
-        window.addEventListener("resize", () => {
-            clearTimeout(this.resizeTimer);
-            this.resizeTimer = setTimeout(() => {
-                // 窄视口未初始化时，拉宽后自动初始化
-                if (!this.om && window.innerWidth >= 400) {
-                    this.init();
-                    return;
-                }
-                if (this.om) {
-                    this.reloadModel();
-                }
-            }, 800);
-        });
     },
 
     // 重置交互状态（角色切换后）
@@ -625,276 +813,25 @@ const Live2D = {
         it.dragging = false;
     },
 
-    // 等待 SDK 脚本加载完成（普通 script 加载，同步可用；保险起见轮询）
-    waitForSDK(timeout) {
-        const limit = timeout || 8000;
-        return new Promise((resolve) => {
-            if (this.getFactory()) {
-                resolve(true);
-                return;
-            }
-            const start = Date.now();
-            const timer = setInterval(() => {
-                if (this.getFactory()) {
-                    clearInterval(timer);
-                    resolve(true);
-                } else if (Date.now() - start > limit) {
-                    clearInterval(timer);
-                    resolve(false);
+    // 窗口 / 缩放变化后重新适配（长防抖，避免频繁重建）
+    setupResizeListener() {
+        if (this.resizeBound) {
+            return;
+        }
+        this.resizeBound = true;
+        window.addEventListener("resize", () => {
+            clearTimeout(this.resizeTimer);
+            this.resizeTimer = setTimeout(() => {
+                if (this.om) {
+                    this.reloadModel();
                 }
-            }, 100);
+            }, 800);
         });
     },
 
-    // 获取 SDK 工厂函数（兼容不同版本的挂载位置）
-    getFactory() {
-        // 0.19 版：UMD 导出到 window.OML2D.loadOml2d
-        if (window.OML2D && typeof window.OML2D.loadOml2d === "function") {
-            return window.OML2D.loadOml2d;
-        }
-        // 其他挂载位置
-        if (typeof window.loadOml2d === "function") {
-            return window.loadOml2d;
-        }
-        if (typeof window.OhMyLive2D === "function") {
-            return window.OhMyLive2D;
-        }
-        return null;
-    },
+    /* ---------------- 情绪 ---------------- */
 
-    // 模型 scale 自适应画布：保持模型与容器的比例（360×760 时 = 0.15），
-    // 窗口变小时模型同步缩小，永远完整显示不被裁剪（下限 0.05，防止过小渲染失败）
-    computeScale() {
-        const vw = window.innerWidth;
-        const vh = window.innerHeight;
-        const fit = Math.min(1, (vw * 0.88) / 360, (vh * 0.88) / 760);
-        const scale = 0.15 * fit;
-        return Math.round(Math.max(0.05, scale) * 1000) / 1000;
-    },
-
-    // 创建实例（兼容 0.19 的 loadOml2d 与 0.2 的 OhMyLive2D 两种 API）
-    createInstance(path) {
-        const container = document.getElementById("live2d-container");
-        const factory = this.getFactory();
-        if (!factory) {
-            return null;
-        }
-        if (factory === window.OhMyLive2D) {
-            return new factory({
-                el: container,
-                modelPath: path,
-                width: 300,
-                height: 480,
-            });
-        }
-        return factory({
-            el: container,
-            parentElement: container,
-            models: [{
-                path: path,
-                scale: this.computeScale(),
-                // 锚点居中：模型在画布内居中完整显示
-                anchor: [0.5, 0.5],
-            }],
-            // 舞台铺满容器（模型画布 canvas 由 CSS 居中）
-            stageStyle: {
-                position: "absolute",
-                left: 0,
-                top: 0,
-                width: "100%",
-                height: "100%",
-            },
-            // 关闭 SDK 自带 UI：状态栏 / 菜单按钮（换衣、休息、设置等）/ 欢迎气泡
-            statusBar: { disable: true },
-            menus: { disable: true },
-            sayHello: false,
-            tips: { disable: true },
-        });
-    },
-
-    // 修正 Live2D 布局：舞台铺满容器、模型画布居中、隐藏 SDK 自带 UI（对话框等）
-    // 模型是异步加载的，canvas 出现前会重试
-    fixLayout(attempts) {
-        const container = document.getElementById("live2d-container");
-        if (!container) {
-            return;
-        }
-        const count = attempts || 0;
-        if (count > 10) {
-            return;
-        }
-
-        let fixed = false;
-
-        for (const el of Array.from(container.children)) {
-            const canvas = el.querySelector("canvas");
-
-            if (!canvas) {
-                // SDK 自带 UI（对话框、提示条、按钮等，容器的直接子元素）：全部隐藏
-                el.style.display = "none";
-                continue;
-            }
-
-            // 舞台（stage）：铺满容器
-            el.style.position = "absolute";
-            el.style.left = "0";
-            el.style.top = "0";
-            el.style.width = "100%";
-            el.style.height = "100%";
-            el.style.margin = "0";
-            el.style.right = "auto";
-            el.style.bottom = "auto";
-
-            // 舞台内除画布外的元素也全部隐藏
-            for (const child of el.querySelectorAll("*")) {
-                if (child.tagName.toLowerCase() !== "canvas") {
-                    child.style.display = "none";
-                }
-            }
-
-            // 模型画布居中（含用户拖动/缩放/旋转状态；尺寸由 CSS !important 控制）
-            this.applyTransform();
-
-            fixed = true;
-        }
-
-        if (!fixed) {
-            // canvas 还没创建（模型仍在加载），稍后再试
-            setTimeout(() => this.fixLayout(count + 1), 500);
-        }
-    },
-
-    // 初始化：等 SDK 就绪，加载默认模型；失败时在占位文字上显示原因
-    async init() {
-        // 单例保护：避免重复初始化（多次 init 会创建多个 WebGL 上下文导致崩溃）
-        if (this.initialized) {
-            return this.initialized;
-        }
-        this.initialized = "pending";
-
-        // 无论视口宽窄都先注册 resize 监听（拉宽窗口后能自动初始化）
-        this.setupResizeListener();
-
-        // 本地 file:// 打开时浏览器禁止读取本地模型文件，直接提示
-        if (location.protocol === "file:") {
-            this.showPlaceholder("本地打开无法加载 Live2D（浏览器限制），请访问 GitHub Pages 线上地址");
-            this.initialized = false;
-            return false;
-        }
-
-        // 视口过窄：模型无法正常显示（SDK 渲染失败），只显示提示；
-        // 拉宽窗口后 resize 监听会自动重新加载
-        if (window.innerWidth < 400) {
-            this.showPlaceholder("窗口过窄（" + window.innerWidth + "px）：Live2D 模型无法显示。请把浏览器窗口拉宽到 800px 以上（或按 F11 全屏），稍等片刻模型会自动出现。");
-            this.initialized = false;
-            return false;
-        }
-
-        const ready = await this.waitForSDK();
-        if (!ready) {
-            console.warn("Live2D SDK 加载失败（本地 vendor 与 CDN 均不可用）");
-            this.showPlaceholder("Live2D 加载失败：SDK 文件缺失或网络无法访问 CDN（请把 SDK 文件放进 assets/vendor/）");
-            this.initialized = false;
-            return false;
-        }
-        try {
-            this.om = this.createInstance(this.getDefaultPath());
-            if (!this.om) {
-                throw new Error("无法创建 Live2D 实例");
-            }
-            // 调试钩子：方便在控制台检查模型渲染尺寸
-            window.__om = this.om;
-            this.currentPath = this.getDefaultPath();
-            this.hidePlaceholder();
-            this.bindInteractions();
-            this.setupObserver();
-            this.fixLayout(0);
-            this.initialized = true;
-            return true;
-        } catch (error) {
-            console.warn("Live2D 初始化失败：", error);
-            this.showPlaceholder("Live2D 模型加载失败：" + (error && error.message ? error.message : error));
-            this.initialized = false;
-            return false;
-        }
-    },
-
-    // 角色 → 模型目录：官方角色用后台配置，我的角色用自己配置的，都没有用默认
-    getRoleModelPath(role) {
-        let model = "";
-
-        if (role.kind === "official") {
-            const official = window.OFFICIAL_ROLES && Array.isArray(window.OFFICIAL_ROLES.roles)
-                ? window.OFFICIAL_ROLES.roles
-                : [];
-            const r = official.find((x) => x.name === role.name);
-            model = r && r.model ? r.model : "";
-        } else {
-            try {
-                const store = JSON.parse(localStorage.getItem(SETTINGS_KEY));
-                const r = store && Array.isArray(store.roles)
-                    ? store.roles.find((x) => x.id === role.id)
-                    : null;
-                model = r && r.model ? r.model : "";
-            } catch {
-                // 忽略
-            }
-        }
-
-        return model || this.getDefaultPath();
-    },
-
-    getDefaultPath() {
-        // 默认模型：指向具体模型配置文件（Cubism4/5 为 xxx.model3.json）
-        return "assets/live2d/default/ARGNori.model3.json";
-    },
-
-    // 切换角色 → 切换模型（销毁重建，兼容两种 API）
-    async switchRole(role) {
-        if (!this.om) {
-            return;
-        }
-        const path = this.getRoleModelPath(role);
-        if (this.currentPath === path) {
-            return;
-        }
-        try {
-            // 清理旧实例（释放 WebGL 上下文，避免切换后模型变黑）
-            try {
-                if (typeof this.om.destroy === "function") {
-                    this.om.destroy();
-                }
-            } catch {
-                // 忽略
-            }
-            try {
-                if (typeof this.om.stageSlideOut === "function") {
-                    this.om.stageSlideOut();
-                }
-            } catch {
-                // 忽略
-            }
-            const container = document.getElementById("live2d-container");
-            if (container) {
-                container.innerHTML = "";
-            }
-            this.om = this.createInstance(path);
-            if (!this.om) {
-                throw new Error("无法创建 Live2D 实例");
-            }
-            window.__om = this.om;
-            this.resetInteraction();
-            this.currentPath = path;
-            this.hidePlaceholder();
-            this.fixLayout(0);
-        } catch (error) {
-            console.warn("Live2D 模型切换失败：", error);
-            this.showPlaceholder("Live2D 模型切换失败：" + (error && error.message ? error.message : error));
-        }
-    },
-
-    // 情绪 → 模型表现（候选列表：动作组名 + 表情名都尝试，
-    // SDK 会忽略不存在的目标；模型没有对应资源时不影响聊天）
+    // 情绪 → 模型表现（动作组 + 表情名都尝试，模型没有对应资源时忽略）
     playEmotion(emotion) {
         if (!this.om || !emotion) {
             return;
@@ -932,10 +869,12 @@ const Live2D = {
         }
     },
 
-    // 预留：TTS 嘴型同步（未来接入 TTS 后，在这里把音频交给 SDK 驱动嘴巴）
+    // 预留：TTS 嘴型同步（未来接入 TTS 后驱动 LipSync 参数）
     speak(text) {
         // TODO: 接入 TTS 后调用模型音频/嘴型接口
     },
+
+    /* ---------------- 占位提示 ---------------- */
 
     showPlaceholder(message) {
         const el = document.getElementById("live2d-placeholder");
@@ -948,10 +887,6 @@ const Live2D = {
     },
 
     hidePlaceholder() {
-        // 视口过窄时保留提示文字（提醒用户拉宽窗口）
-        if (window.innerWidth < 400) {
-            return;
-        }
         const el = document.getElementById("live2d-placeholder");
         if (el) {
             el.style.display = "none";
