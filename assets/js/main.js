@@ -240,6 +240,37 @@ async function getOfficialRolePrompt(name) {
     return "";
 }
 
+// 当前聊天角色对应的模型名：
+// 官方角色 → official-roles.js 的 model 字段；我的角色 → 设置页的模型字段；
+// 留空 / 填错 / 未配置时自动用 default
+function getRoleModelName() {
+    const role = getChatRole();
+    let modelName = "";
+
+    if (role.kind === "official") {
+        const roles = window.OFFICIAL_ROLES && Array.isArray(window.OFFICIAL_ROLES.roles)
+            ? window.OFFICIAL_ROLES.roles
+            : [];
+        const r = roles.find((x) => x.name === role.name);
+        modelName = r ? r.model : "";
+    } else {
+        try {
+            const store = JSON.parse(localStorage.getItem(SETTINGS_KEY));
+            if (store && Array.isArray(store.roles)) {
+                const r = store.roles.find((x) => x.id === role.id);
+                modelName = r ? r.model : "";
+            }
+        } catch {
+            // 读取失败用 default
+        }
+    }
+
+    if (Live2D.MODEL_NAMES.indexOf(modelName) >= 0) {
+        return modelName;
+    }
+    return "default";
+}
+
 // ================================
 // 角色选择面板（输入框左侧按钮打开）
 // ================================
@@ -273,14 +304,15 @@ document.addEventListener("click", (event) => {
     closeRolePicker();
 });
 
-// 选中角色：保存 → 关闭面板 → 加载该角色的对话历史
-// （Live2D 模型切换功能后续再加）
+// 选中角色：保存 → 关闭面板 → 加载该角色的对话历史 → 切换 Live2D 模型
 function pickRole(role) {
     saveChatRole({ kind: role.kind, id: role.id, name: role.name });
     closeRolePicker();
     chatHistory = loadChat();
     renderChat();
     updateExpandBtn();
+    // Live2D：模型跟随角色切换（星瑶 → xingyao，月瓷 → yueci，未配置 → default）
+    Live2D.switchModel(getRoleModelName());
 }
 
 function renderRolePicker() {
@@ -410,6 +442,16 @@ function roleItemEl(role, active) {
 const Live2D = {
     om: null,
 
+    // 官方模型清单：聊天角色按名字切换（角色 → 模型在 getRoleModelName 里解析）
+    MODEL_NAMES: ["default", "xingyao", "yueci"],
+    MODELS: [
+        { name: "default", path: "assets/live2d/default/ARGNori.model3.json", scale: 0.1, anchor: [0, 0] },
+        { name: "xingyao", path: "assets/live2d/xingyao/Coffee.model3.json", scale: 0.1, anchor: [0, 0] },
+        { name: "yueci", path: "assets/live2d/yueci/kuma maid.model3.json", scale: 0.1, anchor: [0, 0] },
+    ],
+    // 当前显示的模型
+    currentModelName: "default",
+
     // 窗口状态：拖动偏移 / 缩放 / 旋转
     win: {
         dx: 0,
@@ -439,12 +481,7 @@ const Live2D = {
             this.om = factory({
                 el: container,
                 parentElement: container,
-                models: [{
-                    path: "assets/live2d/default/ARGNori.model3.json",
-                    scale: 0.1,
-                    // 锚点左上角：模型固定渲染，位置由"窗口"控制
-                    anchor: [0, 0],
-                }],
+                models: this.MODELS,
                 // 关闭 SDK 自带 UI
                 statusBar: { disable: true },
                 menus: { disable: true },
@@ -455,8 +492,35 @@ const Live2D = {
             console.log("Live2D 模型加载中……");
             this.setModelAnchor();
             this.bindWindowInteractions();
+            // 页面加载后，跟随当前聊天角色切换到对应模型
+            this.switchModel(getRoleModelName());
         } catch (error) {
             console.warn("Live2D 加载失败：", error);
+        }
+    },
+
+    // 切换模型（按名字在官方模型清单里找；同名不重复切换）
+    async switchModel(name) {
+        const om = this.om;
+        if (!om || typeof om.loadModelByIndex !== "function") {
+            return;
+        }
+        const idx = this.MODEL_NAMES.indexOf(name);
+        if (idx < 0) {
+            console.warn("未知模型名: " + name);
+            return;
+        }
+        if (name === this.currentModelName) {
+            return;
+        }
+        try {
+            await om.loadModelByIndex(idx);
+            this.currentModelName = name;
+            console.log("模型已切换: " + name);
+            // 新模型就绪后重新设置锚点
+            this.setModelAnchor();
+        } catch (error) {
+            console.warn("模型切换失败: " + name, error);
         }
     },
 
