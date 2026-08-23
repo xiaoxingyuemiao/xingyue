@@ -448,13 +448,7 @@ body {
     height: 100% !important;
 }
 
-/* 模型画布在舞台内居中（canvas 没有入场动画，transform 不会被覆盖） */
-.live2d-container canvas {
-    position: absolute !important;
-    left: 50% !important;
-    top: 50% !important;
-    transform: translate(-50%, -50%) !important;
-}
+/* 模型画布：位置和尺寸完全由 JS 控制（fixed 定位相对视口居中） */
 
 /* ==============================
    聊天（右侧窄栏，与输入框左沿对齐）
