@@ -409,8 +409,9 @@ const Live2D = {
         bound: false,
     },
 
-    // 应用画布变换：fixed 定位相对视口居中（绕开容器/舞台宽度问题）
-    // + 固定显示尺寸 + 用户拖动 / 缩放 / 旋转
+    // 应用画布变换：只包含用户的拖动 / 缩放 / 旋转
+    // （画布本身由 CSS 铺满容器，容器固定竖直尺寸并居中，
+    //   变换原点在画布中心 = 模型中心，旋转自然围绕模型中心）
     applyTransform() {
         const container = document.getElementById("live2d-container");
         if (!container) {
@@ -422,23 +423,10 @@ const Live2D = {
         }
         const it = this.interaction;
         const transform =
-            "translate(-50%, -50%) " +
             "translate(" + it.dx + "px, " + it.dy + "px) " +
             "scale(" + it.scale + ") rotate(" + it.rotation + "deg)";
-        if (canvas.style.position !== "fixed") {
-            canvas.style.position = "fixed";
-        }
-        if (canvas.style.left !== "50%") {
-            canvas.style.left = "50%";
-        }
-        if (canvas.style.top !== "50%") {
-            canvas.style.top = "50%";
-        }
-        if (canvas.style.width !== "360px") {
-            canvas.style.width = "360px";
-        }
-        if (canvas.style.height !== "620px") {
-            canvas.style.height = "620px";
+        if (canvas.style.transformOrigin !== "center") {
+            canvas.style.transformOrigin = "center";
         }
         if (canvas.style.transform !== transform) {
             canvas.style.transform = transform;

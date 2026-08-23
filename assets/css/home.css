@@ -404,18 +404,18 @@ body {
     backdrop-filter: blur(5px);
 }
 
-/* 容器用绝对定位铺满舞台（显式 width/height 100%，防止宽度塌陷） */
+/* 容器固定竖直尺寸并在舞台居中：SDK 按容器比例渲染模型，
+   竖直容器保证模型是正常立绘比例（不要铺满全屏，否则模型会横向变形） */
 .live2d-container {
     position: absolute !important;
 
-    left: 0 !important;
-    top: 0 !important;
+    left: 50% !important;
+    top: 50% !important;
 
-    width: 100% !important;
-    height: 100% !important;
+    transform: translate(-50%, -50%) !important;
 
-    min-width: 400px !important;
-    min-height: 300px !important;
+    width: 360px !important;
+    height: 620px !important;
 }
 
 /* 舞台铺满容器 */
@@ -427,7 +427,11 @@ body {
     height: 100% !important;
 }
 
-/* 模型画布：尺寸和位置由 JS 控制（fixed 定位相对视口居中） */
+/* 模型画布：铺满容器（位置和交互变换由 JS 控制） */
+.live2d-container canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
 
 /* 隐藏 SDK 自带的一切 UI（对话框、提示条、按钮等）；
    只隐藏不含画布的容器，保留舞台（canvas 的父级） */
