@@ -427,11 +427,7 @@ body {
     height: 100% !important;
 }
 
-/* 模型画布铺满舞台 */
-.live2d-container canvas {
-    width: 100% !important;
-    height: 100% !important;
-}
+/* 模型画布：尺寸和位置由 JS 控制（fixed 定位相对视口居中） */
 
 /* 隐藏 SDK 自带的一切 UI（对话框、提示条、按钮等）；
    只隐藏不含画布的容器，保留舞台（canvas 的父级） */
