@@ -86,8 +86,6 @@ body {
 
     box-sizing: border-box;
 
-    border-right: 1px solid rgba(0, 0, 0, 0.08);
-
     background-color: var(--surface-color);
 
     flex-shrink: 0;
@@ -700,10 +698,11 @@ body {
 .role-picker {
     position: absolute;
 
+    /* 与输入框同宽同右偏移，左边缘与输入框左边缘保持一条直线 */
     right: 20px;
     bottom: 75px;
 
-    width: 180px;
+    width: 21%;
 
     z-index: 8;
 

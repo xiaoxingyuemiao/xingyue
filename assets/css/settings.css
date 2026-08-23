@@ -64,8 +64,6 @@
     padding: 76px 0 20px;
 
     background-color: var(--surface-color);
-
-    border-right: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .settings-sidebar-title {
