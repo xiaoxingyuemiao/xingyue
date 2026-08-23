@@ -457,12 +457,14 @@ const Live2D = {
                 anchor: [0.5, 0.5],
                 position: [0, 0],
             }],
-            // 舞台在容器内居中（SDK 默认定位在右下角）
+            // 舞台在容器内居中：用 margin auto（不依赖 transform，避免与 SDK 入场动画冲突）
             stageStyle: {
                 position: "absolute",
-                left: "50%",
-                top: "50%",
-                transform: "translate(-50%, -50%)",
+                left: 0,
+                right: 0,
+                top: 0,
+                bottom: 0,
+                margin: "auto",
             },
             // 关闭 SDK 自带 UI：状态栏 / 菜单按钮（换衣、休息、设置等）/ 欢迎气泡
             statusBar: { disable: true },
@@ -541,7 +543,14 @@ const Live2D = {
             return;
         }
         try {
-            // 清理旧实例
+            // 清理旧实例（释放 WebGL 上下文，避免切换后模型变黑）
+            try {
+                if (typeof this.om.destroy === "function") {
+                    this.om.destroy();
+                }
+            } catch {
+                // 忽略
+            }
             try {
                 if (typeof this.om.stageSlideOut === "function") {
                     this.om.stageSlideOut();
