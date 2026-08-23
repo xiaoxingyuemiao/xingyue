@@ -549,6 +549,38 @@ const Live2D = {
         }, { passive: false, capture: true });
     },
 
+    // 重新加载当前模型（窗口大小/页面缩放变化后重新计算 scale 适配）
+    reloadModel() {
+        if (!this.om || !this.currentPath) {
+            return;
+        }
+        try {
+            const container = document.getElementById("live2d-container");
+            if (container) {
+                container.innerHTML = "";
+            }
+            this.om = this.createInstance(this.currentPath);
+            this.resetInteraction();
+            this.fixLayout(0);
+        } catch (error) {
+            console.warn("Live2D 重载失败：", error);
+        }
+    },
+
+    // 监听窗口 / 页面缩放变化，自动重新适配模型（防抖）
+    setupResizeListener() {
+        if (this.resizeBound) {
+            return;
+        }
+        this.resizeBound = true;
+        window.addEventListener("resize", () => {
+            clearTimeout(this.resizeTimer);
+            this.resizeTimer = setTimeout(() => {
+                this.reloadModel();
+            }, 400);
+        });
+    },
+
     // 重置交互状态（角色切换后）
     resetInteraction() {
         const it = this.interaction;
@@ -720,6 +752,7 @@ const Live2D = {
             this.hidePlaceholder();
             this.bindInteractions();
             this.setupObserver();
+            this.setupResizeListener();
             this.fixLayout(0);
             return true;
         } catch (error) {
