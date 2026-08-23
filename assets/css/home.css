@@ -414,8 +414,8 @@ body {
 
     transform: translate(-50%, -50%) !important;
 
-    width: 360px !important;
-    height: 760px !important;
+    width: min(360px, 88vw) !important;
+    height: min(760px, 88vh) !important;
 }
 
 /* 舞台铺满容器 */

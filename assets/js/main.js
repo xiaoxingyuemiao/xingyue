@@ -587,6 +587,14 @@ const Live2D = {
         return null;
     },
 
+    // 模型 scale 自适应视口：保持与容器的比例（当前大小观感），窗口窄时整体缩小
+    computeScale() {
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        const fit = Math.min(1, (vw * 0.88) / 360, (vh * 0.88) / 760);
+        return Math.round(0.15 * fit * 1000) / 1000;
+    },
+
     // 创建实例（兼容 0.19 的 loadOml2d 与 0.2 的 OhMyLive2D 两种 API）
     createInstance(path) {
         const container = document.getElementById("live2d-container");
@@ -607,7 +615,7 @@ const Live2D = {
             parentElement: container,
             models: [{
                 path: path,
-                scale: 0.15,
+                scale: this.computeScale(),
                 // 锚点居中：模型在画布内居中完整显示
                 anchor: [0.5, 0.5],
             }],
