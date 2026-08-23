@@ -630,24 +630,44 @@ const Live2D = {
 
     /* ---------------- 布局 ---------------- */
 
-    // 修正布局：隐藏 SDK 自带 UI、舞台铺满容器、画布视口居中
-    // （模型异步加载，画布未出现时自动重试）
+    // 把模型移动到画布中心（模型尺寸就位后；用 SDK 的 setModelAnchor/setModelPosition）
+    centerModel() {
+        const om = this.om;
+        const container = this.container();
+        const canvas = container && container.querySelector("canvas");
+        if (!om || !canvas) {
+            return false;
+        }
+        if (typeof om.setModelAnchor !== "function" || typeof om.setModelPosition !== "function") {
+            return true; // 版本不支持也没关系，不阻塞
+        }
+        const size = om.modelSize;
+        if (!size || !size.width) {
+            return false; // 模型还没加载完成，稍后再试
+        }
+        try {
+            // 锚点 = 模型中心，位置 = 画布中心 → 模型居中
+            om.setModelAnchor({ x: 0.5, y: 0.5 });
+            om.setModelPosition({ x: canvas.width / 2, y: canvas.height / 2 });
+            return true;
+        } catch (e) {
+            return false;
+        }
+    },
+
+    // 修正布局：隐藏 SDK 自带 UI、舞台铺满容器、模型居中、画布视口居中
+    // （模型异步加载，模型尺寸未就位时自动重试）
     fixLayout(attempts) {
         const container = this.container();
         if (!container) {
             return;
         }
         const count = attempts || 0;
-        if (count > 10) {
+        if (count > 20) {
             return;
         }
 
         this.cleanSDKUI();
-
-        if (!container.querySelector("canvas")) {
-            setTimeout(() => this.fixLayout(count + 1), 500);
-            return;
-        }
 
         // 舞台铺满容器
         for (const el of Array.from(container.children)) {
@@ -659,6 +679,12 @@ const Live2D = {
                 el.style.height = "100%";
                 el.style.margin = "0";
             }
+        }
+
+        if (!container.querySelector("canvas") || !this.centerModel()) {
+            // 模型或画布还没就位，稍后再试
+            setTimeout(() => this.fixLayout(count + 1), 500);
+            return;
         }
 
         this.applyTransform();
