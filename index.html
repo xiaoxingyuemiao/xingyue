@@ -195,19 +195,32 @@
         </div>
 
 
-        <!-- Live2D SDK（oh-my-live2d，支持不同 SDK 版本的模型；多 CDN 备用加载） -->
+        <!-- Live2D SDK 样式（本地优先，CDN 兜底） -->
+        <link rel="stylesheet" href="assets/vendor/oh-my-live2d.min.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/oh-my-live2d@0.19.3/dist/index.min.css">
+
+        <!-- Live2D SDK（oh-my-live2d：先加载本地 vendor 文件，失败再走 CDN 备用） -->
         <script type="module">
             window.__omlError = "";
-            try {
-                const { OhMyLive2D } = await import("https://cdn.jsdelivr.net/npm/oh-my-live2d@0.19.3/+esm");
+            async function loadFrom(url) {
+                const { OhMyLive2D } = await import(url);
                 window.OhMyLive2D = OhMyLive2D;
+            }
+            try {
+                // 1) 本地 SDK（assets/vendor/oh-my-live2d.min.js，从 npm 下载后放入）
+                await loadFrom("./assets/vendor/oh-my-live2d.min.js");
             } catch (e1) {
                 try {
-                    const { OhMyLive2D } = await import("https://esm.sh/oh-my-live2d@0.19.3");
-                    window.OhMyLive2D = OhMyLive2D;
+                    // 2) jsdelivr CDN
+                    await loadFrom("https://cdn.jsdelivr.net/npm/oh-my-live2d@0.19.3/+esm");
                 } catch (e2) {
-                    window.__omlError = "SDK 加载失败：" + (e1 && e1.message || e1) + " / " + (e2 && e2.message || e2);
-                    console.error("oh-my-live2d 加载失败", e1, e2);
+                    try {
+                        // 3) esm.sh CDN
+                        await loadFrom("https://esm.sh/oh-my-live2d@0.19.3");
+                    } catch (e3) {
+                        window.__omlError = "SDK 加载失败（本地 vendor 与 CDN 均不可用）";
+                        console.error("oh-my-live2d 加载失败", e1, e2, e3);
+                    }
                 }
             }
         </script>
