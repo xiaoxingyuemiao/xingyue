@@ -1,6 +1,7 @@
 // ================================
 // Live2D 模型加载器
-// 解密 .l2d 加密容器 → blob URL 化 → 供 SDK 加载
+// 解密 .l2d 加密容器 → 写入 Cache Storage → 返回普通相对路径给 SDK
+// SDK 加载时由 Service Worker（l2d-sw.js）从缓存返回文件
 // 与 tools/pack-live2d.js 配套（格式 / 密钥算法必须一致）
 // ================================
 
@@ -10,16 +11,33 @@ window.L2DModels = (function () {
     const SEED_PARTS = ["ARGNori", ".Coffee", ".kuma maid", ".xingyue", "2026"];
     const SEED = SEED_PARTS.join("");
 
-    // ---- 官方模型清单：id -> .l2d 文件 + 默认显示配置 ----
-    // scale 会在后续"每模型独立配置"步骤里按模型微调
+    // ---- 官方模型清单：id -> .l2d 文件 + 入口 + 默认显示配置 ----
+    // scale / anchor 会在后续"每模型独立配置"步骤里按模型微调
     const OFFICIAL = {
-        default: { url: "assets/live2d/default.l2d", scale: 0.1, anchor: [0, 0] },
-        xingyao: { url: "assets/live2d/xingyao.l2d", scale: 0.1, anchor: [0, 0] },
-        yueci: { url: "assets/live2d/yueci.l2d", scale: 0.1, anchor: [0, 0] },
+        default: {
+            url: "assets/live2d/default.l2d",
+            entry: "ARGNori.model3.json",
+            scale: 0.1,
+            anchor: [0, 0],
+        },
+        xingyao: {
+            url: "assets/live2d/xingyao.l2d",
+            entry: "Coffee.model3.json",
+            scale: 0.1,
+            anchor: [0, 0],
+        },
+        yueci: {
+            url: "assets/live2d/yueci.l2d",
+            entry: "kuma maid.model3.json",
+            scale: 0.1,
+            anchor: [0, 0],
+        },
     };
 
-    // 模型缓存：id -> { entryUrl, scale, anchor }
-    const cache = {};
+    const CACHE_NAME = "xingyue-l2d";
+
+    // 已加载（已写入缓存）的模型 id
+    const loaded = {};
 
     // SHA-256(seed) 推导 32 字节 AES-256 密钥
     async function deriveKey() {
@@ -85,81 +103,80 @@ window.L2DModels = (function () {
         return { entry: entry, files: files };
     }
 
-    // 文件表 → Blob 表
-    function toBlobs(files) {
-        const blobs = {};
-        for (const p of Object.keys(files)) {
-            blobs[p] = new Blob([files[p]]);
-        }
-        return blobs;
+    // 模型虚拟路径前缀：https://origin/xingyue/assets/live2d/<模型id>/
+    function modelBase() {
+        const pathname = location.pathname;
+        const dir = pathname.endsWith("/") ? pathname : pathname.slice(0, pathname.lastIndexOf("/") + 1);
+        return location.origin + dir + "assets/live2d/";
     }
 
-    // 递归遍历 JSON，把能匹配到文件表里的相对路径替换成 blob URL
-    function rewriteRefs(node, blobs) {
-        if (typeof node === "string") {
-            const rel = node.replace(/^\.\//, "").replace(/\\/g, "/");
-            if (blobs[rel]) {
-                return URL.createObjectURL(blobs[rel]);
-            }
-            return node;
-        }
-        if (Array.isArray(node)) {
-            for (let i = 0; i < node.length; i++) {
-                node[i] = rewriteRefs(node[i], blobs);
-            }
-            return node;
-        }
-        if (node && typeof node === "object") {
-            for (const k of Object.keys(node)) {
-                node[k] = rewriteRefs(node[k], blobs);
-            }
-            return node;
-        }
-        return node;
+    function mimeOf(rel) {
+        const lower = rel.toLowerCase();
+        if (lower.endsWith(".json")) return "application/json";
+        if (lower.endsWith(".png")) return "image/png";
+        if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "image/jpeg";
+        if (lower.endsWith(".webp")) return "image/webp";
+        return "application/octet-stream";
     }
 
-    // 加载并缓存一个官方模型，返回 { entryUrl, scale, anchor }
+    // 注册 Service Worker（幂等），等它激活后再继续
+    async function ensureServiceWorker() {
+        if (!("serviceWorker" in navigator)) {
+            return;
+        }
+        try {
+            await navigator.serviceWorker.register("assets/js/l2d-sw.js", { scope: "/" });
+            await navigator.serviceWorker.ready;
+        } catch (e) {
+            console.warn("Service Worker 注册失败（模型可能无法加载）：", e);
+        }
+    }
+
+    // 加载并缓存一个官方模型，返回 { path, scale, anchor }
+    // path 是普通相对路径，SDK 正常解析，实际文件由 Service Worker 从缓存提供
     async function ensure(modelId) {
-        if (cache[modelId]) {
-            return cache[modelId];
-        }
         const info = OFFICIAL[modelId];
         if (!info) {
             throw new Error("未知的模型 id: " + modelId);
         }
+
+        const base = modelBase();
+        const path = base + modelId + "/" + info.entry;
+
+        if (loaded[modelId]) {
+            return { path: path, scale: info.scale, anchor: info.anchor };
+        }
+
+        const cache = await caches.open(CACHE_NAME);
+
+        // 缓存里已有该模型 → 跳过解密（刷新页面不用重新下载 50MB）
+        if (await cache.match(path)) {
+            loaded[modelId] = true;
+            return { path: path, scale: info.scale, anchor: info.anchor };
+        }
+
+        // 解密 .l2d → 全部文件写入缓存
         console.log("解密模型: " + modelId + "（" + info.url + "）……");
         const data = await decrypt(info.url);
-        const blobs = toBlobs(data.files);
-
-        // 重写入口 JSON（model3.json / model.json）里的相对引用 → blob URL
-        const entryBlob = blobs[data.entry];
-        const text = new TextDecoder().decode(await entryBlob.arrayBuffer());
-        let json;
-        try {
-            json = JSON.parse(text);
-        } catch (e) {
-            throw new Error("模型入口文件不是有效 JSON: " + data.entry);
+        for (const rel of Object.keys(data.files)) {
+            const url = base + modelId + "/" + rel;
+            const resp = new Response(new Blob([data.files[rel]]), {
+                headers: { "Content-Type": mimeOf(rel) },
+            });
+            await cache.put(url, resp);
         }
-        rewriteRefs(json, blobs);
-        const newEntryBlob = new Blob([JSON.stringify(json)], { type: "application/json" });
+        loaded[modelId] = true;
+        console.log("模型解密完成: " + modelId + "，文件已写入缓存");
 
-        cache[modelId] = {
-            entryUrl: URL.createObjectURL(newEntryBlob),
-            scale: info.scale,
-            anchor: info.anchor,
-        };
-        console.log("模型解密完成: " + modelId + "，入口已就绪");
-        return cache[modelId];
-    }
+        // 等 Service Worker 就绪（否则 SDK 请求会打到 404 页面）
+        await ensureServiceWorker();
 
-    // 已缓存的模型入口（同步读取，未加载返回 null）
-    function get(modelId) {
-        return cache[modelId] || null;
+        return { path: path, scale: info.scale, anchor: info.anchor };
     }
 
     return {
         OFFICIAL: OFFICIAL,
         ensure: ensure,
-        get: get,
+        modelBase: modelBase,
     };
 })();

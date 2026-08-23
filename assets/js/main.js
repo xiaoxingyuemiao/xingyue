@@ -447,7 +447,7 @@ const Live2D = {
                 el: container,
                 parentElement: container,
                 models: [{
-                    path: modelInfo ? modelInfo.entryUrl : "assets/live2d/default/ARGNori.model3.json",
+                    path: modelInfo ? modelInfo.path : "assets/live2d/default/ARGNori.model3.json",
                     scale: modelInfo ? modelInfo.scale : 0.1,
                     // 锚点左上角：模型固定渲染，位置由"窗口"控制
                     anchor: [0, 0],
