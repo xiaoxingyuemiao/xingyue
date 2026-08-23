@@ -453,9 +453,30 @@ const Live2D = {
             });
             window.__om = this.om; // 调试钩子
             console.log("Live2D 模型加载中……");
+            this.setModelAnchor();
             this.bindWindowInteractions();
         } catch (error) {
             console.warn("Live2D 加载失败：", error);
+        }
+    },
+
+    // 设置模型锚点 (0, 0)：运行时调用，模型对象未就绪时自动重试
+    setModelAnchor(attempts) {
+        const om = this.om;
+        if (!om || typeof om.setModelAnchor !== "function") {
+            return;
+        }
+        const count = attempts || 0;
+        try {
+            om.setModelAnchor({ x: 0, y: 0 });
+            console.log("模型锚点已设置 (0, 0)");
+        } catch (error) {
+            if (count < 20) {
+                // 模型对象还没创建完成，稍后重试（最多 10 秒）
+                setTimeout(() => this.setModelAnchor(count + 1), 500);
+            } else {
+                console.warn("模型锚点设置失败：", error);
+            }
         }
     },
 
