@@ -227,21 +227,16 @@ async function getActiveSystemPrompt() {
     return "";
 }
 
-// 读取官方角色的设定（站长在后台 assets/data/official-roles.json 维护）
+// 读取官方角色的设定（站长在后台 assets/data/official-roles.js 维护，
+// 通过 <script> 标签加载，本地双击打开和线上部署都能读取）
 async function getOfficialRolePrompt(name) {
-    try {
-        const response = await fetch("assets/data/official-roles.json");
-        if (response.ok) {
-            const data = await response.json();
-            const r = (data.roles || []).find((x) => x.name === name);
-            if (r && r.prompt) {
-                return r.prompt;
-            }
-        }
-    } catch {
-        // 本地 file:// 打开时 fetch 可能失败，返回空
+    const roles = window.OFFICIAL_ROLES && Array.isArray(window.OFFICIAL_ROLES.roles)
+        ? window.OFFICIAL_ROLES.roles
+        : [];
+    const r = roles.find((x) => x.name === name);
+    if (r && r.prompt) {
+        return r.prompt;
     }
-
     return "";
 }
 
