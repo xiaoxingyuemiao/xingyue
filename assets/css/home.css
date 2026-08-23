@@ -376,7 +376,7 @@ body {
     z-index: 0;
 }
 
-/* ---------- Live2D（主空间舞台 + 视口居中的竖直容器） ---------- */
+/* ---------- Live2D（最简版：先让模型显示出来） ---------- */
 
 .live2d-stage {
     position: absolute;
@@ -395,59 +395,13 @@ body {
 }
 
 .live2d-placeholder {
-    max-width: 70%;
-
-    padding: 20px 30px;
-
-    border-radius: 15px;
-
-    background-color: rgba(255, 255, 255, 0.35);
-
-    backdrop-filter: blur(5px);
-
-    font-size: 14px;
-    line-height: 1.6;
-
-    text-align: center;
+    display: none;
 }
 
-/* 容器：固定竖直比例（SDK 按此比例渲染模型，竖直比例保证立绘正常），
-   fixed 定位相对视口居中（不受祖先布局影响），尺寸随窗口自适应 */
+/* 模型容器：固定尺寸，先看 SDK 默认渲染效果 */
 .live2d-container {
-    position: fixed !important;
-
-    left: 50% !important;
-    top: 50% !important;
-
-    transform: translate(-50%, -50%) !important;
-
-    width: min(360px, 88vw) !important;
-    height: min(760px, 88vh) !important;
-}
-
-/* 舞台铺满容器 */
-.live2d-container > div {
-    position: absolute !important;
-    left: 0 !important;
-    top: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-}
-
-/* 画布初始铺满舞台：SDK 创建 canvas 时读取此尺寸来初始化像素缓冲区；
-   模型就位后 JS 会覆盖为 fixed 视口居中 + 显式像素尺寸 */
-.live2d-container canvas {
-    width: 100% !important;
-    height: 100% !important;
-}
-
-/* 隐藏 SDK 自带 UI：只隐藏不含画布的容器，保留舞台（canvas 的父级） */
-.live2d-container > div:not(:has(canvas)) {
-    display: none !important;
-}
-
-.live2d-container > div:has(canvas) :not(canvas) {
-    display: none !important;
+    width: 400px;
+    height: 600px;
 }
 /* ==============================
    聊天（右侧窄栏，与输入框左沿对齐）

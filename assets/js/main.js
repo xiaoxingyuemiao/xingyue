@@ -273,11 +273,11 @@ document.addEventListener("click", (event) => {
     closeRolePicker();
 });
 
-// 选中角色：保存 → 关闭面板 → 切换 Live2D 模型 → 加载该角色的对话历史
+// 选中角色：保存 → 关闭面板 → 加载该角色的对话历史
+// （Live2D 模型切换功能后续再加）
 function pickRole(role) {
     saveChatRole({ kind: role.kind, id: role.id, name: role.name });
     closeRolePicker();
-    Live2D.switchRole(role);
     chatHistory = loadChat();
     renderChat();
     updateExpandBtn();
@@ -397,546 +397,43 @@ function roleItemEl(role, active) {
 // 情绪动作驱动。所有 WebGL 资源在重建前释放，防止上下文泄漏。
 // ================================
 
+// ================================
+// Live2D（最简版：只负责把模型加载显示出来）
+// 先让模型出现，后续再逐步添加：居中适配 / 交互 / 情绪动作
+// ================================
+
 const Live2D = {
-    om: null,               // SDK 实例（loadOml2d 返回）
-    currentPath: null,      // 当前模型配置文件路径
-    initialized: false,     // 是否已完成初始化
-    resizeTimer: null,
-
-    // 用户交互状态：拖动偏移 / 缩放 / 旋转
-    interaction: {
-        dx: 0,
-        dy: 0,
-        scale: 1,
-        rotation: 0,
-        dragging: false,
-        startX: 0,
-        startY: 0,
-        startDx: 0,
-        startDy: 0,
-        bound: false,
-    },
-
-    /* ---------------- SDK ---------------- */
-
-    // 获取 SDK 工厂函数（0.19 版挂载在 window.OML2D.loadOml2d）
-    getFactory() {
-        if (window.OML2D && typeof window.OML2D.loadOml2d === "function") {
-            return window.OML2D.loadOml2d;
-        }
-        if (typeof window.loadOml2d === "function") {
-            return window.loadOml2d;
-        }
-        return null;
-    },
-
-    // 等待 SDK 脚本就绪
-    waitForSDK(timeout) {
-        const limit = timeout || 8000;
-        return new Promise((resolve) => {
-            if (this.getFactory()) {
-                resolve(true);
-                return;
-            }
-            const start = Date.now();
-            const timer = setInterval(() => {
-                if (this.getFactory()) {
-                    clearInterval(timer);
-                    resolve(true);
-                } else if (Date.now() - start > limit) {
-                    clearInterval(timer);
-                    resolve(false);
-                }
-            }, 100);
-        });
-    },
-
-    /* ---------------- 生命周期 ---------------- */
+    om: null,
 
     async init() {
-        if (this.initialized) {
-            return;
-        }
-        // 无论视口宽窄都先注册 resize 监听（窗口变化后自动适配）
-        this.setupResizeListener();
-
-        if (location.protocol === "file:") {
-            this.showPlaceholder("本地打开无法加载 Live2D（浏览器限制），请访问 GitHub Pages 线上地址");
-            return;
-        }
-
-        const ready = await this.waitForSDK();
-        if (!ready) {
-            this.showPlaceholder("Live2D SDK 加载失败（请检查 assets/vendor 下的 SDK 文件）");
-            return;
-        }
-
-        try {
-            this.om = this.createInstance(this.getDefaultPath());
-            this.currentPath = this.getDefaultPath();
-            window.__om = this.om; // 调试钩子
-            this.initialized = true;
-            this.bindInteractions();
-            this.setupObserver();
-            this.fixLayout();
-            this.hidePlaceholder();
-        } catch (error) {
-            console.warn("Live2D 初始化失败：", error);
-            this.showPlaceholder("Live2D 加载失败：" + (error && error.message ? error.message : error));
-        }
-    },
-
-    // 销毁实例：释放 WebGL 上下文（必须，否则多次重建会崩溃）
-    destroyInstance() {
-        if (!this.om) {
-            return;
-        }
-        try {
-            if (typeof this.om.destroy === "function") {
-                this.om.destroy();
-            } else if (typeof this.om.dispose === "function") {
-                this.om.dispose();
-            }
-        } catch {
-            // 忽略
-        }
-        try {
-            if (typeof this.om.stageSlideOut === "function") {
-                this.om.stageSlideOut();
-            }
-        } catch {
-            // 忽略
-        }
-        this.om = null;
-    },
-
-    // 重新加载当前模型（窗口大小变化后 scale 需重算）
-    reloadModel() {
-        if (!this.om || !this.currentPath) {
-            return;
-        }
-        this.destroyInstance();
-        const container = this.container();
-        if (container) {
-            container.innerHTML = "";
-        }
-        try {
-            this.om = this.createInstance(this.currentPath);
-            window.__om = this.om;
-            this.resetInteraction();
-            this.fixLayout();
-        } catch (error) {
-            console.warn("Live2D 重载失败：", error);
-        }
-    },
-
-    /* ---------------- 模型 ---------------- */
-
-    container() {
-        return document.getElementById("live2d-container");
-    },
-
-    // 创建实例（oh-my-live2d 0.19：loadOml2d + models 数组）
-    createInstance(path) {
-        const factory = this.getFactory();
+        // SDK 已由 index.html 加载（window.OML2D.loadOml2d）
+        const factory = window.OML2D && window.OML2D.loadOml2d;
         if (!factory) {
-            return null;
-        }
-        const container = this.container();
-        this.modelScale = this.computeScale();
-        return factory({
-            el: container,
-            parentElement: container,
-            models: [{
-                path: path,
-                scale: this.modelScale,
-                anchor: [0.5, 0.5],
-            }],
-            // 舞台铺满容器
-            stageStyle: {
-                position: "absolute",
-                left: 0,
-                top: 0,
-                width: "100%",
-                height: "100%",
-            },
-            // 关闭 SDK 自带 UI
-            statusBar: { disable: true },
-            menus: { disable: true },
-            sayHello: false,
-            tips: { disable: true },
-        });
-    },
-
-    // 模型 scale：窗口 360×760 时 0.15，窗口缩小时等比缩小，保证模型完整
-    computeScale() {
-        const fit = Math.min(
-            1,
-            (window.innerWidth * 0.88) / 360,
-            (window.innerHeight * 0.88) / 760
-        );
-        return Math.round(Math.max(0.05, 0.15 * fit) * 1000) / 1000;
-    },
-
-    // 默认模型（角色没有配置模型时使用）
-    getDefaultPath() {
-        return "assets/live2d/default/ARGNori.model3.json";
-    },
-
-    // 角色 → 模型文件路径（官方角色用后台配置，我的角色用自己配置，缺省用默认）
-    getRoleModelPath(role) {
-        let model = "";
-        if (role.kind === "official") {
-            const official = window.OFFICIAL_ROLES && Array.isArray(window.OFFICIAL_ROLES.roles)
-                ? window.OFFICIAL_ROLES.roles
-                : [];
-            const r = official.find((x) => x.name === role.name);
-            model = r && r.model ? r.model : "";
-        } else {
-            try {
-                const store = JSON.parse(localStorage.getItem(SETTINGS_KEY));
-                const r = store && Array.isArray(store.roles)
-                    ? store.roles.find((x) => x.id === role.id)
-                    : null;
-                model = r && r.model ? r.model : "";
-            } catch {
-                // 忽略
-            }
-        }
-        return model || this.getDefaultPath();
-    },
-
-    // 切换角色 → 切换模型
-    switchRole(role) {
-        const path = this.getRoleModelPath(role);
-        if (this.om && this.currentPath === path) {
+            console.warn("Live2D SDK 未加载");
             return;
         }
-        this.destroyInstance();
-        const container = this.container();
-        if (container) {
-            container.innerHTML = "";
-        }
-        this.resetInteraction();
-        try {
-            this.om = this.createInstance(path);
-            this.currentPath = path;
-            window.__om = this.om;
-            this.fixLayout();
-        } catch (error) {
-            console.warn("Live2D 模型切换失败：", error);
-            this.showPlaceholder("Live2D 模型切换失败：" + (error && error.message ? error.message : error));
-        }
-    },
-
-    /* ---------------- 布局 ---------------- */
-
-    // 模型适配画布：按画布尺寸自动缩放（模型完整放入画布）+ 居中
-    fitModelToCanvas() {
-        const om = this.om;
-        const canvas = this.container() && this.container().querySelector("canvas");
-        if (!om || !canvas) {
-            return false;
-        }
-        if (
-            typeof om.setModelScale !== "function" ||
-            typeof om.setModelAnchor !== "function" ||
-            typeof om.setModelPosition !== "function"
-        ) {
-            return true; // 版本不支持也没关系，不阻塞
-        }
-        const size = om.modelSize;
-        if (!size || !size.width || !size.height) {
-            return false; // 模型还没加载完成，稍后再试
+        const container = document.getElementById("live2d-container");
+        if (!container) {
+            return;
         }
         try {
-            const cw = canvas.width;
-            const ch = canvas.height;
-            // 缩放：让模型四周留 5% 边距完整放入画布（过小的模型不放大）
-            const fit = Math.min((cw * 0.95) / size.width, (ch * 0.95) / size.height, 1);
-            if (fit < 0.999) {
-                this.modelScale = this.modelScale * fit;
-                om.setModelScale(this.modelScale);
-            }
-            // 锚点 = 模型中心，位置 = 画布中心 → 模型居中
-            om.setModelAnchor({ x: 0.5, y: 0.5 });
-            om.setModelPosition({ x: cw / 2, y: ch / 2 });
-            return true;
-        } catch (e) {
-            return false;
-        }
-    },
-
-    // 修正布局：隐藏 SDK 自带 UI、舞台铺满容器、模型适配画布居中、画布视口居中
-    // （模型异步加载，模型尺寸未就位时自动重试）
-    fixLayout(attempts) {
-        const container = this.container();
-        if (!container) {
-            return;
-        }
-        const count = attempts || 0;
-        if (count > 20) {
-            return;
-        }
-
-        this.cleanSDKUI();
-
-        // 舞台铺满容器
-        for (const el of Array.from(container.children)) {
-            if (el.querySelector("canvas")) {
-                el.style.position = "absolute";
-                el.style.left = "0";
-                el.style.top = "0";
-                el.style.width = "100%";
-                el.style.height = "100%";
-                el.style.margin = "0";
-            }
-        }
-
-        if (!container.querySelector("canvas") || !this.fitModelToCanvas()) {
-            // 模型或画布还没就位，稍后再试
-            setTimeout(() => this.fixLayout(count + 1), 500);
-            return;
-        }
-
-        this.applyTransform();
-    },
-
-    // 画布变换：尺寸=容器尺寸（像素），fixed 视口居中，
-    // + 用户拖动 / 缩放 / 旋转（原点 = 画布中心 = 模型中心）
-    applyTransform() {
-        const container = this.container();
-        if (!container) {
-            return;
-        }
-        const canvas = container.querySelector("canvas");
-        if (!canvas) {
-            return;
-        }
-        const it = this.interaction;
-        const cw = container.clientWidth || 360;
-        const ch = container.clientHeight || 760;
-        const transform =
-            "translate(-50%, -50%) " +
-            "translate(" + it.dx + "px, " + it.dy + "px) " +
-            "scale(" + it.scale + ") rotate(" + it.rotation + "deg)";
-        if (canvas.style.position !== "fixed") {
-            canvas.style.position = "fixed";
-        }
-        if (canvas.style.left !== "50%") {
-            canvas.style.left = "50%";
-        }
-        if (canvas.style.top !== "50%") {
-            canvas.style.top = "50%";
-        }
-        if (canvas.style.width !== cw + "px") {
-            canvas.style.width = cw + "px";
-        }
-        if (canvas.style.height !== ch + "px") {
-            canvas.style.height = ch + "px";
-        }
-        if (canvas.style.transformOrigin !== "center") {
-            canvas.style.transformOrigin = "center";
-        }
-        if (canvas.style.transform !== transform) {
-            canvas.style.transform = transform;
-        }
-    },
-
-    // 隐藏 SDK 自带 UI（对话框、提示条、按钮等），保留舞台与画布
-    cleanSDKUI() {
-        const container = this.container();
-        if (!container) {
-            return;
-        }
-        // 找到舞台（含画布的元素），舞台及其内部保留
-        let stage = null;
-        for (const el of Array.from(container.children)) {
-            if (el.querySelector("canvas")) {
-                stage = el;
-                break;
-            }
-        }
-        for (const el of Array.from(container.querySelectorAll("*"))) {
-            if (el.tagName.toLowerCase() === "canvas") {
-                continue;
-            }
-            if (stage && (el === stage || stage.contains(el))) {
-                continue;
-            }
-            if (el.style.display !== "none") {
-                el.style.display = "none";
-            }
-        }
-    },
-
-    // 守护：SDK 异步操作后恢复我们的样式（防抖，避免循环触发）
-    setupObserver() {
-        if (this.observer) {
-            return;
-        }
-        const container = this.container();
-        if (!container) {
-            return;
-        }
-        this.observerPending = false;
-        this.observer = new MutationObserver(() => {
-            if (this.observerPending) {
-                return;
-            }
-            this.observerPending = true;
-            requestAnimationFrame(() => {
-                this.observerPending = false;
-                this.cleanSDKUI();
-                this.applyTransform();
+            this.om = factory({
+                el: container,
+                parentElement: container,
+                models: [{
+                    path: "assets/live2d/default/ARGNori.model3.json",
+                    scale: 0.1,
+                }],
+                // 关闭 SDK 自带 UI
+                statusBar: { disable: true },
+                menus: { disable: true },
+                tips: { disable: true },
+                sayHello: false,
             });
-        });
-        this.observer.observe(container, {
-            subtree: true,
-            childList: true,
-            attributes: true,
-            attributeFilter: ["style"],
-        });
-    },
-
-    /* ---------------- 用户交互 ---------------- */
-
-    // 拖动 / 中键缩放 / Ctrl+中键旋转（捕获阶段，避免被 SDK 内部事件拦截）
-    bindInteractions() {
-        if (this.interaction.bound) {
-            return;
-        }
-        this.interaction.bound = true;
-
-        // 绑定到整个舞台区域（主空间），操作区域更大更方便
-        const stageEl = document.querySelector(".live2d-stage") || this.container();
-        if (!stageEl) {
-            return;
-        }
-        const it = this.interaction;
-
-        stageEl.addEventListener("pointerdown", (e) => {
-            it.dragging = true;
-            it.startX = e.clientX;
-            it.startY = e.clientY;
-            it.startDx = it.dx;
-            it.startDy = it.dy;
-            e.preventDefault();
-        }, true);
-
-        window.addEventListener("pointermove", (e) => {
-            if (!it.dragging) {
-                return;
-            }
-            it.dx = it.startDx + (e.clientX - it.startX);
-            it.dy = it.startDy + (e.clientY - it.startY);
-            this.applyTransform();
-        }, true);
-
-        window.addEventListener("pointerup", () => {
-            it.dragging = false;
-        }, true);
-
-        stageEl.addEventListener("wheel", (e) => {
-            e.preventDefault();
-            const delta = e.deltaY > 0 ? -1 : 1;
-            if (e.ctrlKey) {
-                it.rotation = Math.round((it.rotation + delta * 5) * 10) / 10;
-            } else {
-                const factor = delta > 0 ? 0.93 : 1.07;
-                it.scale = Math.min(4, Math.max(0.15, it.scale * factor));
-            }
-            this.applyTransform();
-        }, { passive: false, capture: true });
-    },
-
-    // 重置交互状态（角色切换后）
-    resetInteraction() {
-        const it = this.interaction;
-        it.dx = 0;
-        it.dy = 0;
-        it.scale = 1;
-        it.rotation = 0;
-        it.dragging = false;
-    },
-
-    // 窗口 / 缩放变化后重新适配（长防抖，避免频繁重建）
-    setupResizeListener() {
-        if (this.resizeBound) {
-            return;
-        }
-        this.resizeBound = true;
-        window.addEventListener("resize", () => {
-            clearTimeout(this.resizeTimer);
-            this.resizeTimer = setTimeout(() => {
-                if (this.om) {
-                    this.reloadModel();
-                }
-            }, 800);
-        });
-    },
-
-    /* ---------------- 情绪 ---------------- */
-
-    // 情绪 → 模型表现（动作组 + 表情名都尝试，模型没有对应资源时忽略）
-    playEmotion(emotion) {
-        if (!this.om || !emotion) {
-            return;
-        }
-        const map = {
-            "开心": ["Reactions", "13_Happy", "happy"],
-            "难过": ["08_Tears", "05_Dark", "sad"],
-            "生气": ["Reactions", "03_Angry", "angry"],
-            "害羞": ["04_Shy", "shy"],
-            "惊讶": ["Reactions", "14_Surprised", "surprise"],
-            "委屈": ["08_Tears", "06_Speechless", "wronged"],
-            "平静": ["00_Default", "normal"],
-            "困": ["Sleep", "sleepy"],
-            "累": ["Sleep", "tired"],
-        };
-        const targets = map[emotion];
-        if (!targets) {
-            return;
-        }
-        for (const target of targets) {
-            try {
-                if (typeof this.om.motion === "function") {
-                    this.om.motion(target);
-                }
-            } catch {
-                // 目标不存在时忽略
-            }
-            try {
-                if (typeof this.om.expression === "function") {
-                    this.om.expression(target);
-                }
-            } catch {
-                // 目标不存在时忽略
-            }
-        }
-    },
-
-    // 预留：TTS 嘴型同步（未来接入 TTS 后驱动 LipSync 参数）
-    speak(text) {
-        // TODO: 接入 TTS 后调用模型音频/嘴型接口
-    },
-
-    /* ---------------- 占位提示 ---------------- */
-
-    showPlaceholder(message) {
-        const el = document.getElementById("live2d-placeholder");
-        if (el) {
-            el.style.display = "flex";
-            if (message) {
-                el.textContent = message;
-            }
-        }
-    },
-
-    hidePlaceholder() {
-        const el = document.getElementById("live2d-placeholder");
-        if (el) {
-            el.style.display = "none";
+            window.__om = this.om; // 调试钩子
+            console.log("Live2D 模型加载中……");
+        } catch (error) {
+            console.warn("Live2D 加载失败：", error);
         }
     },
 };
@@ -1206,9 +703,8 @@ async function askXingyao() {
 
         typingEl.remove();
 
-        // 解析情绪标记 → 控制 Live2D 表情动作；正文去掉标记后显示
+        // 解析情绪标记（正文去掉标记显示；Live2D 表情动作后续再加）
         const parsed = parseEmotion(reply);
-        Live2D.playEmotion(parsed.emotion);
         addMessage(getChatRoleName(), parsed.text || "……", false);
     } catch (error) {
         typingEl.remove();
