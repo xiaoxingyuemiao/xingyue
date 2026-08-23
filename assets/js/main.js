@@ -629,12 +629,13 @@ const Live2D = {
     },
 
     // 模型 scale 自适应画布：保持模型与容器的比例（360×760 时 = 0.15），
-    // 窗口变小时模型同步缩小，永远完整显示不被裁剪
+    // 窗口变小时模型同步缩小，永远完整显示不被裁剪（下限 0.05，防止过小渲染失败）
     computeScale() {
         const vw = window.innerWidth;
         const vh = window.innerHeight;
         const fit = Math.min(1, (vw * 0.88) / 360, (vh * 0.88) / 760);
-        return Math.round(0.15 * fit * 1000) / 1000;
+        const scale = 0.15 * fit;
+        return Math.round(Math.max(0.05, scale) * 1000) / 1000;
     },
 
     // 创建实例（兼容 0.19 的 loadOml2d 与 0.2 的 OhMyLive2D 两种 API）
@@ -735,6 +736,11 @@ const Live2D = {
         if (location.protocol === "file:") {
             this.showPlaceholder("本地打开无法加载 Live2D（浏览器限制），请访问 GitHub Pages 线上地址");
             return false;
+        }
+
+        // 视口过窄：模型无法正常显示，给出明确提示（拉宽窗口后 resize 监听会自动重载）
+        if (window.innerWidth < 400) {
+            this.showPlaceholder("窗口过窄（" + window.innerWidth + "px）：模型无法完整显示。请拉宽浏览器窗口（建议 800px 以上）或按 F11 全屏，稍等片刻会自动刷新模型。");
         }
 
         const ready = await this.waitForSDK();
@@ -890,6 +896,10 @@ const Live2D = {
     },
 
     hidePlaceholder() {
+        // 视口过窄时保留提示文字（提醒用户拉宽窗口）
+        if (window.innerWidth < 400) {
+            return;
+        }
         const el = document.getElementById("live2d-placeholder");
         if (el) {
             el.style.display = "none";
