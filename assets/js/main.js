@@ -442,8 +442,8 @@ const Live2D = {
                 models: [{
                     path: "assets/live2d/default/ARGNori.model3.json",
                     scale: 0.1,
-                    // 锚点 = 模型自身中心点，配合 setModelPosition 把模型放到窗口正中心
-                    anchor: [0.5, 0.5],
+                    // 锚点左上角：模型固定渲染，位置由"窗口"控制
+                    anchor: [0, 0],
                 }],
                 // 关闭 SDK 自带 UI
                 statusBar: { disable: true },
@@ -460,8 +460,7 @@ const Live2D = {
         }
     },
 
-    // 设置模型锚点 (0.5, 0.5)：模型自身中心点，模型对象未就绪时自动重试；
-    // 锚点设置成功后，再把模型中心点移到窗口（画布）正中心
+    // 设置模型锚点 (0, 0)：运行时调用，模型对象未就绪时自动重试
     setModelAnchor(attempts) {
         const om = this.om;
         if (!om || typeof om.setModelAnchor !== "function") {
@@ -469,40 +468,14 @@ const Live2D = {
         }
         const count = attempts || 0;
         try {
-            om.setModelAnchor({ x: 0.5, y: 0.5 });
-            console.log("模型锚点已设置 (0.5, 0.5)");
-            this.centerModelInWindow();
+            om.setModelAnchor({ x: 0, y: 0 });
+            console.log("模型锚点已设置 (0, 0)");
         } catch (error) {
             if (count < 20) {
                 // 模型对象还没创建完成，稍后重试（最多 10 秒）
                 setTimeout(() => this.setModelAnchor(count + 1), 500);
             } else {
                 console.warn("模型锚点设置失败：", error);
-            }
-        }
-    },
-
-    // 把模型中心点移到窗口（画布）正中心：
-    // 画布像素尺寸 = 容器 CSS 尺寸 × devicePixelRatio，中心 = (canvas.width/2, canvas.height/2)
-    centerModelInWindow(attempts) {
-        const om = this.om;
-        if (!om || typeof om.setModelPosition !== "function") {
-            return;
-        }
-        const count = attempts || 0;
-        try {
-            const canvas = document.querySelector(".live2d-container canvas");
-            if (!canvas || !canvas.width || !canvas.height) {
-                throw new Error("画布未就绪");
-            }
-            om.setModelPosition({ x: canvas.width / 2, y: canvas.height / 2 });
-            console.log("模型已居中到窗口正中心 (" + canvas.width / 2 + ", " + canvas.height / 2 + ")");
-        } catch (error) {
-            if (count < 20) {
-                // 画布或模型还没就绪，稍后重试
-                setTimeout(() => this.centerModelInWindow(count + 1), 500);
-            } else {
-                console.warn("模型居中失败：", error);
             }
         }
     },
