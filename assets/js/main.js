@@ -459,7 +459,7 @@ const Live2D = {
         try {
             // 锚点 = 模型中心，位置 = 画布中心 → 模型居中
             om.setModelAnchor({ x: 0.5, y: 0.5 });
-            om.setModelPosition({ x: canvas.width / 2 + 50, y: canvas.height / 2 });
+            om.setModelPosition({ x: canvas.width / 2 + 1000, y: canvas.height / 2 });
             console.log("Live2D 模型已居中");
         } catch (error) {
             console.warn("Live2D 居中失败：", error);
