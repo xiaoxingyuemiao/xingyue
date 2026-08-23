@@ -457,14 +457,13 @@ const Live2D = {
                 anchor: [0.5, 0.5],
                 position: [0, 0],
             }],
-            // 舞台在容器内居中：用 margin auto（不依赖 transform，避免与 SDK 入场动画冲突）
+            // 舞台铺满容器（模型画布 canvas 由 CSS 居中）
             stageStyle: {
                 position: "absolute",
                 left: 0,
-                right: 0,
                 top: 0,
-                bottom: 0,
-                margin: "auto",
+                width: "100%",
+                height: "100%",
             },
             // 关闭 SDK 自带 UI：状态栏 / 菜单按钮（换衣、休息、设置等）/ 欢迎气泡
             statusBar: { disable: true },

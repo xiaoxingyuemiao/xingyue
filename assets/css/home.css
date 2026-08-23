@@ -411,6 +411,23 @@ body {
     height: 100%;
 }
 
+/* 舞台铺满容器（SDK 默认是 0x0 锚点，不铺满的话模型会跑到角落） */
+.live2d-container > div {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* 模型画布在舞台内居中（canvas 没有入场动画，transform 不会被覆盖） */
+.live2d-container canvas {
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+}
+
 /* ==============================
    聊天（右侧窄栏，与输入框左沿对齐）
    ============================== */
