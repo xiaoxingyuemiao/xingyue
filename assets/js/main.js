@@ -458,19 +458,26 @@ const Live2D = {
     },
 
     // 模型居中：锚点 = 模型中心，位置 = 画布中心（canvas 像素坐标）
-    centerModel() {
+    // 模型对象未就绪时会报错，自动重试直到成功
+    centerModel(attempts) {
         const om = this.om;
         const container = document.getElementById("live2d-container");
         const canvas = container && container.querySelector("canvas");
         if (!om || !canvas) {
             return;
         }
+        const count = attempts || 0;
         try {
             om.setModelAnchor({ x: 0.5, y: 0.5 });
             om.setModelPosition({ x: canvas.width / 2, y: canvas.height / 2 });
             console.log("Live2D 模型已居中");
         } catch (error) {
-            console.warn("Live2D 居中失败：", error);
+            if (count < 20) {
+                // 模型对象还没创建完成，稍后重试（最多 10 秒）
+                setTimeout(() => this.centerModel(count + 1), 500);
+            } else {
+                console.warn("Live2D 居中失败：", error);
+            }
         }
     },
 };
