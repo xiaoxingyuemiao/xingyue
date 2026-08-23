@@ -409,8 +409,8 @@ const Live2D = {
         bound: false,
     },
 
-    // 应用画布变换：画布 fixed 钉在视口中心（不依赖容器定位），
-    // 变换包含居中 + 用户拖动 / 缩放 / 旋转，原点为画布中心 = 模型中心
+    // 应用画布变换：画布 fixed 钉在视口中心 + 用户拖动 / 缩放 / 旋转
+    // （画布显示尺寸由 CSS 统一控制：min(360px,88vw) × min(760px,88vh)）
     applyTransform() {
         const container = document.getElementById("live2d-container");
         if (!container) {
@@ -433,12 +433,6 @@ const Live2D = {
         }
         if (canvas.style.top !== "50%") {
             canvas.style.top = "50%";
-        }
-        if (canvas.style.width !== "360px") {
-            canvas.style.width = "360px";
-        }
-        if (canvas.style.height !== "760px") {
-            canvas.style.height = "760px";
         }
         if (canvas.style.transformOrigin !== "center") {
             canvas.style.transformOrigin = "center";
@@ -602,6 +596,15 @@ const Live2D = {
         return null;
     },
 
+    // 模型 scale 自适应画布：保持模型与容器的比例（360×760 时 = 0.15），
+    // 窗口变小时模型同步缩小，永远完整显示不被裁剪
+    computeScale() {
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        const fit = Math.min(1, (vw * 0.88) / 360, (vh * 0.88) / 760);
+        return Math.round(0.15 * fit * 1000) / 1000;
+    },
+
     // 创建实例（兼容 0.19 的 loadOml2d 与 0.2 的 OhMyLive2D 两种 API）
     createInstance(path) {
         const container = document.getElementById("live2d-container");
@@ -622,7 +625,7 @@ const Live2D = {
             parentElement: container,
             models: [{
                 path: path,
-                scale: 0.15,
+                scale: this.computeScale(),
                 // 锚点居中：模型在画布内居中完整显示
                 anchor: [0.5, 0.5],
             }],
