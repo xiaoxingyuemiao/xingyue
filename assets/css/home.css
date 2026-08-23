@@ -434,7 +434,12 @@ body {
     height: 100% !important;
 }
 
-/* 画布：尺寸与位置完全由 JS 控制（fixed 视口居中），CSS 不干预 */
+/* 画布初始铺满舞台：SDK 创建 canvas 时读取此尺寸来初始化像素缓冲区；
+   模型就位后 JS 会覆盖为 fixed 视口居中 + 显式像素尺寸 */
+.live2d-container canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
 
 /* 隐藏 SDK 自带 UI：只隐藏不含画布的容器，保留舞台（canvas 的父级） */
 .live2d-container > div:not(:has(canvas)) {
