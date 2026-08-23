@@ -195,6 +195,26 @@
         </div>
 
 
+        <!-- 拦截 SDK 对 unpkg.com 的版本检查请求（网络无法访问时返回模拟响应，避免初始化失败） -->
+        <script>
+            (function () {
+                var realFetch = window.fetch;
+                window.fetch = function (input, init) {
+                    var url = typeof input === "string" ? input : (input && input.url) || "";
+                    if (url.indexOf("unpkg.com") !== -1) {
+                        return Promise.resolve(new Response(JSON.stringify({
+                            name: "oh-my-live2d",
+                            version: "0.19.3"
+                        }), {
+                            status: 200,
+                            headers: { "Content-Type": "application/json" }
+                        }));
+                    }
+                    return realFetch.apply(this, arguments);
+                };
+            })();
+        </script>
+
         <!-- Live2D SDK（oh-my-live2d 0.19 版，样式内联无需 CSS 文件；
              优先加载本地 vendor 文件，缺失时回退 CDN） -->
         <script src="assets/vendor/oh-my-live2d.min.js" onerror="
