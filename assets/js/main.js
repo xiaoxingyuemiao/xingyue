@@ -187,20 +187,8 @@ async function getActiveSystemPrompt() {
     return getOfficialRolePrompt("星瑶");
 }
 
-// 读取官方角色的设定：站长本地覆盖优先，其次服务器上的 JSON
+// 读取官方角色的设定（站长在后台 assets/data/official-roles.json 维护）
 async function getOfficialRolePrompt(name) {
-    try {
-        const override = JSON.parse(localStorage.getItem("xingyue_official_override"));
-        if (override && Array.isArray(override.roles)) {
-            const r = override.find((x) => x.name === name);
-            if (r && r.prompt) {
-                return r.prompt;
-            }
-        }
-    } catch {
-        // 忽略
-    }
-
     try {
         const response = await fetch("assets/data/official-roles.json");
         if (response.ok) {

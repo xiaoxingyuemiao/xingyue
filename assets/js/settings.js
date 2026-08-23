@@ -9,10 +9,9 @@
 const STORE_KEY = "xingyue_settings";
 const PREFS_KEY = "xingyue_prefs";
 const CHAT_KEY = "xingyue_chat";
-const OWNER_PASS_KEY = "xingyue_owner_pass";
 
-// 注意：角色设定内容（System Prompt）不写在代码里，只保存在站长自己的浏览器中，
-// 避免随公开仓库泄露。新角色默认空文本，由站长自行填写。
+// 注意：官方角色设定内容（System Prompt）不写在代码里，
+// 由站长在 assets/data/official-roles.json 中维护（后台调整，推送 GitHub 即同步）。
 
 // ---------- 页面元素 ----------
 
@@ -64,34 +63,9 @@ const rPrompt = document.querySelector("#r-prompt");
 const rSave = document.querySelector("#r-save");
 const rStatus = document.querySelector("#r-status");
 
-// 角色设定：官方角色区（站长口令锁）
-const roleLock = document.querySelector("#role-lock");
-const officialContent = document.querySelector("#official-content");
-const roleLockSetup = document.querySelector("#role-lock-setup");
-const roleLockEnter = document.querySelector("#role-lock-enter");
-const rolePassNew = document.querySelector("#role-pass-new");
-const rolePassConfirm = document.querySelector("#role-pass-confirm");
-const rolePassSet = document.querySelector("#role-pass-set");
-const rolePassInput = document.querySelector("#role-pass-input");
-const rolePassEnter = document.querySelector("#role-pass-enter");
-const rolePassReset = document.querySelector("#role-pass-reset");
-const rolePassChange = document.querySelector("#role-pass-change");
-const roleLockStatus = document.querySelector("#role-lock-status");
-
-const officialRoleList = document.querySelector("#official-role-list");
-const officialExport = document.querySelector("#official-export");
-
-// 官方角色数据：站长本地覆盖 + 服务器 JSON
-const OFFICIAL_OVERRIDE_KEY = "xingyue_official_override";
-const OFFICIAL_JSON_URL = "assets/data/official-roles.json";
-
 // 当前正在编辑的 id（null = 新增，有值 = 双击卡片进入编辑）
 let editingProviderId = null;
 let editingRoleId = null;
-let editingOfficialRole = null; // 正在编辑的官方角色名（null = 非官方）
-
-// 本次会话是否已通过站长口令验证（只影响官方角色区）
-let roleUnlocked = false;
 
 // ================================
 // 左侧导航：切换视图（API 设置 / 角色设定 / 对话）
@@ -112,7 +86,7 @@ function switchView(name) {
         renderHistory();
         loadHistoryView();
     } else if (name === "role") {
-        loadRoleView();
+        renderRoles();
     }
 }
 
@@ -382,261 +356,20 @@ function renderRoles() {
     }
 }
 
-// ================================
-// 角色设定：站长口令锁（只有站长能查看 / 编辑）
-// ================================
-
-// 进入角色设定视图：我的角色人人可用；官方角色区需站长口令
-function loadRoleView() {
-    renderRoles();
-
-    roleLockStatus.textContent = "";
-    rolePassInput.value = "";
-    rolePassNew.value = "";
-    rolePassConfirm.value = "";
-
-    if (roleUnlocked) {
-        showOfficialContent();
-        return;
-    }
-
-    officialContent.hidden = true;
-    roleLock.hidden = false;
-
-    const hasPass = !!localStorage.getItem(OWNER_PASS_KEY);
-    roleLockSetup.hidden = hasPass;
-    roleLockEnter.hidden = !hasPass;
-}
-
-// 解锁后显示官方角色管理
-function showOfficialContent() {
-    roleLock.hidden = true;
-    officialContent.hidden = false;
-    renderOfficialRoles();
-}
-
-// 首次设置口令（站长）：设置成功后自动准备"星瑶 / 月瓷"角色（文本留空由站长填写）
-rolePassSet.addEventListener("click", () => {
-    const pass = rolePassNew.value;
-    const confirm = rolePassConfirm.value;
-
-    if (!pass || pass.length < 4) {
-        roleLockStatus.textContent = "口令至少需要 4 位";
-        return;
-    }
-    if (pass !== confirm) {
-        roleLockStatus.textContent = "两次输入不一致，请重新输入";
-        return;
-    }
-
-    localStorage.setItem(OWNER_PASS_KEY, pass);
-    roleUnlocked = true;
-    migrateOfficialRoles();
-    roleLockStatus.textContent = "口令设置成功，欢迎回来站长～";
-    showOfficialContent();
-});
-
-// 输入口令进入
-rolePassEnter.addEventListener("click", () => {
-    const pass = rolePassInput.value;
-    if (pass === localStorage.getItem(OWNER_PASS_KEY)) {
-        roleUnlocked = true;
-        roleLockStatus.textContent = "";
-        showOfficialContent();
-    } else {
-        roleLockStatus.textContent = "口令不正确，请重试";
-    }
-});
-
-// 回车提交口令
-rolePassInput.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") {
-        rolePassEnter.click();
-    }
-});
-
-// 忘记口令：清除口令，重新设置
-rolePassReset.addEventListener("click", () => {
-    if (!window.confirm("重置后将需要重新设置口令，确定吗？")) {
-        return;
-    }
-    localStorage.removeItem(OWNER_PASS_KEY);
-    roleUnlocked = false;
-    loadRoleView();
-});
-
-// 修改口令：清除口令并回到设置界面
-rolePassChange.addEventListener("click", () => {
-    if (!window.confirm("修改口令后需要重新设置并再次验证，确定吗？")) {
-        return;
-    }
-    localStorage.removeItem(OWNER_PASS_KEY);
-    roleUnlocked = false;
-    loadRoleView();
-});
-
-// ================================
-// 官方角色（星瑶 / 月瓷）：仅站长可编辑，同步到服务器供所有访客使用
-// ================================
-
-// 读取官方角色：优先站长本地覆盖，其次服务器上的 official-roles.json
-async function loadOfficialRoles() {
-    // 1) 站长本地覆盖（编辑后保存到这里，导出后推送 GitHub 即同步到服务器）
-    try {
-        const override = JSON.parse(localStorage.getItem(OFFICIAL_OVERRIDE_KEY));
-        if (override && Array.isArray(override.roles) && override.roles.length > 0) {
-            return override.roles;
-        }
-    } catch {
-        // 读取失败继续
-    }
-
-    // 2) 服务器上的 official-roles.json
-    try {
-        const response = await fetch(OFFICIAL_JSON_URL);
-        if (response.ok) {
-            const data = await response.json();
-            if (data && Array.isArray(data.roles)) {
-                return data.roles;
-            }
-        }
-    } catch {
-        // 本地 file:// 打开时 fetch 可能失败，返回空
-    }
-
-    return [
-        { name: "星瑶", prompt: "" },
-        { name: "月瓷", prompt: "" },
-    ];
-}
-
-// 渲染官方角色卡片（带"官方"徽章，双击编辑，保存到站长本地覆盖）
-async function renderOfficialRoles() {
-    officialRoleList.innerHTML = "";
-
-    const roles = await loadOfficialRoles();
-
-    for (const role of roles) {
-        const card = document.createElement("div");
-        card.className = "role-card role-card-official";
-        card.title = "双击编辑官方设定";
-
-        const info = document.createElement("div");
-        info.className = "provider-info";
-
-        const nameRow = document.createElement("div");
-        nameRow.className = "provider-name-row";
-
-        const nameEl = document.createElement("span");
-        nameEl.className = "provider-name";
-        nameEl.textContent = role.name;
-        nameRow.appendChild(nameEl);
-
-        const badge = document.createElement("span");
-        badge.className = "provider-badge";
-        badge.textContent = "官方";
-        nameRow.appendChild(badge);
-
-        info.appendChild(nameRow);
-
-        const preview = document.createElement("div");
-        preview.className = "provider-meta role-preview";
-        preview.textContent = role.prompt
-            ? (role.prompt.length > 60 ? role.prompt.slice(0, 60) + "……" : role.prompt)
-            : "（设定内容待站长填写）";
-        info.appendChild(preview);
-
-        card.appendChild(info);
-        card.appendChild(officialEditHint());
-        card.addEventListener("dblclick", () => {
-            openRoleModal(role, true);
-        });
-
-        officialRoleList.appendChild(card);
-    }
-}
-
-// 官方卡片上的"双击编辑"小提示
-function officialEditHint() {
-    const hint = document.createElement("span");
-    hint.className = "official-edit-hint";
-    hint.textContent = "双击编辑";
-    return hint;
-}
-
-// 首次设置口令时：把"我的角色"里的星瑶 / 月瓷迁移到官方角色（避免重复）
-function migrateOfficialRoles() {
-    const store = loadStore();
-
-    const officialNames = ["星瑶", "月瓷"];
-    const migrated = store.roles.filter((r) => officialNames.includes(r.name));
-    const rest = store.roles.filter((r) => !officialNames.includes(r.name));
-
-    if (migrated.length > 0) {
-        // 已有官方本地覆盖则合并（覆盖内容优先）
-        let override = [];
-        try {
-            const saved = JSON.parse(localStorage.getItem(OFFICIAL_OVERRIDE_KEY));
-            if (saved && Array.isArray(saved.roles)) {
-                override = saved.roles;
-            }
-        } catch {
-            // 忽略
-        }
-
-        for (const r of migrated) {
-            if (!override.some((o) => o.name === r.name)) {
-                override.push({ name: r.name, prompt: r.prompt || "" });
-            }
-        }
-
-        localStorage.setItem(OFFICIAL_OVERRIDE_KEY, JSON.stringify({ roles: override }));
-    }
-
-    store.roles = rest;
-    if (!store.activeRoleId || !store.roles.some((r) => r.id === store.activeRoleId)) {
-        store.activeRoleId = store.roles.length > 0 ? store.roles[0].id : null;
-    }
-    saveStore(store);
-    renderRoles();
-}
-
-// 导出官方角色 JSON（下载后放到项目 assets/data/ 并推送 GitHub 即完成同步）
-async function exportOfficialRoles() {
-    const roles = await loadOfficialRoles();
-    const json = JSON.stringify({ roles: roles }, null, 4);
-
-    const blob = new Blob([json], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "official-roles.json";
-    a.click();
-    URL.revokeObjectURL(url);
-}
-
-officialExport.addEventListener("click", () => {
-    exportOfficialRoles();
-    roleLockStatus.textContent = "已导出！把文件放到项目 assets/data/ 目录替换旧文件，再推送 GitHub 即可同步到服务器";
-});
-
 // ---------- 添加角色弹窗 ----------
 
-// 打开添加 / 编辑角色弹窗（role 传入时编辑；official = true 时编辑官方角色）
-function openRoleModal(role, official) {
+// 打开添加 / 编辑角色弹窗（传入 role 时进入编辑模式）
+function openRoleModal(role) {
     rName.value = role ? role.name : "";
     rPrompt.value = role ? role.prompt : "";
     rStatus.textContent = "";
-    editingRoleId = role && !official ? role.id : null;
-    editingOfficialRole = role && official ? role.name : null;
-    rName.disabled = !!official; // 官方角色名固定（星瑶 / 月瓷）
-    roleModalTitle.textContent = official ? "编辑官方角色" : role ? "编辑角色" : "添加角色";
+    editingRoleId = role ? role.id : null;
+    roleModalTitle.textContent = role ? "编辑角色" : "添加角色";
     roleModalOverlay.classList.add("open");
 }
 
 function closeRoleModal() {
     roleModalOverlay.classList.remove("open");
-    rName.disabled = false;
 }
 
 roleAdd.addEventListener("click", () => openRoleModal());
@@ -653,32 +386,6 @@ rSave.addEventListener("click", () => {
     const prompt = rPrompt.value.trim();
     if (!prompt) {
         rStatus.textContent = "请填写角色设定内容";
-        return;
-    }
-
-    // 编辑官方角色：保存到站长本地覆盖，导出后推送 GitHub 同步到服务器
-    if (editingOfficialRole) {
-        let override = [];
-        try {
-            const saved = JSON.parse(localStorage.getItem(OFFICIAL_OVERRIDE_KEY));
-            if (saved && Array.isArray(saved.roles)) {
-                override = saved.roles;
-            }
-        } catch {
-            // 忽略
-        }
-
-        const idx = override.findIndex((o) => o.name === editingOfficialRole);
-        if (idx !== -1) {
-            override[idx] = { ...override[idx], prompt: prompt };
-        } else {
-            override.push({ name: editingOfficialRole, prompt: prompt });
-        }
-
-        localStorage.setItem(OFFICIAL_OVERRIDE_KEY, JSON.stringify({ roles: override }));
-        rStatus.textContent = "";
-        closeRoleModal();
-        renderOfficialRoles();
         return;
     }
 
@@ -1193,7 +900,7 @@ mTest.addEventListener("click", async () => {
 
 renderProviders();
 
-// 角色设定视图由 loadRoleView 控制（未验证口令时只显示锁界面）
+// 角色设定视图（我的角色）由 switchView 在切换时渲染
 if (initialView === "role") {
-    loadRoleView();
+    renderRoles();
 }
