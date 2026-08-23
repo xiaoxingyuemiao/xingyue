@@ -404,10 +404,10 @@ body {
     backdrop-filter: blur(5px);
 }
 
-/* 容器固定竖直尺寸并在舞台居中：SDK 按容器比例渲染模型，
-   竖直容器保证模型是正常立绘比例（不要铺满全屏，否则模型会横向变形） */
+/* 容器固定竖直尺寸，用 fixed 定位相对视口居中（任何祖先塌陷都不影响）；
+   SDK 按容器比例渲染模型，竖直容器保证模型正常立绘比例 */
 .live2d-container {
-    position: absolute !important;
+    position: fixed !important;
 
     left: 50% !important;
     top: 50% !important;
