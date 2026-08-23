@@ -432,8 +432,37 @@ const Live2D = {
             });
             window.__om = this.om; // 调试钩子
             console.log("Live2D 模型加载中……");
+            this.centerModel();
         } catch (error) {
             console.warn("Live2D 加载失败：", error);
+        }
+    },
+
+    // 模型加载完成后水平垂直居中（轮询 modelSize 就绪）
+    centerModel(attempts) {
+        const om = this.om;
+        const container = document.getElementById("live2d-container");
+        const canvas = container && container.querySelector("canvas");
+        if (!om || !canvas) {
+            return;
+        }
+        const count = attempts || 0;
+        if (count > 20) {
+            return;
+        }
+        const size = om.modelSize;
+        if (!size || !size.width || !size.height) {
+            // 模型还没加载完，稍后再试
+            setTimeout(() => this.centerModel(count + 1), 500);
+            return;
+        }
+        try {
+            // 锚点 = 模型中心，位置 = 画布中心 → 模型居中
+            om.setModelAnchor({ x: 0.5, y: 0.5 });
+            om.setModelPosition({ x: canvas.width / 2, y: canvas.height / 2 });
+            console.log("Live2D 模型已居中");
+        } catch (error) {
+            console.warn("Live2D 居中失败：", error);
         }
     },
 };
