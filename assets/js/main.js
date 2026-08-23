@@ -576,7 +576,14 @@ const Live2D = {
         window.addEventListener("resize", () => {
             clearTimeout(this.resizeTimer);
             this.resizeTimer = setTimeout(() => {
-                this.reloadModel();
+                // 窄视口未初始化时，拉宽后自动初始化
+                if (!this.om && window.innerWidth >= 400) {
+                    this.init();
+                    return;
+                }
+                if (this.om) {
+                    this.reloadModel();
+                }
             }, 400);
         });
     },
@@ -738,9 +745,11 @@ const Live2D = {
             return false;
         }
 
-        // 视口过窄：模型无法正常显示，给出明确提示（拉宽窗口后 resize 监听会自动重载）
+        // 视口过窄：模型无法正常显示（SDK 渲染失败），只显示提示；
+        // 拉宽窗口后 resize 监听会自动重新加载
         if (window.innerWidth < 400) {
-            this.showPlaceholder("窗口过窄（" + window.innerWidth + "px）：模型无法完整显示。请拉宽浏览器窗口（建议 800px 以上）或按 F11 全屏，稍等片刻会自动刷新模型。");
+            this.showPlaceholder("窗口过窄（" + window.innerWidth + "px）：Live2D 模型无法显示。请把浏览器窗口拉宽到 800px 以上（或按 F11 全屏），稍等片刻模型会自动出现。");
+            return false;
         }
 
         const ready = await this.waitForSDK();
