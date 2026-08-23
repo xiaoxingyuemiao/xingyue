@@ -404,17 +404,15 @@ body {
     backdrop-filter: blur(5px);
 }
 
-/* 容器用绝对定位铺满舞台（避免 flex 布局导致宽度塌陷） */
+/* 容器用绝对定位铺满舞台（显式 width/height 100%，防止宽度塌陷） */
 .live2d-container {
     position: absolute !important;
 
     left: 0 !important;
     top: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
 
-    width: auto !important;
-    height: auto !important;
+    width: 100% !important;
+    height: 100% !important;
 
     min-width: 400px !important;
     min-height: 300px !important;

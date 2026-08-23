@@ -507,7 +507,7 @@ const Live2D = {
         }
         const it = this.interaction;
 
-        // 拖动
+        // 拖动（捕获阶段监听：先于 SDK 内部事件处理，避免被 PIXI 吞掉）
         container.addEventListener("pointerdown", (e) => {
             it.dragging = true;
             it.startX = e.clientX;
@@ -515,7 +515,7 @@ const Live2D = {
             it.startDx = it.dx;
             it.startDy = it.dy;
             e.preventDefault();
-        });
+        }, true);
         window.addEventListener("pointermove", (e) => {
             if (!it.dragging) {
                 return;
@@ -523,12 +523,12 @@ const Live2D = {
             it.dx = it.startDx + (e.clientX - it.startX);
             it.dy = it.startDy + (e.clientY - it.startY);
             this.applyTransform();
-        });
+        }, true);
         window.addEventListener("pointerup", () => {
             it.dragging = false;
-        });
+        }, true);
 
-        // 中键滑动缩放 / Ctrl+中键滑动旋转
+        // 中键滑动缩放 / Ctrl+中键滑动旋转（捕获阶段监听）
         container.addEventListener("wheel", (e) => {
             e.preventDefault();
             const delta = e.deltaY > 0 ? -1 : 1;
@@ -541,7 +541,7 @@ const Live2D = {
                 it.scale = Math.min(4, Math.max(0.15, it.scale * factor));
             }
             this.applyTransform();
-        }, { passive: false });
+        }, { passive: false, capture: true });
     },
 
     // 重置交互状态（角色切换后）
