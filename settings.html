@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>设置 - 星月小窝</title>
+
+        <link rel="stylesheet" href="assets/css/style.css">
+        <link rel="stylesheet" href="assets/css/settings.css">
+
+        <link rel="icon" href="images/wangzhanmeiye.png">
+    </head>
+    <body>
+
+        <!-- 左上角圆形返回按钮 -->
+        <a class="settings-back" href="index.html" title="返回星月小窝">←</a>
+
+        <main class="settings-page">
+
+            <!-- 左侧导航（与主页侧边栏大小、样式一致） -->
+            <aside class="settings-sidebar">
+
+                <h2 class="settings-sidebar-title">
+                    设置
+                </h2>
+
+                <nav class="settings-nav">
+
+                    <a class="settings-nav-item active" data-view="api" href="#api">
+                        API 设置
+                    </a>
+
+                    <a class="settings-nav-item" data-view="role" href="#role">
+                        角色设定
+                    </a>
+
+                    <a class="settings-nav-item" data-view="dialogue" href="#dialogue">
+                        对话
+                    </a>
+
+                </nav>
+
+            </aside>
+
+            <!-- 右侧内容 -->
+            <section class="settings-main">
+
+                <!-- ========== 视图：API 设置（提供商管理，点击卡片切换） ========== -->
+
+                <div class="settings-view" id="view-api">
+
+                    <h2 class="settings-main-title">
+                        API 设置
+                    </h2>
+
+                    <p class="settings-tip">
+                        配置 api 接口，秘钥只保存在你自己的浏览器里。
+                        添加后点击对应的模型即可切换聊天使用的模型。
+                    </p>
+
+                    <div class="provider-list" id="provider-list"></div>
+
+                    <button class="provider-add" id="provider-add" type="button">
+                        ＋ 添加 API
+                    </button>
+
+                </div>
+
+
+                <!-- ========== 视图：角色设定（多角色卡片管理） ========== -->
+
+                <div class="settings-view" id="view-role" hidden>
+
+                    <h2 class="settings-main-title">
+                        角色设定
+                    </h2>
+
+                    <p class="settings-tip">
+                        添加你喜欢的角色，支持多个角色，点击卡片即可切换当前角色，
+                        数据保存在本地浏览器（目前）。
+                    </p>
+
+                    <div class="role-list" id="role-list"></div>
+
+                    <button class="provider-add" id="role-add" type="button">
+                        ＋ 添加角色
+                    </button>
+
+                </div>
+
+
+                <!-- ========== 视图：对话（保留对数 + 全部历史） ========== -->
+
+                <div class="settings-view" id="view-dialogue" hidden>
+
+                    <h2 class="settings-main-title">
+                        对话
+                    </h2>
+
+                    <p class="settings-tip">
+                        对话历史等重要隐私数据只保存在你的浏览器本地，不会上传。
+                        每个角色各自独立一份对话历史（切换角色会切换对应的历史），
+                        主页默认展开显示当前角色的全部消息，可点「收起」只显示最近 N 对。
+                    </p>
+
+                    <label class="settings-label" for="keep-pairs">
+                        历史对话保留对数（1 ~ 20）
+                    </label>
+
+                    <input class="settings-input settings-input-short" id="keep-pairs" type="number" min="1" max="20">
+
+                    <div class="settings-actions">
+                        <button class="settings-btn settings-btn-primary" id="keep-save" type="button">
+                            保存
+                        </button>
+
+                        <button class="settings-btn settings-btn-danger" id="history-clear" type="button">
+                            清空对话历史
+                        </button>
+                    </div>
+
+                    <p class="modal-status" id="keep-status"></p>
+
+                    <h3 class="settings-subtitle">
+                        全部对话记录
+                    </h3>
+
+                    <div class="history-list" id="history-list"></div>
+
+                </div>
+
+            </section>
+
+        </main>
+
+
+        <!-- ==================== 添加 API 弹窗 ==================== -->
+
+        <div class="modal-overlay" id="modal-overlay">
+
+            <div class="modal">
+
+                <div class="modal-header">
+
+                    <h3 id="api-modal-title">添加 API</h3>
+
+                    <button class="modal-close" id="modal-close" type="button">
+                        ✕
+                    </button>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <label class="settings-label" for="m-name">
+                        名称
+                    </label>
+
+                    <input class="settings-input" id="m-name" type="text" placeholder="模型名字">
+
+
+                    <label class="settings-label" for="m-type">
+                        API 服务商
+                    </label>
+
+                    <div class="select-field" id="type-field">
+
+                        <button class="settings-input select-trigger" id="m-type" type="button">
+                            <span id="m-type-text">DeepSeek</span>
+                            <span class="select-arrow">▾</span>
+                        </button>
+
+                        <div class="select-picker" id="type-picker" hidden>
+
+                            <button type="button" class="select-option" data-type="deepseek">DeepSeek</button>
+                            <button type="button" class="select-option" data-type="qwen">通义千问</button>
+                            <button type="button" class="select-option" data-type="custom">OpenAI 兼容（自定义）</button>
+
+                        </div>
+
+                    </div>
+
+
+                    <label class="settings-label" for="m-base-url">
+                        API 地址
+                    </label>
+
+                    <input class="settings-input" id="m-base-url" type="text" placeholder="https://api.deepseek.com">
+
+
+                    <label class="settings-label" for="m-api-key">
+                        API 秘钥（Key）
+                    </label>
+
+                    <input class="settings-input" id="m-api-key" type="password" placeholder="sk-……">
+
+                    <label class="settings-show-key">
+                        <input type="checkbox" id="m-show-key">
+                        显示秘钥
+                    </label>
+
+
+                    <div class="model-field">
+
+                        <label class="settings-label" for="m-model">
+                            模型
+                        </label>
+
+                        <input class="settings-input" id="m-model" type="text" placeholder="点击输入框自动获取服务商模型">
+
+                        <!-- 模型选择小窗口（自动获取后列出，可鼠标滚动选择） -->
+                        <div class="model-picker" id="model-picker" hidden>
+                            <div class="model-picker-list" id="model-picker-list"></div>
+                        </div>
+
+                    </div>
+
+
+                    <div class="modal-actions">
+
+                        <button class="settings-btn" id="m-test" type="button">
+                            测试连接
+                        </button>
+
+                        <button class="settings-btn settings-btn-primary" id="m-save" type="button">
+                            保存
+                        </button>
+
+                    </div>
+
+                    <p class="modal-status" id="m-status"></p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ==================== 添加角色弹窗 ==================== -->
+
+        <div class="modal-overlay" id="role-modal-overlay">
+
+            <div class="modal">
+
+                <div class="modal-header">
+
+                    <h3 id="role-modal-title">添加角色</h3>
+
+                    <button class="modal-close" id="role-modal-close" type="button">
+                        ✕
+                    </button>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <label class="settings-label" for="r-name">
+                        角色名
+                    </label>
+
+                    <input class="settings-input" id="r-name" type="text" placeholder="星瑶">
+
+
+                    <label class="settings-label" for="r-prompt">
+                        角色设定（System Prompt）
+                    </label>
+
+                    <textarea class="settings-input settings-textarea" id="r-prompt"></textarea>
+
+
+                    <div class="modal-actions">
+                        <button class="settings-btn settings-btn-primary" id="r-save" type="button">
+                            保存
+                        </button>
+                    </div>
+
+                    <p class="modal-status" id="r-status"></p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <script src="assets/js/settings.js"></script>
+
+    </body>
+</html>

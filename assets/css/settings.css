@@ -1,0 +1,902 @@
+/* ==============================
+   星月小窝 —— 设置页面
+   （左侧导航与主页侧边栏大小、样式一致）
+   ============================== */
+
+/* ---------- 左上角圆形返回按钮（白色打底） ---------- */
+
+.settings-back {
+    position: fixed;
+
+    top: 16px;
+    left: 16px;
+
+    z-index: 100;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 44px;
+    height: 44px;
+
+    border-radius: 50%;
+
+    text-decoration: none;
+
+    font-size: 18px;
+
+    color: var(--main-color);
+
+    background-color: #ffffff;
+
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.settings-back:hover {
+    transform: translateX(-2px);
+
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.14);
+}
+
+/* ---------- 页面骨架 ---------- */
+
+.settings-page {
+    display: flex;
+
+    flex: 1;
+
+    width: 100%;
+    min-height: 100vh;
+}
+
+/* ---------- 左侧导航（与主页侧边栏样式完全一致） ---------- */
+
+.settings-sidebar {
+    width: 100px;
+
+    flex-shrink: 0;
+
+    box-sizing: border-box;
+
+    padding: 76px 0 20px;
+
+    background-color: var(--surface-color);
+
+    border-right: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.settings-sidebar-title {
+    margin: 0 14px 14px;
+
+    font-size: 18px;
+    font-weight: bold;
+
+    color: var(--main-color);
+}
+
+.settings-nav {
+    display: flex;
+    flex-direction: column;
+
+    gap: 4px;
+}
+
+.settings-nav-item {
+    display: flex;
+    align-items: center;
+
+    height: 44px;
+
+    padding: 0 14px;
+
+    box-sizing: border-box;
+
+    border-radius: 8px;
+
+    text-decoration: none;
+
+    font-size: 16px;
+
+    white-space: nowrap;
+
+    color: var(--text-color);
+
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.settings-nav-item:hover {
+    background-color: rgba(102, 204, 255, 0.12);
+
+    color: var(--main-color);
+}
+
+.settings-nav-item.active {
+    background-color: rgba(102, 204, 255, 0.18);
+
+    color: var(--main-color);
+
+    font-weight: bold;
+}
+
+/* ---------- 右侧内容（适配当前布局） ---------- */
+
+.settings-main {
+    flex: 1;
+
+    box-sizing: border-box;
+
+    max-width: 860px;
+
+    padding: 76px 48px 60px;
+}
+
+.settings-main-title {
+    margin: 0 0 8px;
+
+    font-size: 22px;
+
+    color: var(--text-color);
+}
+
+.settings-tip {
+    margin: 0;
+
+    font-size: 14px;
+    line-height: 1.7;
+
+    color: #888888;
+}
+
+.settings-subtitle {
+    margin: 28px 0 12px;
+
+    font-size: 16px;
+
+    color: var(--text-color);
+}
+
+/* ---------- 提供商 / 角色卡片列表（点击卡片切换） ---------- */
+
+.provider-list,
+.role-list {
+    display: flex;
+    flex-direction: column;
+
+    gap: 12px;
+
+    margin-top: 22px;
+}
+
+.provider-card,
+.role-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 16px;
+
+    padding: 16px 18px;
+
+    background-color: var(--surface-color);
+
+    border: 1px solid #eeeeee;
+    border-radius: 16px;
+
+    cursor: pointer;
+
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.provider-card:hover,
+.role-card:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+}
+
+.provider-card-active,
+.role-card-active {
+    border-color: var(--main-color);
+
+    box-shadow: 0 0 0 2px rgba(102, 204, 255, 0.15);
+}
+
+.provider-name-row {
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+}
+
+.provider-name {
+    font-size: 16px;
+    font-weight: bold;
+
+    color: var(--text-color);
+}
+
+.provider-badge {
+    padding: 2px 8px;
+
+    border-radius: 20px;
+
+    font-size: 12px;
+
+    color: #ffffff;
+
+    background-color: var(--main-color);
+}
+
+.provider-type {
+    font-size: 12px;
+
+    color: #888888;
+}
+
+.provider-meta {
+    margin-top: 4px;
+
+    font-size: 13px;
+
+    color: #999999;
+}
+
+.role-preview {
+    max-width: 420px;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+}
+
+.provider-btn {
+    padding: 8px 12px;
+
+    border: none;
+    border-radius: 999px;
+
+    font-size: 13px;
+
+    cursor: pointer;
+
+    flex-shrink: 0;
+
+    transition: filter 0.2s ease;
+}
+
+.provider-btn:hover {
+    filter: brightness(0.95);
+}
+
+.provider-btn-del {
+    background-color: #fdf0f0;
+
+    color: #d9534f;
+}
+
+.provider-empty {
+    padding: 30px;
+
+    text-align: center;
+
+    background-color: var(--surface-color);
+
+    border-radius: 16px;
+
+    font-size: 15px;
+
+    color: #999999;
+}
+
+/* ---------- 添加按钮 ---------- */
+
+.provider-add {
+    width: 100%;
+
+    margin-top: 16px;
+    padding: 14px;
+
+    border: 2px dashed #c9e8ff;
+    border-radius: 16px;
+
+    background: transparent;
+
+    font-size: 16px;
+
+    color: var(--main-color);
+
+    cursor: pointer;
+
+    transition: background-color 0.2s ease;
+}
+
+.provider-add:hover {
+    background-color: rgba(102, 204, 255, 0.08);
+}
+
+/* ==============================
+   弹窗（圆润、白色打底、无滚动条、由快到慢出现）
+   ============================== */
+
+.modal-overlay {
+    position: fixed;
+
+    inset: 0;
+
+    display: none;
+    align-items: center;
+    justify-content: center;
+
+    background-color: rgba(0, 0, 0, 0.4);
+
+    z-index: 500;
+}
+
+.modal-overlay.open {
+    display: flex;
+}
+
+.modal {
+    width: 440px;
+    max-width: calc(100vw - 40px);
+    max-height: 88vh;
+
+    overflow-y: auto;
+
+    scrollbar-width: none;
+
+    background-color: #ffffff;
+
+    border-radius: 24px;
+
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.3);
+
+    animation: modalIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal::-webkit-scrollbar {
+    display: none;
+}
+
+@keyframes modalIn {
+
+    from {
+        opacity: 0;
+        transform: scale(0.92) translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 20px 24px;
+
+    border-bottom: 1px solid #eeeeee;
+}
+
+.modal-header h3 {
+    margin: 0;
+
+    font-size: 18px;
+
+    color: var(--text-color);
+}
+
+.modal-close {
+    border: none;
+    background: transparent;
+
+    font-size: 16px;
+
+    color: #888888;
+
+    cursor: pointer;
+}
+
+.modal-close:hover {
+    color: var(--text-color);
+}
+
+.modal-body {
+    padding: 6px 24px 24px;
+}
+
+.modal-actions {
+    display: flex;
+
+    gap: 10px;
+
+    margin-top: 20px;
+}
+
+.modal-status {
+    margin: 12px 0 0;
+
+    min-height: 18px;
+
+    font-size: 14px;
+
+    color: #888888;
+}
+
+/* ---------- 模型 / 服务商 选择小窗口（与页面风格统一） ---------- */
+
+.model-field,
+.select-field {
+    position: relative;
+}
+
+.select-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 8px;
+
+    cursor: pointer;
+
+    text-align: left;
+}
+
+.select-arrow {
+    font-size: 12px;
+
+    color: #999999;
+
+    flex-shrink: 0;
+}
+
+.select-picker,
+.model-picker {
+    position: absolute;
+
+    top: calc(100% + 4px);
+    left: 0;
+
+    width: 100%;
+
+    z-index: 50;
+}
+
+.select-picker {
+    background-color: #ffffff;
+
+    border: 1px solid #eeeeee;
+    border-radius: 14px;
+
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+
+    padding: 6px;
+}
+
+.select-picker-list,
+.model-picker-list {
+    max-height: 180px;
+
+    overflow-y: auto;
+
+    scrollbar-width: none;
+
+    background-color: #ffffff;
+
+    border: 1px solid #eeeeee;
+    border-radius: 14px;
+
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+
+    padding: 6px;
+}
+
+.select-picker-list::-webkit-scrollbar,
+.model-picker-list::-webkit-scrollbar {
+    display: none;
+}
+
+.select-option,
+.model-item {
+    display: block;
+
+    width: 100%;
+
+    padding: 9px 12px;
+
+    border: none;
+    border-radius: 10px;
+
+    background: transparent;
+
+    text-align: left;
+
+    font-size: 14px;
+
+    color: var(--text-color);
+
+    cursor: pointer;
+
+    transition: background-color 0.15s ease;
+}
+
+.select-option:hover,
+.model-item:hover {
+    background-color: rgba(102, 204, 255, 0.12);
+}
+
+.model-hint {
+    padding: 10px 12px;
+
+    font-size: 13px;
+
+    color: #999999;
+}
+
+/* ---------- 表单 ---------- */
+
+.settings-label {
+    display: block;
+
+    margin: 16px 0 6px;
+
+    font-size: 15px;
+
+    color: #555555;
+}
+
+.settings-input {
+    width: 100%;
+
+    box-sizing: border-box;
+
+    padding: 10px 14px;
+
+    border: 1px solid #dddddd;
+    border-radius: 12px;
+
+    outline: none;
+
+    background-color: #fafafa;
+
+    font-size: 15px;
+
+    font-family: inherit;
+
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.settings-input:focus {
+    border-color: var(--main-color);
+
+    background-color: #ffffff;
+}
+
+.settings-input-short {
+    width: 160px;
+}
+
+.settings-textarea {
+    min-height: 100px;
+
+    resize: vertical;
+
+    line-height: 1.7;
+}
+
+.settings-show-key {
+    display: flex;
+    align-items: center;
+
+    gap: 6px;
+
+    margin-top: 8px;
+
+    font-size: 14px;
+
+    color: #888888;
+
+    cursor: pointer;
+    user-select: none;
+}
+
+.settings-actions {
+    display: flex;
+
+    gap: 10px;
+
+    margin-top: 20px;
+}
+
+.settings-btn {
+    flex: 1;
+
+    padding: 12px;
+
+    border: none;
+    border-radius: 999px;
+
+    font-size: 16px;
+
+    background-color: #eef2f5;
+    color: #555555;
+
+    cursor: pointer;
+
+    transition: filter 0.2s ease;
+}
+
+.settings-btn:hover {
+    filter: brightness(0.95);
+}
+
+.settings-btn-primary {
+    background-color: var(--main-color);
+    color: #ffffff;
+}
+
+.settings-btn-danger {
+    background-color: #fdf0f0;
+    color: #d9534f;
+}
+
+/* ---------- 对话记录（按角色：每个会话折叠成一张卡片） ---------- */
+
+.history-list {
+    display: flex;
+    flex-direction: column;
+
+    gap: 12px;
+}
+
+.session-card {
+    background-color: var(--surface-color);
+
+    border: 1px solid #eeeeee;
+    border-radius: 16px;
+
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+
+    overflow: hidden;
+
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.session-card:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+.session-card.expanded {
+    border-color: var(--main-color);
+
+    box-shadow: 0 0 0 2px rgba(102, 204, 255, 0.15);
+}
+
+.session-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 10px;
+
+    padding: 14px 18px;
+
+    cursor: pointer;
+
+    transition: background-color 0.15s ease;
+}
+
+.session-card-head:hover {
+    background-color: rgba(102, 204, 255, 0.06);
+}
+
+.session-card-info {
+    display: flex;
+    align-items: center;
+
+    gap: 10px;
+
+    min-width: 0;
+}
+
+.session-card-name {
+    font-size: 16px;
+    font-weight: bold;
+
+    color: var(--text-color);
+}
+
+.session-card-count {
+    padding: 2px 10px;
+
+    border-radius: 20px;
+
+    font-size: 12px;
+
+    color: #888888;
+
+    background-color: #f0f4f7;
+
+    white-space: nowrap;
+}
+
+.session-card-body {
+    display: none;
+
+    flex-direction: column;
+
+    gap: 8px;
+
+    padding: 4px 18px 16px;
+
+    border-top: 1px dashed #eeeeee;
+}
+
+.session-card.expanded .session-card-body {
+    display: flex;
+}
+
+.session-message {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 12px;
+
+    padding: 10px 12px;
+
+    background-color: #fafcfe;
+
+    border-radius: 12px;
+}
+
+.session-message-text {
+    flex: 1;
+
+    min-width: 0;
+
+    font-size: 14px;
+    line-height: 1.6;
+
+    color: var(--text-color);
+
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.history-item-actions {
+    display: flex;
+
+    gap: 6px;
+
+    flex-shrink: 0;
+}
+
+.history-item-btn {
+    padding: 5px 12px;
+
+    border: none;
+    border-radius: 999px;
+
+    font-size: 12px;
+
+    background-color: #eef2f5;
+    color: #555555;
+
+    cursor: pointer;
+
+    transition: filter 0.2s ease;
+}
+
+.history-item-btn:hover {
+    filter: brightness(0.95);
+}
+
+.history-item-btn-primary {
+    background-color: rgba(102, 204, 255, 0.15);
+
+    color: var(--main-color);
+}
+
+.history-item-btn-del {
+    background-color: #fdf0f0;
+
+    color: #d9534f;
+}
+
+.history-edit-input {
+    width: 100%;
+
+    box-sizing: border-box;
+
+    min-height: 72px;
+
+    padding: 8px 10px;
+
+    border: 1px solid #dddddd;
+    border-radius: 10px;
+
+    outline: none;
+
+    font-size: 14px;
+    line-height: 1.6;
+
+    font-family: inherit;
+
+    resize: vertical;
+}
+
+.history-edit-input:focus {
+    border-color: var(--main-color);
+}
+
+.history-empty {
+    padding: 40px;
+
+    text-align: center;
+
+    font-size: 15px;
+
+    color: #999999;
+}
+
+/* ==============================
+   用户设置页面（user.html 共用）
+   ============================== */
+
+.user-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex: 1;
+
+    padding: 80px 20px 60px;
+
+    box-sizing: border-box;
+}
+
+.user-card {
+    width: 100%;
+    max-width: 420px;
+
+    background-color: var(--surface-color);
+
+    padding: 32px;
+
+    border-radius: 24px;
+
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+}
+
+.user-card h2 {
+    margin: 0 0 18px;
+
+    font-size: 22px;
+
+    color: var(--text-color);
+}
+
+.user-avatar-preview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 88px;
+    height: 88px;
+
+    margin: 0 auto 22px;
+
+    border-radius: 50%;
+
+    background-color: rgba(102, 204, 255, 0.15);
+
+    font-size: 44px;
+}

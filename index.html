@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>星月小窝</title>
+
+        <link rel="stylesheet" href="assets/css/style.css">
+        <link rel="stylesheet" href="assets/css/home.css">
+
+        <link rel="icon" href="images/wangzhanmeiye.png">
+    </head>
+
+    <body>
+
+        <!-- 登录 / 注册 / 游客入口 -->
+        <div class="auth-screen">
+
+            <div class="auth-box">
+
+                <h1>
+                    星月小窝
+                </h1>
+
+                <p>
+                    欢迎回来
+                </p>
+
+                <button>
+                    登录
+                </button>
+
+                <button>
+                    注册
+                </button>
+
+                <button class="guest-button" type="button">
+                    游客进入
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- ==================== 首页 ==================== -->
+
+        <div class="home-screen sidebar-collapsed">
+
+            <!-- 左侧导航栏（默认收起，可点击 ☰ 展开） -->
+            <aside class="sidebar">
+
+                <!-- 导航栏顶部（图标 = 网站图标，可点击展开/收起） -->
+                <div class="sidebar-header">
+
+                    <button class="sidebar-toggle" id="sidebar-toggle" type="button" aria-label="展开或收起侧边栏">
+                        <img src="images/wangzhanmeiye.png" alt="星月">
+                    </button>
+
+                </div>
+
+
+                <!-- 导航菜单（以后图标用真实图标替换） -->
+                <nav class="sidebar-menu">
+
+                    <a href="#" class="sidebar-item active">
+                        <span class="sidebar-text">首页</span>
+                    </a>
+
+                    <a href="#" class="sidebar-item" id="menu-gallery">
+                        <span class="sidebar-text">插画</span>
+                    </a>
+
+                    <a href="#" class="sidebar-item" id="menu-merch">
+                        <span class="sidebar-text">周边</span>
+                    </a>
+
+                    <a href="#" class="sidebar-item" id="menu-news">
+                        <span class="sidebar-text">动态</span>
+                    </a>
+
+                    <!-- 关于：本身不可点击，鼠标移上去展开子菜单 -->
+                    <div class="sidebar-item sidebar-item-parent">
+
+                        <span class="sidebar-text">关于</span>
+
+                        <div class="sidebar-submenu">
+
+                            <a href="xingyao.html" class="sidebar-submenu-item">星瑶</a>
+                            <a href="yueci.html" class="sidebar-submenu-item">月瓷</a>
+                            <a href="xiaomiao.html" class="sidebar-submenu-item">小喵</a>
+
+                        </div>
+
+                    </div>
+
+                    <a href="#" class="sidebar-item" id="menu-settings">
+                        <span class="sidebar-text">设置</span>
+                    </a>
+
+                </nav>
+
+
+                <!-- 用户区域（点击进入用户设置） -->
+                <div class="sidebar-user" id="sidebar-user" title="用户设置">
+
+                    <div class="user-avatar" id="user-avatar">
+                        🐱
+                    </div>
+
+                    <div class="user-info">
+
+                        <span class="user-name" id="user-name">
+                            小喵
+                        </span>
+
+                        <span class="user-status">
+                            游客
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </aside>
+
+
+            <!-- ==================== 主空间 ==================== -->
+
+            <main class="app-space">
+
+                <!-- 背景 -->
+                <div class="background"></div>
+
+
+                <!-- Live2D -->
+                <div class="live2d-stage">
+
+                    <div class="live2d-placeholder">
+                        Live2D
+                    </div>
+
+                </div>
+
+
+                <!-- 聊天区域（消息由 main.js 渲染） -->
+                <section class="chat-area">
+
+                    <!-- 顶部工具栏：展开 / 收起全部历史 -->
+                    <div class="chat-toolbar">
+
+                        <button class="chat-toolbar-btn" id="chat-expand" type="button">
+                            收起 ▲
+                        </button>
+
+                    </div>
+
+                    <div class="message-list">
+
+                    </div>
+
+                </section>
+
+
+                <!-- 输入区域 -->
+                <div class="chat-input">
+
+                    <input
+                        type="text"
+                        placeholder="输入消息……"
+                    >
+
+                    <button type="button">
+                        ➤
+                    </button>
+
+                </div>
+
+            </main>
+
+        </div>
+
+
+        <script src="assets/js/main.js"></script>
+
+    </body>
+</html>

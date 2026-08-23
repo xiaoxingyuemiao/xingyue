@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>用户设置 - 星月小窝</title>
+
+        <link rel="stylesheet" href="assets/css/style.css">
+        <link rel="stylesheet" href="assets/css/settings.css">
+
+        <link rel="icon" href="images/wangzhanmeiye.png">
+    </head>
+    <body>
+
+        <!-- 左上角圆形返回按钮 -->
+        <a class="settings-back" href="index.html" title="返回星月小窝">←</a>
+
+        <main class="user-page">
+
+            <section class="user-card">
+
+                <h2>用户设置</h2>
+
+                <!-- 头像预览 -->
+                <div class="user-avatar-preview" id="avatar-preview">🐱</div>
+
+                <label class="settings-label" for="u-avatar">
+                    头像（可以填一个表情）
+                </label>
+
+                <input class="settings-input" id="u-avatar" type="text" placeholder="🐱">
+
+
+                <label class="settings-label" for="u-nickname">
+                    昵称
+                </label>
+
+                <input class="settings-input" id="u-nickname" type="text" placeholder="小喵">
+
+
+                <label class="settings-label" for="u-signature">
+                    个性签名
+                </label>
+
+                <input class="settings-input" id="u-signature" type="text" placeholder="写点什么吧～">
+
+
+                <div class="settings-actions">
+                    <button class="settings-btn settings-btn-primary" id="u-save" type="button">
+                        保存
+                    </button>
+                </div>
+
+                <p class="modal-status" id="u-status"></p>
+
+            </section>
+
+        </main>
+
+
+        <script>
+            // ================================
+            // 用户设置：保存在浏览器本地（xingyue_user）
+            // 首页侧边栏会自动读取显示
+            // ================================
+
+            const USER_KEY = "xingyue_user";
+
+            const avatarPreview = document.querySelector("#avatar-preview");
+            const uAvatar = document.querySelector("#u-avatar");
+            const uNickname = document.querySelector("#u-nickname");
+            const uSignature = document.querySelector("#u-signature");
+            const uSave = document.querySelector("#u-save");
+            const uStatus = document.querySelector("#u-status");
+
+            // 载入已保存的信息
+            function loadUser() {
+                try {
+                    const u = JSON.parse(localStorage.getItem(USER_KEY));
+                    if (u && u.avatar) {
+                        uAvatar.value = u.avatar;
+                        avatarPreview.textContent = u.avatar;
+                    }
+                    if (u && u.nickname) {
+                        uNickname.value = u.nickname;
+                    }
+                    if (u && u.signature) {
+                        uSignature.value = u.signature;
+                    }
+                } catch {
+                    // 没有保存过就用默认
+                }
+            }
+
+            // 输入头像时实时预览
+            uAvatar.addEventListener("input", () => {
+                avatarPreview.textContent = uAvatar.value.trim() || "🐱";
+            });
+
+            // 保存
+            uSave.addEventListener("click", () => {
+                localStorage.setItem(USER_KEY, JSON.stringify({
+                    avatar: uAvatar.value.trim() || "🐱",
+                    nickname: uNickname.value.trim() || "小喵",
+                    signature: uSignature.value.trim() || "",
+                }));
+                uStatus.textContent = "已保存 ✓ 首页侧边栏会自动更新";
+            });
+
+            loadUser();
+        </script>
+
+    </body>
+</html>

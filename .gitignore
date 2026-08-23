@@ -1,0 +1,27 @@
+# ==============================
+# 星月小窝 —— 不要上传的文件
+# ==============================
+
+# 系统 / 资源管理器缓存
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# 编辑器 / IDE 个人配置（按需保留 .vscode/launch.json 的话可删掉这两行）
+.vscode/
+.idea/
+*.suo
+
+# 日志与临时文件
+*.log
+*.tmp
+*~
+
+# 本地调试数据（万一导出过 localStorage 配置，千万别提交！）
+*.localstorage.json
+*config*.json.bak
+
+# 打包产物（以后如果用到构建工具）
+node_modules/
+dist/
+build/
