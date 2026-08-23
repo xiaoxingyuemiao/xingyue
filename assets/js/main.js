@@ -579,7 +579,7 @@ const Live2D = {
 
     // 默认模型（角色没有配置模型时使用）
     getDefaultPath() {
-        return "assets/live2d/default/ARGNori.model3.json";
+        return "assets/live2d/default/Coffee.model3.json";
     },
 
     // 角色 → 模型文件路径（官方角色用后台配置，我的角色用自己配置，缺省用默认）
@@ -837,13 +837,14 @@ const Live2D = {
             return;
         }
         const map = {
-            "开心": ["Reactions", "13_Happy", "happy"],
-            "难过": ["08_Tears", "05_Dark", "sad"],
+            "开心": ["Reactions", "13_Happy", "happy", "爱心"],
+            "难过": ["08_Tears", "05_Dark", "sad", "哭哭"],
             "生气": ["Reactions", "03_Angry", "angry"],
             "害羞": ["04_Shy", "shy"],
-            "惊讶": ["Reactions", "14_Surprised", "surprise"],
-            "委屈": ["08_Tears", "06_Speechless", "wronged"],
-            "平静": ["00_Default", "normal"],
+            "惊讶": ["Reactions", "14_Surprised", "surprise", "》《"],
+            "委屈": ["08_Tears", "06_Speechless", "wronged", "哭哭"],
+            "无语": ["无语"],
+            "平静": ["00_Default", "normal", "0.0"],
             "困": ["Sleep", "sleepy"],
             "累": ["Sleep", "tired"],
         };
