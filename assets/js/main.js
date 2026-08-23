@@ -608,6 +608,8 @@ const Live2D = {
             models: [{
                 path: path,
                 scale: 0.15,
+                // 锚点居中：模型在画布内居中显示，避免偏移被裁剪
+                anchor: [0.5, 0.5],
             }],
             // 舞台铺满容器（模型画布 canvas 由 CSS 居中）
             stageStyle: {
