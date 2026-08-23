@@ -20,6 +20,10 @@ const sendButton = document.querySelector(".chat-input button");
 const messageList = document.querySelector(".message-list");
 const chatExpandBtn = document.querySelector("#chat-expand");
 
+const chatRoleBtn = document.querySelector("#chat-role-btn");
+const rolePicker = document.querySelector("#role-picker");
+const rolePickerList = document.querySelector("#role-picker-list");
+
 // ---------- 侧边栏：展开 / 收起 ----------
 // 默认收起（44px 窄条）：鼠标移到窄条上自动展开，移出后 0.1s 内自动收回；
 // 点击图标可手动切换（手动展开后鼠标移出不会自动收回）。
@@ -152,39 +156,75 @@ function getActiveProvider() {
     }
 }
 
-// 读取当前使用的角色会话 id：优先"我的角色"，没有则使用官方"星瑶"的会话
-function getActiveRoleId() {
+// ================================
+// 聊天角色（输入框左侧按钮选择：官方星瑶/月瓷 + 我的角色）
+// ================================
+
+const CHAT_ROLE_KEY = "xingyue_chat_role";
+
+// 当前聊天角色：{ kind: "official"|"local", id: 角色id(官方为null), name: 名字 }
+function getChatRole() {
     try {
-        const store = JSON.parse(localStorage.getItem(SETTINGS_KEY));
-        if (store && Array.isArray(store.roles) && store.roles.length > 0) {
-            const role = store.roles.find((r) => r.id === store.activeRoleId) || store.roles[0];
-            if (role && role.id) {
-                return role.id;
-            }
+        const saved = JSON.parse(localStorage.getItem(CHAT_ROLE_KEY));
+        if (saved && saved.kind && saved.name) {
+            return saved;
         }
     } catch {
         // 读取失败用默认
     }
-    return "official-xingyao";
+    return { kind: "official", id: null, name: "星瑶" };
 }
 
-// 聊天用的 System Prompt：
-// 1) 优先"我的角色"里当前选中的角色
-// 2) 没有则使用官方"星瑶"设定（站长本地覆盖 → 服务器 official-roles.json）
-async function getActiveSystemPrompt() {
+function saveChatRole(role) {
+    localStorage.setItem(CHAT_ROLE_KEY, JSON.stringify(role));
+}
+
+// 当前角色的显示名（聊天气泡用）
+function getChatRoleName() {
+    const role = getChatRole();
+    if (role.kind === "official") {
+        return role.name;
+    }
     try {
         const store = JSON.parse(localStorage.getItem(SETTINGS_KEY));
-        if (store && Array.isArray(store.roles) && store.roles.length > 0) {
-            const role = store.roles.find((r) => r.id === store.activeRoleId) || store.roles[0];
-            if (role && role.prompt) {
-                return role.prompt;
+        if (store && Array.isArray(store.roles)) {
+            const r = store.roles.find((x) => x.id === role.id);
+            if (r && r.name) {
+                return r.name;
             }
         }
     } catch {
-        // 读取失败继续走官方设定
+        // 忽略
+    }
+    return "星瑶";
+}
+
+// 当前角色的会话 id（不同角色各自的对话历史）
+function getActiveRoleId() {
+    const role = getChatRole();
+    return role.kind === "official" ? "official-" + role.name : role.id;
+}
+
+// 聊天用的 System Prompt：跟随当前选择的聊天角色
+async function getActiveSystemPrompt() {
+    const role = getChatRole();
+
+    if (role.kind === "official") {
+        return getOfficialRolePrompt(role.name);
     }
 
-    return getOfficialRolePrompt("星瑶");
+    try {
+        const store = JSON.parse(localStorage.getItem(SETTINGS_KEY));
+        if (store && Array.isArray(store.roles)) {
+            const r = store.roles.find((x) => x.id === role.id);
+            if (r && r.prompt) {
+                return r.prompt;
+            }
+        }
+    } catch {
+        // 读取失败用空
+    }
+    return "";
 }
 
 // 读取官方角色的设定（站长在后台 assets/data/official-roles.json 维护）
@@ -203,6 +243,150 @@ async function getOfficialRolePrompt(name) {
     }
 
     return "";
+}
+
+// ================================
+// 角色选择面板（输入框左侧按钮打开）
+// ================================
+
+function openRolePicker() {
+    renderRolePicker();
+    rolePicker.hidden = false;
+}
+
+function closeRolePicker() {
+    rolePicker.hidden = true;
+}
+
+chatRoleBtn.addEventListener("click", (event) => {
+    event.stopPropagation();
+    if (rolePicker.hidden) {
+        openRolePicker();
+    } else {
+        closeRolePicker();
+    }
+});
+
+// 点击面板外部区域关闭
+document.addEventListener("click", (event) => {
+    if (rolePicker.hidden) {
+        return;
+    }
+    if (rolePicker.contains(event.target) || chatRoleBtn.contains(event.target)) {
+        return;
+    }
+    closeRolePicker();
+});
+
+// 选中角色：保存 → 关闭面板 → 加载该角色的对话历史
+function pickRole(role) {
+    saveChatRole({ kind: role.kind, id: role.id, name: role.name });
+    closeRolePicker();
+    chatHistory = loadChat();
+    renderChat();
+    updateExpandBtn();
+}
+
+function renderRolePicker() {
+    rolePickerList.innerHTML = "";
+    const current = getChatRole();
+
+    // 官方角色（星瑶、月瓷 在最上面）
+    const officialRoles = ["星瑶", "月瓷"].map((name) => ({
+        kind: "official",
+        id: null,
+        name: name,
+    }));
+
+    // 我的角色（按创建顺序）
+    let localRoles = [];
+    try {
+        const store = JSON.parse(localStorage.getItem(SETTINGS_KEY));
+        if (store && Array.isArray(store.roles)) {
+            localRoles = store.roles;
+        }
+    } catch {
+        // 忽略
+    }
+    const localItems = localRoles.map((r) => ({
+        kind: "local",
+        id: r.id,
+        name: r.name,
+    }));
+
+    const isCurrent = (x) =>
+        x.kind === current.kind &&
+        (x.kind === "official" ? x.name === current.name : x.id === current.id);
+
+    // 1) 当前选中的角色排到最上面
+    const currentItem = [...officialRoles, ...localItems].find(isCurrent);
+    if (currentItem) {
+        rolePickerList.appendChild(roleItemEl(currentItem, true));
+    }
+
+    // 2) 官方角色
+    const officialRest = officialRoles.filter((x) => !isCurrent(x));
+    if (officialRest.length > 0) {
+        rolePickerList.appendChild(groupTitle("官方角色"));
+        for (const r of officialRest) {
+            rolePickerList.appendChild(roleItemEl(r, false));
+        }
+    }
+
+    // 3) 我的角色
+    const localRest = localItems.filter((x) => !isCurrent(x));
+    if (localRest.length > 0) {
+        rolePickerList.appendChild(groupTitle("我的角色"));
+        for (const r of localRest) {
+            rolePickerList.appendChild(roleItemEl(r, false));
+        }
+    }
+
+    // 4) 添加人物（跳转角色设定页面）
+    const addBtn = document.createElement("button");
+    addBtn.type = "button";
+    addBtn.className = "role-picker-item role-picker-add";
+    const addText = document.createElement("span");
+    addText.textContent = "添加人物";
+    const addIcon = document.createElement("span");
+    addIcon.className = "role-picker-add-icon";
+    addIcon.textContent = "＋";
+    addBtn.appendChild(addText);
+    addBtn.appendChild(addIcon);
+    addBtn.addEventListener("click", (event) => {
+        event.stopPropagation();
+        window.location.href = "settings.html#role";
+    });
+    rolePickerList.appendChild(addBtn);
+}
+
+function groupTitle(text) {
+    const div = document.createElement("div");
+    div.className = "role-picker-group-title";
+    div.textContent = text;
+    return div;
+}
+
+function roleItemEl(role, active) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "role-picker-item" + (active ? " active" : "");
+
+    const nameSpan = document.createElement("span");
+    nameSpan.textContent = role.name;
+    btn.appendChild(nameSpan);
+
+    if (active) {
+        const mark = document.createElement("span");
+        mark.textContent = "✓";
+        btn.appendChild(mark);
+    }
+
+    btn.addEventListener("click", (event) => {
+        event.stopPropagation();
+        pickRole(role);
+    });
+    return btn;
 }
 
 // 历史对话保留对数（设置页可调整，默认 3 对）
@@ -331,7 +515,7 @@ function appendTypingElement() {
 
     const nameEl = document.createElement("div");
     nameEl.className = "message-name";
-    nameEl.textContent = "星瑶";
+    nameEl.textContent = getChatRoleName();
 
     const bubble = document.createElement("div");
     bubble.className = "message-bubble typing-bubble";
@@ -414,7 +598,7 @@ async function askXingyao() {
 
     // 没配置秘钥时给个提示
     if (!provider || !provider.apiKey) {
-        addMessage("星瑶", "还没有配置 API 秘钥哦～去「设置」页面添加一个 API Key，就能和我聊天啦！", false);
+        addMessage(getChatRoleName(), "还没有配置 API 秘钥哦～去「设置」页面添加一个 API Key，就能和我聊天啦！", false);
         return;
     }
 
@@ -453,10 +637,10 @@ async function askXingyao() {
         const reply = data.choices?.[0]?.message?.content?.trim() || "……（没有收到回复）";
 
         typingEl.remove();
-        addMessage("星瑶", reply, false);
+        addMessage(getChatRoleName(), reply, false);
     } catch (error) {
         typingEl.remove();
-        addMessage("星瑶", "呜……连接失败了（" + error.message + "）。去「设置」页面检查一下 API 配置吧～", false);
+        addMessage(getChatRoleName(), "呜……连接失败了（" + error.message + "）。去「设置」页面检查一下 API 配置吧～", false);
     }
 }
 

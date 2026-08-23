@@ -165,6 +165,10 @@
                 <!-- 输入区域 -->
                 <div class="chat-input">
 
+                    <button class="chat-role-btn" id="chat-role-btn" type="button" title="选择聊天角色">
+                        <img src="images/shuruokuangrewu.png" alt="角色">
+                    </button>
+
                     <input
                         type="text"
                         placeholder="输入消息……"
@@ -173,6 +177,14 @@
                     <button type="button">
                         ➤
                     </button>
+
+                </div>
+
+
+                <!-- 角色选择面板（点击输入框左侧按钮打开） -->
+                <div class="role-picker" id="role-picker" hidden>
+
+                    <div class="role-picker-list" id="role-picker-list"></div>
 
                 </div>
 

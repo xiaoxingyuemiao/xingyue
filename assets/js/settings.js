@@ -514,7 +514,8 @@ function renderHistory() {
 
         const nameEl = document.createElement("span");
         nameEl.className = "session-card-name";
-        nameEl.textContent = roleNameById[roleId] || (roleId === "official-xingyao" ? "星瑶（官方）" : "角色");
+        nameEl.textContent = roleNameById[roleId] ||
+            (roleId.indexOf("official-") === 0 ? roleId.slice("official-".length) + "（官方）" : "角色");
         info.appendChild(nameEl);
 
         const countEl = document.createElement("span");
