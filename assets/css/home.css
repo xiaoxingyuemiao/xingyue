@@ -408,8 +408,8 @@ body {
 
     transform: translate(-50%, -50%);
 
-    width: 500px;
-    height: 700px;
+    width: 700px;
+    height: 1000px;
 }
 
 /* 画布铺满窗口（尺寸由 SDK 按容器计算，不变形） */
