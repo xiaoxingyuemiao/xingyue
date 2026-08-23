@@ -549,17 +549,20 @@ const Live2D = {
         }, { passive: false, capture: true });
     },
 
-    // 重新加载当前模型（窗口大小/页面缩放变化后重新计算 scale 适配）
+    // 重新加载当前模型（窗口大小变化后重新计算 scale 适配）
+    // 注意：重建前必须销毁旧实例，否则 WebGL 上下文泄漏导致渲染崩溃
     reloadModel() {
         if (!this.om || !this.currentPath) {
             return;
         }
+        this.destroyInstance();
         try {
             const container = document.getElementById("live2d-container");
             if (container) {
                 container.innerHTML = "";
             }
             this.om = this.createInstance(this.currentPath);
+            window.__om = this.om;
             this.resetInteraction();
             this.fixLayout(0);
         } catch (error) {
@@ -567,7 +570,31 @@ const Live2D = {
         }
     },
 
-    // 监听窗口 / 页面缩放变化，自动重新适配模型（防抖）
+    // 销毁实例：释放 WebGL 上下文（防止泄漏导致 shader/纹理错乱）
+    destroyInstance() {
+        if (!this.om) {
+            return;
+        }
+        try {
+            if (typeof this.om.destroy === "function") {
+                this.om.destroy();
+            } else if (typeof this.om.dispose === "function") {
+                this.om.dispose();
+            }
+        } catch {
+            // 忽略
+        }
+        try {
+            if (typeof this.om.stageSlideOut === "function") {
+                this.om.stageSlideOut();
+            }
+        } catch {
+            // 忽略
+        }
+        this.om = null;
+    },
+
+    // 监听窗口 / 页面缩放变化，自动重新适配模型（长防抖，避免频繁重建）
     setupResizeListener() {
         if (this.resizeBound) {
             return;
@@ -584,7 +611,7 @@ const Live2D = {
                 if (this.om) {
                     this.reloadModel();
                 }
-            }, 400);
+            }, 800);
         });
     },
 
@@ -739,9 +766,19 @@ const Live2D = {
 
     // 初始化：等 SDK 就绪，加载默认模型；失败时在占位文字上显示原因
     async init() {
+        // 单例保护：避免重复初始化（多次 init 会创建多个 WebGL 上下文导致崩溃）
+        if (this.initialized) {
+            return this.initialized;
+        }
+        this.initialized = "pending";
+
+        // 无论视口宽窄都先注册 resize 监听（拉宽窗口后能自动初始化）
+        this.setupResizeListener();
+
         // 本地 file:// 打开时浏览器禁止读取本地模型文件，直接提示
         if (location.protocol === "file:") {
             this.showPlaceholder("本地打开无法加载 Live2D（浏览器限制），请访问 GitHub Pages 线上地址");
+            this.initialized = false;
             return false;
         }
 
@@ -749,6 +786,7 @@ const Live2D = {
         // 拉宽窗口后 resize 监听会自动重新加载
         if (window.innerWidth < 400) {
             this.showPlaceholder("窗口过窄（" + window.innerWidth + "px）：Live2D 模型无法显示。请把浏览器窗口拉宽到 800px 以上（或按 F11 全屏），稍等片刻模型会自动出现。");
+            this.initialized = false;
             return false;
         }
 
@@ -756,6 +794,7 @@ const Live2D = {
         if (!ready) {
             console.warn("Live2D SDK 加载失败（本地 vendor 与 CDN 均不可用）");
             this.showPlaceholder("Live2D 加载失败：SDK 文件缺失或网络无法访问 CDN（请把 SDK 文件放进 assets/vendor/）");
+            this.initialized = false;
             return false;
         }
         try {
@@ -769,12 +808,13 @@ const Live2D = {
             this.hidePlaceholder();
             this.bindInteractions();
             this.setupObserver();
-            this.setupResizeListener();
             this.fixLayout(0);
+            this.initialized = true;
             return true;
         } catch (error) {
             console.warn("Live2D 初始化失败：", error);
             this.showPlaceholder("Live2D 模型加载失败：" + (error && error.message ? error.message : error));
+            this.initialized = false;
             return false;
         }
     },
