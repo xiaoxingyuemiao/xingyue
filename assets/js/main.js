@@ -450,7 +450,7 @@ const Live2D = {
         return factory({
             el: container,
             parentElement: container,
-            models: [{ path: path, scale: 0.2 }],
+            models: [{ path: path, scale: 0.15 }],
             // 舞台在容器内居中（SDK 默认定位在右下角）
             stageStyle: {
                 position: "absolute",
