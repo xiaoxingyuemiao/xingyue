@@ -11,7 +11,30 @@
 			"kuma maid.4096/texture_05.png"
 		],
 		"Physics": "kuma maid.physics3.json",
-		"DisplayInfo": "kuma maid.cdi3.json"
+		"DisplayInfo": "kuma maid.cdi3.json",
+		"Expressions": [
+			{ "Name": "1-1", "File": "1-1.exp3.json" },
+			{ "Name": "1-2", "File": "1-2.exp3.json" },
+			{ "Name": "123123", "File": "123123.exp3.json" },
+			{ "Name": "Angry", "File": "Angry.exp3.json" },
+			{ "Name": "Cry", "File": "Cry.exp3.json" },
+			{ "Name": "dizzy", "File": "dizzy.exp3.json" },
+			{ "Name": "blush", "File": "blush.exp3.json" },
+			{ "Name": "Star mouth", "File": "Star mouth.exp3.json" },
+			{ "Name": "Dot face", "File": "Dot face.exp3.json" },
+			{ "Name": "Form1", "File": "Form1.exp3.json" },
+			{ "Name": "Form2", "File": "Form2.exp3.json" },
+			{ "Name": "Form3", "File": "Form3.exp3.json" },
+			{ "Name": "Ellipsis", "File": "Ellipsis.exp3.json" },
+			{ "Name": "sweating", "File": "sweating.exp3.json" },
+			{ "Name": "Star", "File": "Star.exp3.json" },
+			{ "Name": "black face", "File": "black face.exp3.json" }
+		],
+		"Motions": {
+			"Idle": [
+				{ "File": "Scene1.motion3.json", "FadeInTime": 0.5, "FadeOutTime": 0.5 }
+			]
+		}
 	},
 	"Groups": [
 		{

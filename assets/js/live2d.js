@@ -1,8 +1,9 @@
 // ================================
 // Live2D 业务模块（assets/js/live2d.js）
-// 负责：模型加载 / 按角色切换模型 / 锚点设置 / 窗口交互（拖动、中键缩放、Ctrl+中键旋转）
+// 负责：模型加载 / 按角色切换模型 / 锚点设置 / 情绪表情动作 / 窗口交互
 // 依赖：
 //   - window.OML2D：oh-my-live2d SDK（index.html 引入 assets/vendor/oh-my-live2d.min.js）
+//   - window.MODEL_CONFIGS：模型配置（assets/data/models.js，index.html 先加载）
 //   - getRoleModelName()：角色 → 模型名解析（定义在 main.js，页面加载完成后才调用）
 // 暴露：window.Live2D
 // ================================
@@ -10,13 +11,9 @@
 window.Live2D = {
     om: null,
 
-    // 官方模型清单：聊天角色按名字切换（角色 → 模型在 getRoleModelName 里解析）
+    // 官方模型清单：由 MODEL_CONFIGS 生成（聊天角色按名字切换）
     MODEL_NAMES: ["default", "xingyao", "yueci"],
-    MODELS: [
-        { name: "default", path: "assets/live2d/default/ARGNori.model3.json", scale: 0.1, anchor: [0, 0] },
-        { name: "xingyao", path: "assets/live2d/xingyao/Coffee.model3.json", scale: 0.1, anchor: [0, 0] },
-        { name: "yueci", path: "assets/live2d/yueci/kuma maid.model3.json", scale: 0.1, anchor: [0, 0] },
-    ],
+    MODELS: [],
     // 当前显示的模型
     currentModelName: "default",
 
@@ -34,6 +31,26 @@ window.Live2D = {
         bound: false,
     },
 
+    // 由 MODEL_CONFIGS 生成 SDK models 数组（加载前调用）
+    buildModels() {
+        this.MODELS = this.MODEL_NAMES
+            .filter((name) => window.MODEL_CONFIGS && window.MODEL_CONFIGS[name])
+            .map((name) => {
+                const cfg = window.MODEL_CONFIGS[name];
+                return {
+                    name: name,
+                    path: cfg.path,
+                    scale: cfg.scale,
+                    anchor: cfg.anchor,
+                };
+            });
+    },
+
+    // 当前模型的配置（表情/动作映射等）
+    currentConfig() {
+        return (window.MODEL_CONFIGS && window.MODEL_CONFIGS[this.currentModelName]) || null;
+    },
+
     async init() {
         // SDK 已由 index.html 加载（window.OML2D.loadOml2d）
         const factory = window.OML2D && window.OML2D.loadOml2d;
@@ -46,6 +63,7 @@ window.Live2D = {
             return;
         }
         try {
+            this.buildModels();
             this.om = factory({
                 el: container,
                 parentElement: container,
@@ -92,7 +110,33 @@ window.Live2D = {
         }
     },
 
-    // 设置模型锚点 (0, 0)：运行时调用，模型对象未就绪时自动重试
+    // 播放情绪：查当前模型的配置映射 → 表情 + 动作（动作叠加在表情上）
+    // 情绪枚举：开心、难过、生气、害羞、惊讶、委屈、平静（与聊天情绪规则一致）
+    playEmotion(emotion) {
+        const om = this.om;
+        if (!om || !om.model || !emotion) {
+            return;
+        }
+        const cfg = this.currentConfig();
+        if (!cfg) {
+            return;
+        }
+        try {
+            const exp = cfg.expressions && cfg.expressions[emotion];
+            if (exp && typeof om.model.expression === "function") {
+                om.model.expression(exp);
+            }
+            const mt = cfg.motions && cfg.motions[emotion];
+            if (mt && typeof om.model.motion === "function") {
+                om.model.motion(mt.group, mt.index);
+            }
+        } catch (error) {
+            console.warn("情绪播放失败: " + emotion, error);
+        }
+    },
+
+    // 设置模型锚点 (0, 0)：运行时调用，模型对象未就绪时自动重试；
+    // 锚点就绪后再应用配置里的 position 偏移（如果有）
     setModelAnchor(attempts) {
         const om = this.om;
         if (!om || typeof om.setModelAnchor !== "function") {
@@ -102,6 +146,7 @@ window.Live2D = {
         try {
             om.setModelAnchor({ x: 0, y: 0 });
             console.log("模型锚点已设置 (0, 0)");
+            this.applyPosition();
         } catch (error) {
             if (count < 20) {
                 // 模型对象还没创建完成，稍后重试（最多 10 秒）
@@ -109,6 +154,20 @@ window.Live2D = {
             } else {
                 console.warn("模型锚点设置失败：", error);
             }
+        }
+    },
+
+    // 应用配置里的 position 偏移（models.js 里 position 为 null 时跳过）
+    applyPosition() {
+        const om = this.om;
+        const cfg = this.currentConfig();
+        if (!om || !cfg || !cfg.position || typeof om.setModelPosition !== "function") {
+            return;
+        }
+        try {
+            om.setModelPosition({ x: cfg.position.x, y: cfg.position.y });
+        } catch (error) {
+            console.warn("模型位置设置失败：", error);
         }
     },
 

@@ -688,9 +688,13 @@ async function askXingyao() {
 
         typingEl.remove();
 
-        // 解析情绪标记（正文去掉标记显示；Live2D 表情动作后续再加）
+        // 解析情绪标记（正文去掉标记显示）
         const parsed = parseEmotion(reply);
         addMessage(getChatRoleName(), parsed.text || "……", false);
+        // Live2D：播放情绪对应的表情/动作
+        if (parsed.emotion) {
+            window.Live2D.playEmotion(parsed.emotion);
+        }
     } catch (error) {
         typingEl.remove();
         addMessage(getChatRoleName(), "呜……连接失败了（" + error.message + "）。去「设置」页面检查一下 API 配置吧～", false);
