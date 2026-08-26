@@ -1,0 +1,13 @@
+{
+  "name": "xingyue",
+  "version": "2.0.0",
+  "private": true,
+  "description": "星月小窝 —— 星瑶/月瓷 的个人网站（纯静态，GitHub Pages 部署，零构建）",
+  "scripts": {
+    "start": "npx --yes serve .",
+    "preview": "npx --yes serve .",
+    "check": "node --check assets/js/main.js && node --check assets/js/live2d.js && node --check assets/js/settings.js"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
