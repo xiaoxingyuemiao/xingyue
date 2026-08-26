@@ -31,19 +31,48 @@ window.Live2D = {
         bound: false,
     },
 
-    // 由 MODEL_CONFIGS 生成 SDK models 数组（加载前调用）
+    // 由 MODEL_CONFIGS 生成 SDK models 数组（加载前调用）；
+    // 额外注册"我的角色"里配置的模型：官方名 / 在线 URL / 本地导入（custom:）
     buildModels() {
-        this.MODELS = this.MODEL_NAMES
-            .filter((name) => window.MODEL_CONFIGS && window.MODEL_CONFIGS[name])
-            .map((name) => {
-                const cfg = window.MODEL_CONFIGS[name];
-                return {
-                    name: name,
-                    path: cfg.path,
-                    scale: cfg.scale,
-                    anchor: cfg.anchor,
-                };
+        const list = [];
+        for (const name of this.MODEL_NAMES) {
+            const cfg = window.MODEL_CONFIGS && window.MODEL_CONFIGS[name];
+            if (!cfg) {
+                continue;
+            }
+            list.push({
+                name: name,
+                path: cfg.path,
+                scale: cfg.scale,
+                anchor: cfg.anchor,
             });
+        }
+        // 自定义模型（我的角色）
+        try {
+            const store = JSON.parse(localStorage.getItem("xingyue_settings"));
+            if (store && Array.isArray(store.roles)) {
+                for (const r of store.roles) {
+                    const m = (r.model || "").trim();
+                    if (!m || this.MODEL_NAMES.indexOf(m) >= 0) {
+                        continue; // 留空或官方模型名
+                    }
+                    const customName = "custom-" + r.id;
+                    if (this.MODEL_NAMES.indexOf(customName) >= 0) {
+                        continue;
+                    }
+                    let path = m;
+                    if (m.indexOf("custom:") === 0) {
+                        // 本地导入：虚拟路径（Service Worker 从缓存返回）
+                        path = window.L2D_CUSTOM.basePath() + r.id + "/" + m.slice(7);
+                    }
+                    list.push({ name: customName, path: path, scale: 0.1, anchor: [0, 0] });
+                    this.MODEL_NAMES.push(customName);
+                }
+            }
+        } catch (e) {
+            // 读取失败忽略
+        }
+        this.MODELS = list;
     },
 
     // 当前模型的配置（表情/动作映射等）

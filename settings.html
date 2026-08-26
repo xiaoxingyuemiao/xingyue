@@ -271,10 +271,18 @@
 
 
                     <label class="settings-label" for="r-model">
-                        Live2D 模型路径（可选，留空用默认模型）
+                        Live2D 模型（可选，留空用默认模型）
                     </label>
 
-                    <input class="settings-input" id="r-model" type="text" placeholder="assets/live2d/xxx/模型.model3.json">
+                    <input class="settings-input" id="r-model" type="text" placeholder="default / xingyao / yueci，或模型在线 URL，或点下方按钮导入本地模型">
+
+                    <button class="settings-btn" id="r-import" type="button">
+                        📂 导入本地模型文件夹
+                    </button>
+
+                    <p class="modal-status" id="r-import-status"></p>
+
+                    <input type="file" id="r-import-input" webkitdirectory multiple style="display:none">
 
 
                     <div class="modal-actions">

@@ -242,6 +242,7 @@ async function getOfficialRolePrompt(name) {
 
 // 当前聊天角色对应的模型名：
 // 官方角色 → official-roles.js 的 model 字段；我的角色 → 设置页的模型字段；
+// 支持：官方模型名（default/xingyao/yueci）、在线 URL、本地导入（custom:）
 // 留空 / 填错 / 未配置时自动用 default
 function getRoleModelName() {
     const role = getChatRole();
@@ -267,6 +268,13 @@ function getRoleModelName() {
 
     if (Live2D.MODEL_NAMES.indexOf(modelName) >= 0) {
         return modelName;
+    }
+    // 自定义模型（在线 URL / 本地导入）：注册名为 custom-<角色id>
+    if (modelName && role.kind === "local") {
+        const customName = "custom-" + role.id;
+        if (Live2D.MODEL_NAMES.indexOf(customName) >= 0) {
+            return customName;
+        }
     }
     return "default";
 }

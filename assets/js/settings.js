@@ -63,6 +63,9 @@ const rPrompt = document.querySelector("#r-prompt");
 const rModel = document.querySelector("#r-model");
 const rSave = document.querySelector("#r-save");
 const rStatus = document.querySelector("#r-status");
+const rImport = document.querySelector("#r-import");
+const rImportInput = document.querySelector("#r-import-input");
+const rImportStatus = document.querySelector("#r-import-status");
 
 // 当前正在编辑的 id（null = 新增，有值 = 双击卡片进入编辑）
 let editingProviderId = null;
@@ -349,6 +352,10 @@ function renderRoles() {
             }
             saveStore(s);
             renderRoles();
+            // 清理该角色导入的本地模型缓存（如果有）
+            if (window.L2D_CUSTOM) {
+                window.L2D_CUSTOM.clearRole(role.id).catch(() => {});
+            }
         });
 
         card.appendChild(info);
@@ -376,6 +383,35 @@ function closeRoleModal() {
 
 roleAdd.addEventListener("click", () => openRoleModal());
 roleModalClose.addEventListener("click", closeRoleModal);
+
+// ---------- 导入本地 Live2D 模型文件夹 ----------
+
+// 点击按钮 → 打开文件夹选择（webkitdirectory 支持选整个文件夹）
+rImport.addEventListener("click", () => {
+    rImportInput.click();
+});
+
+rImportInput.addEventListener("change", async () => {
+    const files = rImportInput.files;
+    rImportInput.value = "";
+    if (!files || files.length === 0) {
+        return;
+    }
+    rImportStatus.textContent = "正在导入模型文件（大模型需要一点时间）……";
+    const roleId = editingRoleId || "role-" + Date.now();
+    try {
+        const entry = await window.L2D_CUSTOM.importFolder(roleId, files);
+        if (entry) {
+            rModel.value = "custom:" + entry;
+            rImportStatus.textContent = "✓ 模型导入成功：" + entry + "（保存角色后生效，仅本浏览器可用）";
+        } else {
+            rImportStatus.textContent = "✗ 没找到 model3.json / model.json，请选择完整的模型文件夹";
+        }
+    } catch (e) {
+        console.warn("模型导入失败：", e);
+        rImportStatus.textContent = "✗ 导入失败：" + (e.message || e);
+    }
+});
 
 roleModalOverlay.addEventListener("click", (event) => {
     if (event.target === roleModalOverlay) {
