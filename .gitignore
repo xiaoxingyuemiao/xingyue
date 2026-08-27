@@ -21,6 +21,48 @@ Desktop.ini
 *.localstorage.json
 *config*.json.bak
 
+# ==============================
+# 密钥与敏感信息 —— 绝对禁止上传！
+# （本地 .git/hooks/pre-commit + pre-push 守卫会双重拦截）
+# ==============================
+
+# 环境变量文件（.env.example / .env.sample 是模板，允许提交）
+.env
+.env.*
+!.env.example
+!.env.sample
+
+# SSH / GPG / 各类私钥（公钥 *.pub 允许提交）
+.ssh/
+id_rsa
+id_dsa
+id_ecdsa
+id_ed25519
+*.key
+*.pem
+*.ppk
+*.p8
+*.asc
+
+# 证书 / 密钥库（含密码库文件）
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+# 云平台凭据（AWS / Azure / GCP 等）
+.aws/
+.azure/
+.gcloud/
+credentials
+
+# 各类凭据 / 令牌文件
+.netrc
+.npmrc
+.pgpass
+*.secret
+*.token
+
 # 打包产物（以后如果用到构建工具）
 node_modules/
 dist/
