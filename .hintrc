@@ -9,7 +9,8 @@
         "ignore": [
           "backdrop-filter",
           "scrollbar-width",
-          "scrollbar-width: none"
+          "scrollbar-width: none",
+          "user-select"
         ]
       }
     ]
