@@ -81,7 +81,8 @@ body {
     display: flex;
     flex-direction: column;
 
-    width: 100px;
+    /* 展开宽度：留出左右各 25px 内边距，最长的 "Live2D" 也能完整显示 */
+    width: 126px;
     height: 100vh;
 
     box-sizing: border-box;
