@@ -35,8 +35,8 @@ body {
 nav {
     display: flex;
 
-    padding: 0 24px;
-    height: 56px;
+    padding: 0 20px;
+    height: 44px;
 
     align-items: center;
 
@@ -66,7 +66,7 @@ nav {
     width: 100px;
 
     text-decoration: none;
-    font-size: 24px;
+    font-size: 20px;
     font-weight: bold;
 
     color: var(--main-color);
@@ -76,13 +76,13 @@ nav {
     display: inline-flex;
     align-items: center;
 
-    padding: 8px 14px;
+    padding: 5px 12px;
 
     border-radius: 8px;
 
     text-decoration: none;
 
-    font-size: 16px;
+    font-size: 15px;
 
     color: var(--text-color);
 
