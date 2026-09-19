@@ -428,9 +428,9 @@ function appendMessageElement(name, text, isUser) {
 }
 
 // ================================
-// 常驻气泡：只展示"最近一条角色回复"
-// 电脑端：一直显示（新回复到达时替换旧内容）
-// 手机端：显示 10 秒后自动消失
+// 常驻气泡：展示"最近一轮完整对话"（你说的话 + 角色的回复）
+// 角色回复到达时用新一轮替换旧一轮（上滑过渡）
+// 电脑端：一直显示；手机端：显示 10 秒后自动消失
 // ================================
 
 // 手机端判定（与 CSS 的移动端断点保持一致）
@@ -438,43 +438,55 @@ function isMobileView() {
     return window.matchMedia("(max-width: 768px)").matches;
 }
 
-// 最近一条角色回复（没有则 null）
-function latestCharacterMessage() {
+// 最近一轮对话：最后一条角色回复 + 它前面紧邻的那条用户消息
+function latestRound() {
+    let idx = -1;
     for (let i = chatHistory.length - 1; i >= 0; i--) {
         if (!chatHistory[i].isUser) {
-            return chatHistory[i];
+            idx = i;
+            break;
         }
     }
-    return null;
+    if (idx < 0) {
+        return []; // 还没有角色回复 → 气泡为空
+    }
+    const round = [];
+    if (idx > 0 && chatHistory[idx - 1].isUser) {
+        round.push(chatHistory[idx - 1]);
+    }
+    round.push(chatHistory[idx]);
+    return round;
 }
 
 let bubbleTimer = null;
 
-// 渲染常驻气泡
+// 渲染常驻气泡（新一轮上滑顶掉旧一轮）
 function renderBubble() {
-    messageList.innerHTML = "";
-
     if (bubbleTimer) {
         clearTimeout(bubbleTimer);
         bubbleTimer = null;
     }
 
-    const latest = latestCharacterMessage();
-    if (!latest) {
-        return; // 还没有角色回复 → 气泡为空
+    messageList.innerHTML = "";
+
+    const round = latestRound();
+    if (round.length === 0) {
+        return;
     }
 
-    const el = appendMessageElement(latest.name, latest.text, false);
-    el.style.animationDelay = "0ms";
+    round.forEach((m, i) => {
+        const el = appendMessageElement(m.name, m.text, m.isUser);
+        el.style.animationDelay = i * 90 + "ms";
+    });
 
-    // 手机端：10 秒后自动消失（淡出后移除）
+    // 手机端：10 秒后自动消失（上滑淡出）
     if (isMobileView()) {
         bubbleTimer = setTimeout(() => {
-            el.classList.add("message-fade-out");
+            for (const el of Array.from(messageList.children)) {
+                el.classList.add("message-fade-out");
+            }
             setTimeout(() => {
-                if (el.parentNode) {
-                    el.remove();
-                }
+                messageList.innerHTML = "";
             }, 400);
         }, 10000);
     }
@@ -483,13 +495,11 @@ function renderBubble() {
 // 写入历史并刷新气泡
 function addMessage(name, text, isUser) {
     chatHistory.push({ name, text, isUser });
-    // 只保留最近 N 对对话（设置页可调）
-    const keep = getChatKeepPairs() * 2;
-    if (chatHistory.length > keep) {
-        chatHistory = chatHistory.slice(-keep);
-    }
     saveChat();
-    renderBubble();
+    // 只有角色回复才刷新气泡：一轮对话在角色回复后整体显示
+    if (!isUser) {
+        renderBubble();
+    }
 }
 
 function sendMessage() {
@@ -513,14 +523,15 @@ async function askXingyao() {
         return;
     }
 
-    // 组装消息：当前角色设定（附加情绪规则）+ 最近 20 条对话
+    // 组装消息：当前角色设定（附加情绪规则）+ 最近 N 对对话作为上下文
+    // （历史全部保留在本地，这里只决定带多少给模型）
     const basePrompt = await getActiveSystemPrompt();
     const systemPrompt = basePrompt +
         "\n\n【情绪规则】每次回复的开头先用【情绪：X】标记你此刻的情绪（X 从：开心、难过、生气、害羞、惊讶、委屈、平静 中选择一个），随后才是回复内容。例如：【情绪：开心】今天天气不错呀。";
 
     const messages = [
         { role: "system", content: systemPrompt },
-        ...chatHistory.slice(-20).map((m) => ({
+        ...chatHistory.slice(-getChatKeepPairs() * 2).map((m) => ({
             role: m.isUser ? "user" : "assistant",
             content: m.text,
         })),
