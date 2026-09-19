@@ -28,6 +28,21 @@ body {
     background-color: var(--background-color);
 }
 
+/* ---------- 隐藏子页面右侧滚动条（内容超出时仍可滚动）----------
+   首页（含 .home-screen）不受影响 */
+
+html:not(:has(.home-screen)),
+html:not(:has(.home-screen)) body {
+    scrollbar-width: none; /* Firefox */
+
+    -ms-overflow-style: none; /* 旧版 Edge / IE */
+}
+
+html:not(:has(.home-screen))::-webkit-scrollbar,
+html:not(:has(.home-screen)) body::-webkit-scrollbar {
+    display: none; /* Chrome / Edge / Safari */
+}
+
 /* ==============================
    顶部导航栏（主页风格：圆角、hover 主色）
    ============================== */
