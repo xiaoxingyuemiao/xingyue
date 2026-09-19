@@ -18,7 +18,7 @@
 window.SUPABASE_CONFIG = {
     // Project URL：形如 https://abcdefghijklmn.supabase.co
     // （在 Settings → API Keys / Data API 页面能找到）
-    url: "",
+    url: "https://oimrwxbvdwbpsmgndpdp.supabase.co",
 
     // Publishable key（新版名字，等同于旧版的 anon key，可公开）
     // ⚠️ 绝对不要填 Secret key / service_role key（那是管理员钥匙，会泄露全部用户数据）
