@@ -896,3 +896,128 @@
 
     font-size: 44px;
 }
+
+/* ==============================
+   手机端适配（设置页 / 用户设置页）
+   ============================== */
+
+@media (max-width: 768px) {
+
+    /* ---------- 返回按钮 ---------- */
+
+    .settings-back {
+        top: 10px;
+        left: 10px;
+
+        width: 40px;
+        height: 40px;
+
+        font-size: 16px;
+    }
+
+    /* ---------- 骨架：左侧导航 → 顶部横向导航 ---------- */
+
+    .settings-page {
+        flex-direction: column;
+    }
+
+    .settings-sidebar {
+        width: 100%;
+
+        padding: 58px 10px 8px;
+
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .settings-sidebar-title {
+        margin: 0 4px 10px;
+
+        font-size: 16px;
+    }
+
+    .settings-nav {
+        flex-direction: row;
+
+        gap: 6px;
+
+        overflow-x: auto;
+
+        padding-bottom: 2px;
+
+        scrollbar-width: none;
+    }
+
+    .settings-nav::-webkit-scrollbar {
+        display: none;
+    }
+
+    .settings-nav-item {
+        height: 38px;
+
+        padding: 0 12px;
+
+        font-size: 14px;
+
+        flex-shrink: 0;
+    }
+
+    /* ---------- 内容区 ---------- */
+
+    .settings-main {
+        padding: 20px 14px 48px;
+    }
+
+    .settings-main-title {
+        font-size: 20px;
+    }
+
+    .settings-subtitle {
+        margin: 22px 0 10px;
+
+        font-size: 15px;
+    }
+
+    .provider-card,
+    .role-card {
+        padding: 14px;
+
+        gap: 10px;
+    }
+
+    /* ---------- 弹窗 ---------- */
+
+    .modal {
+        width: calc(100vw - 24px);
+
+        max-height: 86vh;
+    }
+
+    .modal-body {
+        padding: 16px;
+    }
+
+    /* 输入框字号不小于 16px，避免 iOS 聚焦时自动放大页面 */
+    .settings-input,
+    .settings-textarea {
+        font-size: 16px;
+    }
+
+    /* ---------- 用户设置页 ---------- */
+
+    .user-page {
+        padding: 68px 14px 40px;
+    }
+
+    .user-card {
+        padding: 22px 18px;
+
+        border-radius: 18px;
+    }
+
+    .user-avatar-preview {
+        width: 72px;
+        height: 72px;
+
+        font-size: 36px;
+    }
+}

@@ -664,3 +664,180 @@ footer {
 
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
+
+/* ==============================
+   手机端适配（所有子页面）
+   ============================== */
+
+@media (max-width: 768px) {
+
+    body {
+        font-size: 16px;
+    }
+
+    /* ---------- 导航栏：更紧凑，菜单可横向滑动 ---------- */
+
+    nav {
+        height: 42px;
+
+        padding: 0 12px;
+    }
+
+    .logo {
+        width: auto;
+
+        padding-right: 10px;
+
+        font-size: 18px;
+    }
+
+    /* 手机上取消居中占位（菜单直接横向排列） */
+    .nav-side {
+        display: none;
+    }
+
+    .nav-menu {
+        gap: 2px;
+
+        justify-content: flex-start;
+
+        overflow-x: auto;
+
+        scrollbar-width: none;
+    }
+
+    .nav-menu::-webkit-scrollbar {
+        display: none;
+    }
+
+    .nav-link {
+        padding: 5px 10px;
+
+        font-size: 14px;
+    }
+
+    .dropdown-menu {
+        min-width: 84px;
+
+        padding: 8px;
+    }
+
+    .dropdown-menu a {
+        padding: 7px 8px;
+
+        font-size: 14px;
+    }
+
+    /* ---------- 页脚 ---------- */
+
+    footer {
+        padding: 16px;
+
+        font-size: 14px;
+    }
+
+    .footer-menu {
+        gap: 16px;
+    }
+
+    /* ---------- 下载页 ---------- */
+
+    .download-page {
+        min-height: calc(100vh - 42px);
+
+        padding: 32px 20px;
+    }
+
+    .download-icon {
+        width: 88px;
+        height: 88px;
+
+        border-radius: 20px;
+    }
+
+    .download-name {
+        font-size: 24px;
+    }
+
+    .download-desc {
+        font-size: 14px;
+    }
+
+    .download-btn {
+        padding: 13px 40px;
+
+        font-size: 16px;
+    }
+
+    /* ---------- 装修中占位页 ---------- */
+
+    .wip-icon {
+        font-size: 44px;
+    }
+
+    .wip-page h2 {
+        font-size: 22px;
+    }
+
+    /* ---------- 关于页 ---------- */
+
+    .content {
+        padding: 32px 16px;
+    }
+
+    .about-card {
+        flex-direction: column;
+
+        gap: 22px;
+
+        width: 100%;
+
+        padding: 26px 20px;
+    }
+
+    .about-portrait {
+        width: 180px;
+        height: 180px;
+
+        border-radius: 16px;
+    }
+
+    .about-portrait-emoji {
+        font-size: 80px;
+    }
+
+    .about-text h2 {
+        font-size: 26px;
+    }
+
+    .about-text p {
+        font-size: 15px;
+    }
+
+    .about-note {
+        font-size: 14px;
+    }
+
+    .about-wip {
+        right: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+
+    nav {
+        padding: 0 10px;
+    }
+
+    .nav-link {
+        padding: 4px 8px;
+
+        font-size: 13px;
+    }
+
+    .footer-menu {
+        flex-direction: column;
+
+        gap: 10px;
+    }
+}

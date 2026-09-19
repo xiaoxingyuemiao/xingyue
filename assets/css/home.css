@@ -819,3 +819,142 @@ body {
 
     font-weight: bold;
 }
+
+/* ==============================
+   手机端适配（首页）
+   ============================== */
+
+@media (max-width: 768px) {
+
+    /* ---------- 侧边栏：更窄（展开 120px / 收起 50px） ---------- */
+
+    .sidebar {
+        width: 50px;
+    }
+
+    .home-screen:not(.sidebar-collapsed) .sidebar {
+        width: 120px;
+    }
+
+    .sidebar-header {
+        height: 48px;
+
+        padding: 0 8px;
+    }
+
+    .sidebar-toggle {
+        width: 34px;
+        height: 34px;
+    }
+
+    .sidebar-toggle img {
+        width: 30px;
+        height: 30px;
+    }
+
+    .sidebar-item {
+        height: 40px;
+
+        padding: 0 16px;
+
+        font-size: 14px;
+    }
+
+    .home-screen.sidebar-collapsed .sidebar-item {
+        padding: 0;
+    }
+
+    .sidebar-user {
+        padding: 10px 8px;
+    }
+
+    .user-name {
+        font-size: 15px;
+    }
+
+    .user-status {
+        font-size: 12px;
+    }
+
+    /* ---------- 登录框 ---------- */
+
+    .auth-box {
+        width: calc(100vw - 60px);
+
+        max-width: 320px;
+    }
+
+    /* ---------- Live2D 窗口：改为屏幕比例（居中偏上，给聊天让出下半屏） ---------- */
+
+    .live2d-container {
+        top: 32%;
+
+        width: 86vw;
+        height: 46vh;
+    }
+
+    /* ---------- 聊天区：铺满下半屏 ---------- */
+
+    .chat-area {
+        left: 8px;
+        right: 8px;
+        top: auto;
+        bottom: 64px;
+
+        width: auto;
+        height: 40vh;
+
+        padding: 6px 0 0;
+    }
+
+    .message-bubble {
+        font-size: 14px;
+    }
+
+    .message-name {
+        font-size: 12px;
+    }
+
+    /* ---------- 输入框：贴底全宽 ---------- */
+
+    .chat-input {
+        left: 8px;
+        right: 8px;
+        bottom: 12px;
+
+        width: auto;
+        height: 44px;
+    }
+
+    .chat-input input {
+        font-size: 16px; /* 小于 16px 时 iOS 会自动放大页面 */
+    }
+
+    /* ---------- 角色选择面板：贴着输入框上方全宽 ---------- */
+
+    .role-picker {
+        left: 8px;
+        right: 8px;
+        bottom: 64px;
+
+        width: auto;
+
+        max-height: 46vh;
+
+        overflow-y: auto;
+    }
+}
+
+@media (max-width: 480px) {
+
+    .live2d-container {
+        top: 30%;
+
+        width: 92vw;
+        height: 42vh;
+    }
+
+    .chat-area {
+        height: 42vh;
+    }
+}
