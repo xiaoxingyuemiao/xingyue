@@ -28,11 +28,13 @@ window.Auth = (function () {
         return String(cfg().url || "").replace(/\/+$/, "");
     }
 
-    function headers(extra) {
-        return Object.assign({
+    function headers(token) {
+        return {
             "Content-Type": "application/json",
             "apikey": cfg().anonKey,
-        }, extra || {});
+            // 新版密钥要求带上 Bearer：未登录时用 publishable key，登录后用 access_token
+            "Authorization": "Bearer " + (token || cfg().anonKey),
+        };
     }
 
     // ---------- 凭证读写 ----------
@@ -168,7 +170,7 @@ window.Auth = (function () {
             try {
                 await fetch(apiBase() + "/auth/v1/logout", {
                     method: "POST",
-                    headers: headers({ "Authorization": "Bearer " + s.access_token }),
+                    headers: headers(s.access_token),
                 });
             } catch (e) {
                 // 网络失败也照样本地退出
