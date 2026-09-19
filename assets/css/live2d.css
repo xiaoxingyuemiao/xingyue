@@ -207,11 +207,7 @@ body.lp-page {
 
     gap: 8px 24px;
 
-    margin: 0 0 10px;
-}
-
-.lp-footer-links:last-of-type {
-    margin-bottom: 10px;
+    margin: 0;
 }
 
 .lp-footer-link {
@@ -301,12 +297,6 @@ body.lp-page {
 
     .lp-footer-links {
         gap: 8px 16px;
-
-        margin-bottom: 10px;
-    }
-
-    .lp-footer-links:last-of-type {
-        margin-bottom: 10px;
     }
 
     .lp-footer-link {
