@@ -197,8 +197,9 @@ authSend.addEventListener("click", async () => {
 
 // 第 2 步：验证码登录
 authVerify.addEventListener("click", async () => {
+    // 验证码长度由 Supabase 决定（常见 6~8 位），这里放宽到 4~10 位
     const token = authCode.value.trim();
-    if (!/^\d{4,8}$/.test(token)) {
+    if (!/^\d{4,10}$/.test(token)) {
         setAuthMsg("请输入邮件里的数字验证码", "error");
         return;
     }
