@@ -452,39 +452,6 @@ body {
     overflow: hidden;
 }
 
-/* ---------- 顶部工具栏（展开 / 收起全部历史） ---------- */
-
-.chat-toolbar {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-
-    flex-shrink: 0;
-
-    padding: 0 4px 8px;
-}
-
-.chat-toolbar-btn {
-    padding: 4px 12px;
-
-    border: none;
-    border-radius: 999px;
-
-    background-color: rgba(255, 255, 255, 0.75);
-
-    font-size: 12px;
-
-    color: var(--main-color);
-
-    cursor: pointer;
-
-    transition: background-color 0.2s ease;
-}
-
-.chat-toolbar-btn:hover {
-    background-color: rgba(102, 204, 255, 0.18);
-}
-
 .message-list {
     display: flex;
     flex-direction: column;
@@ -523,6 +490,25 @@ body {
     opacity: 0;
 
     animation: bubbleIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* 手机端气泡 10 秒后淡出 */
+.message-fade-out {
+    animation: bubbleOut 0.4s ease forwards;
+}
+
+@keyframes bubbleOut {
+
+    from {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateY(-6px) scale(0.96);
+    }
+
 }
 
 .message-character {
@@ -576,50 +562,6 @@ body {
     line-height: 1.5;
 
     text-align: left;
-}
-
-/* ---------- 等待回复：三个点上下跳动 ---------- */
-
-.typing-bubble {
-    display: inline-flex;
-    align-items: center;
-
-    gap: 5px;
-
-    padding: 12px 14px;
-}
-
-.typing-dot {
-    width: 6px;
-    height: 6px;
-
-    border-radius: 50%;
-
-    background-color: rgba(0, 0, 0, 0.35);
-
-    animation: dotBounce 1s ease-in-out infinite;
-}
-
-.typing-dot:nth-child(2) {
-    animation-delay: 0.15s;
-}
-
-.typing-dot:nth-child(3) {
-    animation-delay: 0.3s;
-}
-
-@keyframes dotBounce {
-
-    0%,
-    60%,
-    100% {
-        transform: translateY(0);
-    }
-
-    30% {
-        transform: translateY(-5px);
-    }
-
 }
 
 /* ==============================

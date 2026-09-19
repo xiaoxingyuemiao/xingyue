@@ -421,7 +421,7 @@ keepSave.addEventListener("click", () => {
     }
     keepPairs.value = n;
     window.Store.writePrefs({ chatKeepPairs: n });
-    keepStatus.textContent = "已保存 ✓ 首页将只展示最近 " + n + " 对对话";
+    keepStatus.textContent = "已保存 ✓ 只保留最近 " + n + " 对对话";
 });
 
 historyClear.addEventListener("click", () => {

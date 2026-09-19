@@ -18,7 +18,6 @@ const guestButton = document.querySelector(".guest-button");
 const chatInput = document.querySelector(".chat-input input");
 const sendButton = document.querySelector(".chat-input button");
 const messageList = document.querySelector(".message-list");
-const chatExpandBtn = document.querySelector("#chat-expand");
 
 const chatRoleBtn = document.querySelector("#chat-role-btn");
 const rolePicker = document.querySelector("#role-picker");
@@ -251,8 +250,7 @@ function pickRole(role) {
     saveChatRole({ kind: role.kind, id: role.id, name: role.name });
     closeRolePicker();
     chatHistory = loadChat();
-    renderChat();
-    updateExpandBtn();
+    renderBubble();
     // Live2D：模型跟随角色切换（星瑶 → xingyao，月瓷 → yueci，未配置 → default）
     Live2D.switchModel(getRoleModelName());
 }
@@ -381,18 +379,6 @@ function getChatKeepPairs() {
 // 当前角色的会话消息（完整保存在浏览器本地，隐私数据不会上传）
 let chatHistory = loadChat();
 
-// 对话面板是否展开全部历史（默认展开显示全部消息，可点按钮收起只显示设置的对数）
-let chatExpanded = loadPanelState();
-
-function loadPanelState() {
-    const s = window.Store.readJSON(window.Store.KEYS.panel, null);
-    return s && typeof s.expanded === "boolean" ? s.expanded : true;
-}
-
-function savePanelState() {
-    window.Store.writeJSON(window.Store.KEYS.panel, { expanded: chatExpanded });
-}
-
 // 旧版本的三条示例对话不再需要，自动清掉
 function cleanLegacy(list) {
     const LEGACY_DEFAULT = JSON.stringify([
@@ -441,77 +427,70 @@ function appendMessageElement(name, text, isUser) {
     return message;
 }
 
-// 等待回复的气泡：三个点上下跳动
-function appendTypingElement() {
-    const message = document.createElement("div");
-    message.className = "message message-character";
+// ================================
+// 常驻气泡：只展示"最近一条角色回复"
+// 电脑端：一直显示（新回复到达时替换旧内容）
+// 手机端：显示 10 秒后自动消失
+// ================================
 
-    const nameEl = document.createElement("div");
-    nameEl.className = "message-name";
-    nameEl.textContent = getChatRoleName();
+// 手机端判定（与 CSS 的移动端断点保持一致）
+function isMobileView() {
+    return window.matchMedia("(max-width: 768px)").matches;
+}
 
-    const bubble = document.createElement("div");
-    bubble.className = "message-bubble typing-bubble";
-    for (let i = 0; i < 3; i++) {
-        const dot = document.createElement("span");
-        dot.className = "typing-dot";
-        bubble.appendChild(dot);
+// 最近一条角色回复（没有则 null）
+function latestCharacterMessage() {
+    for (let i = chatHistory.length - 1; i >= 0; i--) {
+        if (!chatHistory[i].isUser) {
+            return chatHistory[i];
+        }
     }
-
-    message.appendChild(nameEl);
-    message.appendChild(bubble);
-    messageList.appendChild(message);
-    messageList.scrollTop = messageList.scrollHeight;
-
-    return message;
+    return null;
 }
 
-// 写入历史并显示
-function addMessage(name, text, isUser) {
-    chatHistory.push({ name, text, isUser });
-    saveChat();
-    appendMessageElement(name, text, isUser);
-    messageList.scrollTop = messageList.scrollHeight;
-}
+let bubbleTimer = null;
 
-// 渲染聊天记录：
-// 收起时只展示最近 N 对对话（默认 3 对，设置页可调），
-// 展开时显示全部历史消息；每次打开浏览器自动接续上次的对话
-function renderChat() {
+// 渲染常驻气泡
+function renderBubble() {
     messageList.innerHTML = "";
 
-    const keepPairs = getChatKeepPairs();
-    const visible = chatExpanded ? chatHistory : chatHistory.slice(-keepPairs * 2);
+    if (bubbleTimer) {
+        clearTimeout(bubbleTimer);
+        bubbleTimer = null;
+    }
 
-    visible.forEach((m, i) => {
-        const el = appendMessageElement(m.name, m.text, m.isUser);
-        // 历史较多时只给前几条错峰动画
-        if (i < 10) {
-            el.style.animationDelay = i * 50 + "ms";
-        }
-    });
-    messageList.scrollTop = messageList.scrollHeight;
-}
+    const latest = latestCharacterMessage();
+    if (!latest) {
+        return; // 还没有角色回复 → 气泡为空
+    }
 
-// 工具栏：展开 / 收起（默认展开全部历史）
-function updateExpandBtn() {
-    if (chatExpanded) {
-        chatExpandBtn.textContent = "收起 ▲";
-        chatExpandBtn.disabled = false;
-    } else {
-        const keepPairs = getChatKeepPairs();
-        const extra = chatHistory.length - keepPairs * 2;
-        chatExpandBtn.textContent = extra > 0 ? "展开全部（+" + extra + "）" : "展开全部";
-        chatExpandBtn.disabled = extra <= 0;
+    const el = appendMessageElement(latest.name, latest.text, false);
+    el.style.animationDelay = "0ms";
+
+    // 手机端：10 秒后自动消失（淡出后移除）
+    if (isMobileView()) {
+        bubbleTimer = setTimeout(() => {
+            el.classList.add("message-fade-out");
+            setTimeout(() => {
+                if (el.parentNode) {
+                    el.remove();
+                }
+            }, 400);
+        }, 10000);
     }
 }
 
-chatExpandBtn.addEventListener("click", () => {
-    chatExpanded = !chatExpanded;
-    savePanelState();
-    renderChat();
-    updateExpandBtn();
-});
+// 写入历史并刷新气泡
+function addMessage(name, text, isUser) {
+    chatHistory.push({ name, text, isUser });
+    // 只保留最近 N 对对话（设置页可调）
+    const keep = getChatKeepPairs() * 2;
+    if (chatHistory.length > keep) {
+        chatHistory = chatHistory.slice(-keep);
+    }
+    saveChat();
+    renderBubble();
+}
 
 function sendMessage() {
     const text = chatInput.value.trim();
@@ -522,7 +501,6 @@ function sendMessage() {
     chatInput.value = "";
     addMessage("小喵", text, true);
     askXingyao();
-    updateExpandBtn();
 }
 
 // 让星瑶回答（调用当前选择的 API 提供商 + 当前角色设定）
@@ -534,9 +512,6 @@ async function askXingyao() {
         addMessage(getChatRoleName(), "还没有配置 API 秘钥哦～去「设置」页面添加一个 API Key，就能和我聊天啦！", false);
         return;
     }
-
-    // 先显示三点跳动的等待气泡
-    const typingEl = appendTypingElement();
 
     // 组装消息：当前角色设定（附加情绪规则）+ 最近 20 条对话
     const basePrompt = await getActiveSystemPrompt();
@@ -573,8 +548,6 @@ async function askXingyao() {
         const data = await response.json();
         const reply = data.choices?.[0]?.message?.content?.trim() || "……（没有收到回复）";
 
-        typingEl.remove();
-
         // 解析情绪标记（正文去掉标记显示）
         const parsed = parseEmotion(reply);
         addMessage(getChatRoleName(), parsed.text || "……", false);
@@ -583,7 +556,6 @@ async function askXingyao() {
             Live2D.playEmotion(parsed.emotion);
         }
     } catch (error) {
-        typingEl.remove();
         addMessage(getChatRoleName(), "呜……连接失败了（" + error.message + "）。去「设置」页面检查一下 API 配置吧～", false);
     }
 }
@@ -599,8 +571,7 @@ chatInput.addEventListener("keydown", (event) => {
 // 启动流程（无开场动画）
 // ================================
 
-renderChat();
-updateExpandBtn();
+renderBubble();
 renderUserInfo();
 
 // 初始化 Live2D（异步加载默认模型，不影响页面进入）
