@@ -193,24 +193,6 @@ body {
     font-weight: bold;
 }
 
-/* ---------- Live2D Param：橙色按钮（#FF6A2B） ---------- */
-
-.sidebar-item-live2d {
-    background-color: #ff6a2b;
-
-    color: #ffffff;
-
-    font-weight: bold;
-
-    justify-content: center;
-}
-
-.sidebar-item-live2d:hover {
-    background-color: #ff8347;
-
-    color: #ffffff;
-}
-
 /* ---------- "关于"：hover 展开子菜单 ---------- */
 
 .sidebar-item-parent {
