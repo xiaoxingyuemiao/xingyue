@@ -58,6 +58,11 @@ nav {
     justify-content: center;
 }
 
+/* 右侧占位：与左侧 logo 等宽，让菜单按钮真正居中 */
+.nav-side {
+    width: 100px;
+}
+
 .logo {
     display: flex;
     align-items: center;
