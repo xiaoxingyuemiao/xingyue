@@ -1,4 +1,4 @@
-// ================================
+﻿// ================================
 // 邮箱验证码登录（assets/js/auth.js）
 // 用 Supabase Auth 的 REST 接口实现（原生 fetch，无需 SDK）：
 //   1. 输入邮箱 → POST /auth/v1/otp      发送 6 位验证码
@@ -76,13 +76,69 @@ window.Auth = (function () {
         listeners.push(cb);
     }
 
-    // 从错误响应里取出可读信息
+    // 从错误响应里取出可读信息（英文 → 中文）
     async function errorText(res) {
         try {
             const data = await res.json();
-            return data.msg || data.error_description || data.error || ("请求失败（HTTP " + res.status + "）");
+            const raw = data.msg || data.error_description || data.error || data.message || ("HTTP " + res.status);
+            return friendlyError(raw);
         } catch (e) {
             return "请求失败（HTTP " + res.status + "）";
+        }
+    }
+
+    // Supabase 的英文错误 → 中文提示
+    function friendlyError(raw) {
+        const m = String(raw || "");
+        const rules = [
+            // 发信相关
+            [/error sending confirmation email|error sending magic link|error sending email/i,
+                "验证码邮件发送失败：请检查邮箱 SMTP 配置（授权码是否正确、端口是否为 465、发件邮箱是否与登录邮箱一致）"],
+            [/error sending recovery email/i,
+                "找回密码邮件发送失败，请检查邮箱配置"],
+            // 密钥 / 配置
+            [/invalid api key|no api key found|invalid apikey/i,
+                "接口密钥无效：请检查 assets/data/supabase-config.js 里的配置"],
+            // 验证码
+            [/token has expired or is invalid|invalid token|otp_expired|invalid otp|invalid claim/i,
+                "验证码错误或已过期，请重新获取（验证码 10 分钟内有效）"],
+            [/email link is invalid or has expired/i,
+                "链接已失效，请重新获取验证码"],
+            // 频率限制
+            [/for security purposes.*after (\d+) seconds|only request this after (\d+) seconds/i,
+                "操作太频繁啦，请稍等一会儿再试"],
+            [/email rate limit exceeded|over_email_send_rate_limit|rate limit/i,
+                "验证码发送次数已达上限，请稍后再试"],
+            // 账号
+            [/user already registered/i,
+                "这个邮箱已经注册过了，直接获取验证码登录就行"],
+            [/signups not allowed/i,
+                "当前设置不允许注册新用户"],
+            [/unable to validate email|invalid format|email address.*invalid/i,
+                "邮箱格式不正确，请检查后重试"],
+            [/email not confirmed/i,
+                "邮箱还没有验证，请先完成验证"],
+            [/user not found/i,
+                "这个邮箱还没有注册过"],
+            // 网络
+            [/failed to fetch|networkerror|load failed|network request failed/i,
+                "网络连接失败，请检查网络后重试"],
+        ];
+        for (const [re, text] of rules) {
+            if (re.test(m)) {
+                return text;
+            }
+        }
+        // 没匹配到：显示中文前缀 + 原文，方便排查
+        return "操作失败（" + m + "）";
+    }
+
+    // 带网络异常处理的 fetch
+    async function apiFetch(url, options) {
+        try {
+            return await fetch(url, options);
+        } catch (e) {
+            throw new Error("网络连接失败，请检查网络后重试");
         }
     }
 
@@ -92,7 +148,7 @@ window.Auth = (function () {
         if (!isConfigured()) {
             throw new Error("还没有配置 Supabase（见 assets/data/supabase-config.js）");
         }
-        const res = await fetch(apiBase() + "/auth/v1/otp", {
+        const res = await apiFetch(apiBase() + "/auth/v1/otp", {
             method: "POST",
             headers: headers(),
             body: JSON.stringify({ email: email, create_user: true }),
@@ -109,7 +165,7 @@ window.Auth = (function () {
         if (!isConfigured()) {
             throw new Error("还没有配置 Supabase");
         }
-        const res = await fetch(apiBase() + "/auth/v1/verify", {
+        const res = await apiFetch(apiBase() + "/auth/v1/verify", {
             method: "POST",
             headers: headers(),
             body: JSON.stringify({ email: email, token: token, type: "email" }),
@@ -137,7 +193,7 @@ window.Auth = (function () {
             return null;
         }
         try {
-            const res = await fetch(apiBase() + "/auth/v1/token?grant_type=refresh_token", {
+            const res = await apiFetch(apiBase() + "/auth/v1/token?grant_type=refresh_token", {
                 method: "POST",
                 headers: headers(),
                 body: JSON.stringify({ refresh_token: s.refresh_token }),
@@ -168,7 +224,7 @@ window.Auth = (function () {
         const s = readSession();
         if (s && s.access_token && isConfigured()) {
             try {
-                await fetch(apiBase() + "/auth/v1/logout", {
+                await apiFetch(apiBase() + "/auth/v1/logout", {
                     method: "POST",
                     headers: headers(s.access_token),
                 });
