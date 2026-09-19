@@ -81,8 +81,7 @@ body {
     display: flex;
     flex-direction: column;
 
-    /* 展开宽度：留出左右各 25px 内边距，最长的 "Live2D" 也能完整显示 */
-    width: 126px;
+    width: 100px;
     height: 100vh;
 
     box-sizing: border-box;
@@ -192,6 +191,12 @@ body {
     color: var(--main-color);
 
     font-weight: bold;
+}
+
+/* Live2D 的文字比"首页 / 插画 / 周边"长，
+   把这一项的右侧内边距收窄，让文字完整显示（左边缘仍与其他项对齐） */
+#menu-live2d {
+    padding-right: 10px;
 }
 
 /* ---------- "关于"：hover 展开子菜单 ---------- */
