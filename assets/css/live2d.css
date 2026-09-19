@@ -187,12 +187,12 @@ body.lp-page {
     color: #8a8a8a;
 }
 
-/* ---------- 底部导航栏（与全站页脚同样式：同一板块，高度一致） ---------- */
+/* ---------- 底部导航栏（与页面同一板块：同背景、无独立色块，高度与全站页脚一致） ---------- */
 
 .lp-footer {
     padding: 20px;
 
-    background-color: var(--surface-color);
+    background-color: transparent;
 
     border-top: 1px solid #eeeeee;
 
@@ -205,13 +205,13 @@ body.lp-page {
     align-items: center;
     justify-content: center;
 
-    gap: 10px 26px;
+    gap: 8px 24px;
 
-    margin: 0 0 16px;
+    margin: 0 0 10px;
 }
 
 .lp-footer-links:last-of-type {
-    margin-bottom: 18px;
+    margin-bottom: 10px;
 }
 
 .lp-footer-link {
@@ -299,13 +299,13 @@ body.lp-page {
     }
 
     .lp-footer-links {
-        gap: 12px 18px;
+        gap: 8px 16px;
 
-        margin-bottom: 16px;
+        margin-bottom: 10px;
     }
 
     .lp-footer-links:last-of-type {
-        margin-bottom: 16px;
+        margin-bottom: 10px;
     }
 
     .lp-footer-link {
