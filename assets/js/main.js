@@ -1,4 +1,4 @@
-// ================================
+﻿// ================================
 // 星月小窝 2.0 —— 首页脚本
 // ================================
 
@@ -185,7 +185,7 @@ function getOfficialRole(name) {
 
 // 当前聊天角色对应的模型名：
 // 官方角色 → official-roles.js 的 model 字段；我的角色 → 设置页的模型字段；
-// 支持：官方模型名（default/xingyao/yueci）、在线 URL、本地导入（custom:）
+// 支持：模型名（如 default）、在线 URL、本地导入（custom:）
 // 留空 / 填错 / 未配置时自动用 default
 function getRoleModelName() {
     const role = getChatRole();
@@ -251,7 +251,7 @@ function pickRole(role) {
     closeRolePicker();
     chatHistory = loadChat();
     renderBubble();
-    // Live2D：模型跟随角色切换（星瑶 → xingyao，月瓷 → yueci，未配置 → default）
+    // Live2D：模型跟随角色切换（角色配置了模型就切，否则用 default）
     Live2D.switchModel(getRoleModelName());
 }
 
@@ -528,11 +528,11 @@ function sendMessage() {
 
     chatInput.value = "";
     addMessage("小喵", text, true);
-    askXingyao();
+    askCharacter();
 }
 
 // 让星瑶回答（调用当前选择的 API 提供商 + 当前角色设定）
-async function askXingyao() {
+async function askCharacter() {
     const provider = getActiveProvider();
 
     // 没配置秘钥时给个提示

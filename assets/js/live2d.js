@@ -12,7 +12,8 @@ window.Live2D = {
     om: null,
 
     // 官方模型清单：由 MODEL_CONFIGS 生成（聊天角色按名字切换）
-    MODEL_NAMES: ["default", "xingyao", "yueci"],
+    // 目前只有默认模型；加模型时把名字加进来（配置写在 assets/data/models.js）
+    MODEL_NAMES: ["default"],
     MODELS: [],
     // 当前显示的模型
     currentModelName: "default",

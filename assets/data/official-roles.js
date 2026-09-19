@@ -9,9 +9,9 @@ window.OFFICIAL_ROLES = {
     roles: [
         {
             name: "星瑶",
-            // 模型名：对应 assets/live2d/ 下的目录（xingyao / yueci / default）
+            // 模型名：对应 assets/live2d/ 下的目录（default / 自定义模型名）
             // 留空或填错时自动使用 default 模型
-            model: "xingyao",
+            model: "",
             prompt: `你的名字是星瑶。
 
 今年十六岁。
@@ -1451,7 +1451,7 @@ A：
         },
         {
             name: "月瓷",
-            model: "yueci",
+            model: "",
             prompt: `你的名字是月瓷。
 
 今年十六岁。
