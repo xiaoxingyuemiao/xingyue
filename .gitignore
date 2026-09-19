@@ -67,3 +67,6 @@ credentials
 node_modules/
 dist/
 build/
+
+# 本地草稿 / 文案笔记（例如给页面写内容的 txt）
+*.txt

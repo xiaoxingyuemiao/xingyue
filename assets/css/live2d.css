@@ -1,0 +1,304 @@
+/* ==============================
+   Live2D Param 页面专属样式
+   （顶栏：软件图标+名字 / 网页图标；正文；底栏导航）
+   ============================== */
+
+body.lp-page {
+    background-color: #fafafa;
+}
+
+/* ---------- 顶部导航栏 ---------- */
+
+.lp-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    height: 60px;
+
+    padding: 0 22px;
+
+    box-sizing: border-box;
+
+    background-color: var(--surface-color);
+
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.lp-brand {
+    display: flex;
+    align-items: center;
+
+    gap: 10px;
+}
+
+.lp-brand-icon {
+    width: 30px;
+    height: 30px;
+
+    border-radius: 8px;
+}
+
+.lp-brand-name {
+    font-size: 17px;
+    font-weight: bold;
+
+    color: var(--text-color);
+}
+
+.lp-home {
+    display: flex;
+    align-items: center;
+
+    width: 34px;
+    height: 34px;
+
+    border-radius: 50%;
+
+    transition: background-color 0.2s ease;
+}
+
+.lp-home img {
+    width: 100%;
+    height: 100%;
+
+    border-radius: 50%;
+}
+
+.lp-home:hover {
+    background-color: rgba(102, 204, 255, 0.15);
+}
+
+/* ---------- 正文 ---------- */
+
+.lp-main {
+    flex: 1;
+
+    width: 100%;
+    max-width: 720px;
+
+    margin: 0 auto;
+
+    padding: 34px 22px 60px;
+
+    box-sizing: border-box;
+}
+
+.lp-title {
+    margin: 0 0 12px;
+
+    font-size: 22px;
+
+    color: var(--main-color);
+}
+
+.lp-section {
+    margin-bottom: 38px;
+}
+
+.lp-section p {
+    margin: 0 0 8px;
+
+    font-size: 15px;
+    line-height: 1.85;
+
+    color: var(--text-color);
+}
+
+.lp-note {
+    color: #999999 !important;
+
+    font-size: 14px !important;
+}
+
+.lp-mail {
+    color: var(--main-color);
+
+    text-decoration: none;
+}
+
+.lp-mail:hover {
+    text-decoration: underline;
+}
+
+/* ---------- 下载按钮区 ---------- */
+
+.lp-actions {
+    display: flex;
+    align-items: center;
+
+    gap: 12px;
+
+    margin-top: 18px;
+}
+
+.lp-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+
+    padding: 11px 22px;
+
+    border-radius: 10px;
+
+    font-size: 15px;
+    font-weight: bold;
+
+    text-decoration: none;
+
+    box-sizing: border-box;
+
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.lp-btn-github {
+    background-color: #24292f;
+
+    color: #ffffff;
+}
+
+.lp-btn-github:hover {
+    opacity: 0.85;
+
+    transform: translateY(-1px);
+}
+
+/* 还没发布 → 灰色不可点 */
+.lp-btn-disabled {
+    background-color: #e6e6e6;
+
+    color: #a5a5a5;
+
+    cursor: not-allowed;
+}
+
+.lp-ps {
+    margin: 0;
+
+    padding-top: 22px;
+
+    border-top: 1px dashed #e2e2e2;
+
+    font-size: 14px;
+    line-height: 1.9;
+
+    color: #8a8a8a;
+}
+
+/* ---------- 底部导航栏 ---------- */
+
+.lp-footer {
+    padding: 26px 22px 22px;
+
+    background-color: var(--surface-color);
+
+    border-top: 1px solid #eeeeee;
+
+    text-align: center;
+}
+
+.lp-footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+
+    gap: 10px 22px;
+
+    margin-bottom: 14px;
+}
+
+.lp-footer-link {
+    display: inline-flex;
+    align-items: center;
+
+    gap: 6px;
+
+    font-size: 14px;
+
+    color: var(--text-color);
+
+    text-decoration: none;
+
+    transition: color 0.2s ease;
+}
+
+.lp-footer-link:hover {
+    color: var(--main-color);
+}
+
+.lp-footer-link svg {
+    flex-shrink: 0;
+}
+
+.lp-copyright {
+    font-size: 13px;
+
+    color: #999999;
+}
+
+/* ==============================
+   手机端适配
+   ============================== */
+
+@media (max-width: 768px) {
+
+    .lp-header {
+        height: 52px;
+
+        padding: 0 14px;
+    }
+
+    .lp-brand-icon {
+        width: 26px;
+        height: 26px;
+
+        border-radius: 7px;
+    }
+
+    .lp-brand-name {
+        font-size: 15px;
+    }
+
+    .lp-main {
+        padding: 24px 16px 40px;
+    }
+
+    .lp-title {
+        font-size: 19px;
+    }
+
+    .lp-section {
+        margin-bottom: 30px;
+    }
+
+    .lp-section p {
+        font-size: 14.5px;
+    }
+
+    .lp-actions {
+        gap: 10px;
+    }
+
+    .lp-btn {
+        flex: 1;
+
+        padding: 11px 16px;
+
+        font-size: 14px;
+    }
+
+    .lp-footer {
+        padding: 22px 14px 18px;
+    }
+
+    .lp-footer-links {
+        gap: 12px 16px;
+    }
+
+    .lp-footer-link {
+        font-size: 13px;
+    }
+}

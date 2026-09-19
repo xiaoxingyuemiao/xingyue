@@ -64,8 +64,43 @@ for (const name of fs.readdirSync(live2dDir)) {
     }
 }
 
+// 4) 页面里的本地链接 / 资源是否存在（href / src）
+function checkLinks(htmlFile) {
+    const html = fs.readFileSync(htmlFile, "utf8");
+    const attrs = /(?:href|src)="([^"]+)"/g;
+    let m;
+    const missing = [];
+    while ((m = attrs.exec(html)) !== null) {
+        const url = m[1];
+        if (
+            url.startsWith("http") ||
+            url.startsWith("mailto:") ||
+            url.startsWith("#") ||
+            url.startsWith("data:")
+        ) {
+            continue;
+        }
+        const target = path.join(ROOT, decodeURIComponent(url.split("#")[0]));
+        if (!fs.existsSync(target)) {
+            missing.push(url);
+        }
+    }
+    if (missing.length > 0) {
+        failed++;
+        console.error("✗ " + rel(htmlFile) + " 引用了不存在的文件: " + missing.join(", "));
+    } else {
+        console.log("✓ " + rel(htmlFile) + "（链接与资源都存在）");
+    }
+}
+
+for (const name of fs.readdirSync(ROOT)) {
+    if (name.endsWith(".html")) {
+        checkLinks(path.join(ROOT, name));
+    }
+}
+
 if (failed > 0) {
-    console.error("\n有 " + failed + " 个文件未通过检查 ❌");
+    console.error("\n有 " + failed + " 处未通过检查 ❌");
     process.exit(1);
 }
 console.log("\n全部检查通过 ✅");
