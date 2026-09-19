@@ -195,59 +195,9 @@
         </div>
 
 
-        <!-- 拦截 SDK 对外部网络请求（unpkg 版本检查、hitokoto 一言，均无法访问），返回模拟响应避免初始化失败 -->
-        <script>
-            (function () {
-                function mockResp(url) {
-                    if (url.indexOf("unpkg.com") !== -1) {
-                        return JSON.stringify({ name: "oh-my-live2d", version: "0.19.3" });
-                    }
-                    if (url.indexOf("hitokoto.cn") !== -1) {
-                        return JSON.stringify({ hitokoto: "欢迎来到星月小窝", from: "星月小窝", from_who: "" });
-                    }
-                    return null;
-                }
-                // 1) 拦截 fetch
-                var realFetch = window.fetch;
-                window.fetch = function (input, init) {
-                    var url = typeof input === "string" ? input : (input && input.url) || "";
-                    var body = mockResp(url);
-                    if (body !== null) {
-                        return Promise.resolve(new Response(body, {
-                            status: 200,
-                            headers: { "Content-Type": "application/json" }
-                        }));
-                    }
-                    return realFetch.apply(this, arguments);
-                };
-                // 2) 拦截 XMLHttpRequest（双保险）
-                var realOpen = XMLHttpRequest.prototype.open;
-                XMLHttpRequest.prototype.open = function (method, url) {
-                    var body = typeof url === "string" ? mockResp(url) : null;
-                    if (body !== null) {
-                        var self = this;
-                        try {
-                            Object.defineProperty(self, "responseText", { get: function () { return body; } });
-                            Object.defineProperty(self, "response", { get: function () { return body; } });
-                            Object.defineProperty(self, "status", { get: function () { return 200; } });
-                        } catch (e) { /* 忽略 */ }
-                        setTimeout(function () {
-                            try {
-                                if (self.onreadystatechange) {
-                                    self.readyState = 4;
-                                    self.onreadystatechange.call(self);
-                                }
-                                if (self.onload) {
-                                    self.onload.call(self);
-                                }
-                            } catch (e) { /* 忽略 */ }
-                        }, 0);
-                        return;
-                    }
-                    return realOpen.apply(this, arguments);
-                };
-            })();
-        </script>
+        <!-- 拦截 SDK 对外部网络请求（unpkg 版本检查、hitokoto 一言，国内无法访问），
+             返回模拟响应避免初始化失败；必须在 SDK 之前执行 -->
+        <script src="assets/js/net-mock.js"></script>
 
         <!-- Live2D SDK（oh-my-live2d 0.19 版，样式内联无需 CSS 文件；
              优先加载本地 vendor 文件，缺失时回退 CDN） -->
@@ -257,6 +207,7 @@
             document.head.appendChild(s);
         "></script>
 
+        <script src="assets/js/store.js"></script>
         <script src="assets/data/official-roles.js"></script>
         <script src="assets/data/models.js"></script>
         <script src="assets/js/live2d.js"></script>

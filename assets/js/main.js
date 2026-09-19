@@ -97,16 +97,12 @@ sidebarUser.addEventListener("click", () => {
 
 // 从本地读取用户信息（昵称 / 头像），没有就保持默认
 function renderUserInfo() {
-    try {
-        const u = JSON.parse(localStorage.getItem("xingyue_user"));
-        if (u && u.nickname) {
-            userNameEl.textContent = u.nickname;
-        }
-        if (u && u.avatar) {
-            userAvatarEl.textContent = u.avatar;
-        }
-    } catch {
-        // 读取失败就用默认
+    const u = window.Store.readJSON(window.Store.KEYS.user, null);
+    if (u && u.nickname) {
+        userNameEl.textContent = u.nickname;
+    }
+    if (u && u.avatar) {
+        userAvatarEl.textContent = u.avatar;
     }
 }
 
@@ -114,7 +110,7 @@ function renderUserInfo() {
 
 guestButton.addEventListener("click", () => {
     // 记录用户已经完成启动流程
-    localStorage.setItem("xingyue_visited", "true");
+    localStorage.setItem(window.Store.KEYS.visited, "true");
 
     // 隐藏登录页面，显示首页
     authScreen.style.display = "none";
@@ -122,61 +118,26 @@ guestButton.addEventListener("click", () => {
 });
 
 // ================================
-// 设置（与设置页面共用 localStorage）
+// 设置（与设置页面共用 localStorage，读写统一走 assets/js/store.js）
 // ================================
-
-const SETTINGS_KEY = "xingyue_settings";
-const PREFS_KEY = "xingyue_prefs";
-const PANEL_KEY = "xingyue_panel";
 
 // 读取当前正在使用的 API 提供商（设置页面里添加并选择）
 function getActiveProvider() {
-    try {
-        const store = JSON.parse(localStorage.getItem(SETTINGS_KEY));
-        if (!store) {
-            return null;
-        }
-
-        let provider = null;
-        if (Array.isArray(store.providers)) {
-            // 新版：providers 列表
-            provider = store.providers.find((p) => p.id === store.activeId) || store.providers[0] || null;
-        } else if (store.baseUrl) {
-            // 旧版：单个配置对象（兼容）
-            provider = {
-                name: "DeepSeek",
-                baseUrl: store.baseUrl,
-                apiKey: store.apiKey || "",
-                model: store.model || "deepseek-chat",
-            };
-        }
-        return provider;
-    } catch {
-        return null;
-    }
+    const store = window.Store.readSettings();
+    return store.providers.find((p) => p.id === store.activeId) || store.providers[0] || null;
 }
 
 // ================================
 // 聊天角色（输入框左侧按钮选择：官方星瑶/月瓷 + 我的角色）
 // ================================
 
-const CHAT_ROLE_KEY = "xingyue_chat_role";
-
 // 当前聊天角色：{ kind: "official"|"local", id: 角色id(官方为null), name: 名字 }
 function getChatRole() {
-    try {
-        const saved = JSON.parse(localStorage.getItem(CHAT_ROLE_KEY));
-        if (saved && saved.kind && saved.name) {
-            return saved;
-        }
-    } catch {
-        // 读取失败用默认
-    }
-    return { kind: "official", id: null, name: "星瑶" };
+    return window.Store.readChatRole();
 }
 
 function saveChatRole(role) {
-    localStorage.setItem(CHAT_ROLE_KEY, JSON.stringify(role));
+    window.Store.writeChatRole(role);
 }
 
 // 当前角色的显示名（聊天气泡用）
@@ -185,18 +146,8 @@ function getChatRoleName() {
     if (role.kind === "official") {
         return role.name;
     }
-    try {
-        const store = JSON.parse(localStorage.getItem(SETTINGS_KEY));
-        if (store && Array.isArray(store.roles)) {
-            const r = store.roles.find((x) => x.id === role.id);
-            if (r && r.name) {
-                return r.name;
-            }
-        }
-    } catch {
-        // 忽略
-    }
-    return "星瑶";
+    const r = window.Store.findRole(role.id);
+    return (r && r.name) || "星瑶";
 }
 
 // 当前角色的会话 id（不同角色各自的对话历史）
@@ -213,31 +164,23 @@ async function getActiveSystemPrompt() {
         return getOfficialRolePrompt(role.name);
     }
 
-    try {
-        const store = JSON.parse(localStorage.getItem(SETTINGS_KEY));
-        if (store && Array.isArray(store.roles)) {
-            const r = store.roles.find((x) => x.id === role.id);
-            if (r && r.prompt) {
-                return r.prompt;
-            }
-        }
-    } catch {
-        // 读取失败用空
-    }
-    return "";
+    const r = window.Store.findRole(role.id);
+    return (r && r.prompt) || "";
 }
 
 // 读取官方角色的设定（站长在后台 assets/data/official-roles.js 维护，
 // 通过 <script> 标签加载，本地双击打开和线上部署都能读取）
 async function getOfficialRolePrompt(name) {
+    const r = getOfficialRole(name);
+    return (r && r.prompt) || "";
+}
+
+// 官方角色配置（assets/data/official-roles.js）
+function getOfficialRole(name) {
     const roles = window.OFFICIAL_ROLES && Array.isArray(window.OFFICIAL_ROLES.roles)
         ? window.OFFICIAL_ROLES.roles
         : [];
-    const r = roles.find((x) => x.name === name);
-    if (r && r.prompt) {
-        return r.prompt;
-    }
-    return "";
+    return roles.find((x) => x.name === name) || null;
 }
 
 // 当前聊天角色对应的模型名：
@@ -249,21 +192,11 @@ function getRoleModelName() {
     let modelName = "";
 
     if (role.kind === "official") {
-        const roles = window.OFFICIAL_ROLES && Array.isArray(window.OFFICIAL_ROLES.roles)
-            ? window.OFFICIAL_ROLES.roles
-            : [];
-        const r = roles.find((x) => x.name === role.name);
+        const r = getOfficialRole(role.name);
         modelName = r ? r.model : "";
     } else {
-        try {
-            const store = JSON.parse(localStorage.getItem(SETTINGS_KEY));
-            if (store && Array.isArray(store.roles)) {
-                const r = store.roles.find((x) => x.id === role.id);
-                modelName = r ? r.model : "";
-            }
-        } catch {
-            // 读取失败用 default
-        }
+        const r = window.Store.findRole(role.id);
+        modelName = r ? r.model : "";
     }
 
     if (Live2D.MODEL_NAMES.indexOf(modelName) >= 0) {
@@ -335,15 +268,7 @@ function renderRolePicker() {
     }));
 
     // 我的角色（按创建顺序）
-    let localRoles = [];
-    try {
-        const store = JSON.parse(localStorage.getItem(SETTINGS_KEY));
-        if (store && Array.isArray(store.roles)) {
-            localRoles = store.roles;
-        }
-    } catch {
-        // 忽略
-    }
+    const localRoles = window.Store.readSettings().roles;
     const localItems = localRoles.map((r) => ({
         kind: "local",
         id: r.id,
@@ -445,22 +370,12 @@ function parseEmotion(reply) {
 
 // 历史对话保留对数（设置页可调整，默认 3 对）
 function getChatKeepPairs() {
-    try {
-        const prefs = JSON.parse(localStorage.getItem(PREFS_KEY));
-        if (prefs && Number.isFinite(prefs.chatKeepPairs) && prefs.chatKeepPairs >= 1) {
-            return prefs.chatKeepPairs;
-        }
-    } catch {
-        // 读取失败用默认
-    }
-    return 3;
+    return window.Store.readPrefs().chatKeepPairs;
 }
 
 // ================================
 // 聊天（按角色会话分组存储：不同角色有各自的对话历史）
 // ================================
-
-const CHAT_KEY = "xingyue_chat";
 
 // 当前角色的会话消息（完整保存在浏览器本地，隐私数据不会上传）
 let chatHistory = loadChat();
@@ -469,19 +384,12 @@ let chatHistory = loadChat();
 let chatExpanded = loadPanelState();
 
 function loadPanelState() {
-    try {
-        const s = JSON.parse(localStorage.getItem(PANEL_KEY));
-        if (s && typeof s.expanded === "boolean") {
-            return s.expanded;
-        }
-    } catch {
-        // 读取失败用默认
-    }
-    return true; // 默认展开全部
+    const s = window.Store.readJSON(window.Store.KEYS.panel, null);
+    return s && typeof s.expanded === "boolean" ? s.expanded : true;
 }
 
 function savePanelState() {
-    localStorage.setItem(PANEL_KEY, JSON.stringify({ expanded: chatExpanded }));
+    window.Store.writeJSON(window.Store.KEYS.panel, { expanded: chatExpanded });
 }
 
 // 旧版本的三条示例对话不再需要，自动清掉
@@ -498,48 +406,18 @@ function cleanLegacy(list) {
 }
 
 function loadChat() {
-    try {
-        const saved = JSON.parse(localStorage.getItem(CHAT_KEY));
-
-        // 新格式：按角色会话分组
-        if (saved && saved.sessions && typeof saved.sessions === "object") {
-            const list = saved.sessions[getActiveRoleId()];
-            return Array.isArray(list) ? cleanLegacy(list) : [];
-        }
-
-        // 旧格式：无分组的数组 → 迁移到当前角色的会话
-        if (Array.isArray(saved)) {
-            const list = cleanLegacy(saved);
-            migrateChatToSessions(getActiveRoleId(), list);
-            return list;
-        }
-    } catch {
-        // 读取失败就当作空
+    // 旧格式（无分组数组）→ 迁移到当前角色的会话
+    const legacy = window.Store.readLegacyChat();
+    if (legacy) {
+        const list = cleanLegacy(legacy);
+        window.Store.setSession(getActiveRoleId(), list);
+        return list;
     }
-    return [];
-}
-
-// 把旧格式的历史迁移到指定角色的会话
-function migrateChatToSessions(roleId, list) {
-    try {
-        const saved = JSON.parse(localStorage.getItem(CHAT_KEY)) || {};
-        const sessions = saved && saved.sessions && typeof saved.sessions === "object" ? saved.sessions : {};
-        sessions[roleId] = list;
-        localStorage.setItem(CHAT_KEY, JSON.stringify({ sessions: sessions }));
-    } catch {
-        localStorage.setItem(CHAT_KEY, JSON.stringify({ sessions: { [roleId]: list } }));
-    }
+    return cleanLegacy(window.Store.getSession(getActiveRoleId()));
 }
 
 function saveChat() {
-    try {
-        const saved = JSON.parse(localStorage.getItem(CHAT_KEY)) || {};
-        const sessions = saved && saved.sessions && typeof saved.sessions === "object" ? saved.sessions : {};
-        sessions[getActiveRoleId()] = chatHistory;
-        localStorage.setItem(CHAT_KEY, JSON.stringify({ sessions: sessions }));
-    } catch {
-        localStorage.setItem(CHAT_KEY, JSON.stringify({ sessions: { [getActiveRoleId()]: chatHistory } }));
-    }
+    window.Store.setSession(getActiveRoleId(), chatHistory);
 }
 
 // 追加一条消息气泡（不写入历史）
@@ -701,7 +579,7 @@ async function askXingyao() {
         addMessage(getChatRoleName(), parsed.text || "……", false);
         // Live2D：播放情绪对应的表情/动作
         if (parsed.emotion) {
-            window.Live2D.playEmotion(parsed.emotion);
+            Live2D.playEmotion(parsed.emotion);
         }
     } catch (error) {
         typingEl.remove();
@@ -728,7 +606,7 @@ renderUserInfo();
 Live2D.init();
 
 // 检查用户是否第一次访问网站
-const isFirstVisit = localStorage.getItem("xingyue_visited");
+const isFirstVisit = localStorage.getItem(window.Store.KEYS.visited);
 
 if (isFirstVisit === null) {
     // 第一次访问：直接显示登录页

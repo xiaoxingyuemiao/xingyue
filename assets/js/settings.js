@@ -1,17 +1,13 @@
 // ================================
 // 星月小窝 —— 设置页面脚本
 // API 提供商管理（DeepSeek / 通义千问 / OpenAI 兼容，点击卡片切换）
-// 角色设定（多角色卡片管理）
+// 角色设定（多角色卡片管理，支持导入本地 Live2D 模型）
 // 对话（保留对数 + 清空 + 全部历史）
-// 与首页聊天共用 localStorage
+// 数据读写统一走 assets/js/store.js（与首页聊天共用 localStorage）
 // ================================
 
-const STORE_KEY = "xingyue_settings";
-const PREFS_KEY = "xingyue_prefs";
-const CHAT_KEY = "xingyue_chat";
-
 // 注意：官方角色设定内容（System Prompt）不写在代码里，
-// 由站长在 assets/data/official-roles.json 中维护（后台调整，推送 GitHub 即同步）。
+// 由站长在 assets/data/official-roles.js 中维护（后台调整，推送 GitHub 即同步）。
 
 // ---------- 页面元素 ----------
 
@@ -110,69 +106,18 @@ switchView(initialView);
 // ================================
 
 function loadStore() {
-    let raw = null;
-    try {
-        raw = JSON.parse(localStorage.getItem(STORE_KEY));
-    } catch {
-        // 读取失败当作空
-    }
-
-    if (!raw) {
-        return {
-            providers: [],
-            activeId: null,
-            roles: [],
-            activeRoleId: null,
-        };
-    }
-
-    const store = { ...raw };
-
-    // 旧版：单个配置对象 → 迁移成列表
-    if (!Array.isArray(store.providers)) {
-        if (store.baseUrl) {
-            store.providers = [{
-                id: "p-" + Date.now(),
-                name: "DeepSeek",
-                type: store.provider === "custom" ? "custom" : "deepseek",
-                baseUrl: store.baseUrl,
-                apiKey: store.apiKey || "",
-                model: store.model || "deepseek-chat",
-            }];
-            store.activeId = store.providers[0].id;
-        } else {
-            store.providers = [];
-            store.activeId = null;
-        }
-    }
-
-    // 角色：不再自动创建默认角色（角色内容由站长在口令解锁后维护）
-    if (!Array.isArray(store.roles)) {
-        store.roles = [];
-        store.activeRoleId = null;
-    }
-    if (!store.activeRoleId && store.roles.length > 0) {
-        store.activeRoleId = store.roles[0].id;
-    }
-
-    saveStore(store);
+    // 归一化与旧版迁移统一在 store.js 里处理
+    const store = window.Store.readSettings();
+    window.Store.writeSettings(store);
     return store;
 }
 
 function saveStore(store) {
-    localStorage.setItem(STORE_KEY, JSON.stringify(store));
+    window.Store.writeSettings(store);
 }
 
 function loadPrefs() {
-    try {
-        const prefs = JSON.parse(localStorage.getItem(PREFS_KEY));
-        if (prefs && Number.isFinite(prefs.chatKeepPairs) && prefs.chatKeepPairs >= 1) {
-            return prefs;
-        }
-    } catch {
-        // 读取失败用默认
-    }
-    return { chatKeepPairs: 3 };
+    return window.Store.readPrefs();
 }
 
 // ================================
@@ -475,7 +420,7 @@ keepSave.addEventListener("click", () => {
         n = 20;
     }
     keepPairs.value = n;
-    localStorage.setItem(PREFS_KEY, JSON.stringify({ chatKeepPairs: n }));
+    window.Store.writePrefs({ chatKeepPairs: n });
     keepStatus.textContent = "已保存 ✓ 首页将只展示最近 " + n + " 对对话";
 });
 
@@ -483,32 +428,25 @@ historyClear.addEventListener("click", () => {
     if (!window.confirm("确定清空所有角色的全部对话历史吗？此操作不可恢复。")) {
         return;
     }
-    localStorage.setItem(CHAT_KEY, JSON.stringify({ sessions: {} }));
+    window.Store.writeSessions({});
     keepStatus.textContent = "对话历史已清空 ✓";
     renderHistory();
 });
 
 // 读取本地全部会话（按角色分组）
 function loadSessions() {
-    try {
-        const saved = JSON.parse(localStorage.getItem(CHAT_KEY));
-        if (saved && saved.sessions && typeof saved.sessions === "object") {
-            return saved.sessions;
-        }
-        // 旧格式：无分组的数组 → 迁移到当前角色的会话
-        if (Array.isArray(saved)) {
-            const store = loadStore();
-            const roleId = store.activeRoleId || (store.roles[0] && store.roles[0].id) || "role-default";
-            return { [roleId]: saved };
-        }
-    } catch {
-        // 读取失败当作空
+    // 旧格式：无分组的数组 → 归到当前角色名下
+    const legacy = window.Store.readLegacyChat();
+    if (legacy) {
+        const store = loadStore();
+        const roleId = store.activeRoleId || (store.roles[0] && store.roles[0].id) || "role-default";
+        return { [roleId]: legacy };
     }
-    return {};
+    return window.Store.readSessions();
 }
 
 function saveSessions(sessions) {
-    localStorage.setItem(CHAT_KEY, JSON.stringify({ sessions: sessions }));
+    window.Store.writeSessions(sessions);
 }
 
 // 渲染对话记录：每个角色一个会话卡片（整个会话折叠成一个卡片），

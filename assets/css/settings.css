@@ -478,7 +478,6 @@
     padding: 6px;
 }
 
-.select-picker-list,
 .model-picker-list {
     max-height: 180px;
 
@@ -496,7 +495,6 @@
     padding: 6px;
 }
 
-.select-picker-list::-webkit-scrollbar,
 .model-picker-list::-webkit-scrollbar {
     display: none;
 }

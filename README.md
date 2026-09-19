@@ -26,19 +26,29 @@
 
 | 路径 | 职责 |
 |---|---|
-| `index.html` | 首页入口：聊天 + Live2D 舞台（含 unpkg/一言 网络拦截脚本） |
+| `index.html` | 首页入口：聊天 + Live2D 舞台 |
 | `settings.html` | 设置页：API 提供商 / 角色设定 / 对话历史 |
-| `assets/js/main.js` | 首页逻辑：聊天、角色切换、会话存储 |
-| `assets/js/live2d.js` | **Live2D 业务模块**：模型加载 / 角色切换模型 / 窗口交互 |
+| `user.html` | 用户设置页：昵称 / 头像 / 签名 |
+| `assets/js/store.js` | **数据层**：localStorage key 常量 + 读写封装 + 旧数据迁移（各页共用） |
+| `assets/js/main.js` | 首页逻辑：聊天、角色切换、情绪解析 |
+| `assets/js/live2d.js` | **Live2D 业务模块**：模型加载 / 角色切换模型 / 情绪表情动作 / 窗口交互 |
+| `assets/js/live2d-custom.js` | 自定义模型导入（文件夹 → 浏览器缓存 → 虚拟路径加载） |
+| `assets/js/l2d-sw.js` | Service Worker：拦截自定义模型虚拟路径，从缓存返回 |
+| `assets/js/net-mock.js` | 网络拦截：屏蔽 SDK 的 unpkg / 一言请求（必须在 SDK 前加载） |
 | `assets/js/settings.js` | 设置页逻辑 |
+| `assets/js/user.js` | 用户设置页逻辑 |
+| `assets/js/common.js` | 关于页共用的导航栏 / 页脚 |
 | `assets/data/official-roles.js` | 官方角色设定（后台维护，push 即生效） |
-| `assets/css/` | 各页面样式 |
+| `assets/data/models.js` | **模型配置**：每个模型的缩放 / 锚点 / 表情与动作映射 |
+| `assets/css/` | 各页面样式（style / home / settings） |
 | `assets/vendor/oh-my-live2d.min.js` | 唯一第三方依赖（已 vendor 化，自包含 SDK） |
 | `assets/live2d/` | 模型文件：`default/` `xingyao/` `yueci/` |
-| `tools/` | 开发辅助脚本 |
+| `tools/check.js` | 代码检查脚本（语法 + 模型 JSON） |
 | `package.json` | 项目声明（零依赖） |
 
 **依赖声明**：运行时唯一外部依赖是 oh-my-live2d（已放进 `assets/vendor/`，离线可用；index.html 里留有 CDN 兜底）。
+
+**脚本加载顺序**（index.html）：`net-mock.js` → SDK → `store.js` → `official-roles.js` → `models.js` → `live2d.js` → `live2d-custom.js` → `main.js`
 
 ## 本地开发（可复现环境）
 

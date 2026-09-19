@@ -6,7 +6,7 @@
   "scripts": {
     "start": "npx --yes serve .",
     "preview": "npx --yes serve .",
-    "check": "node --check assets/js/main.js && node --check assets/js/live2d.js && node --check assets/js/settings.js"
+    "check": "node tools/check.js"
   },
   "dependencies": {},
   "devDependencies": {}

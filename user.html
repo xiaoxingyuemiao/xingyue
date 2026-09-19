@@ -58,57 +58,8 @@
         </main>
 
 
-        <script>
-            // ================================
-            // 用户设置：保存在浏览器本地（xingyue_user）
-            // 首页侧边栏会自动读取显示
-            // ================================
-
-            const USER_KEY = "xingyue_user";
-
-            const avatarPreview = document.querySelector("#avatar-preview");
-            const uAvatar = document.querySelector("#u-avatar");
-            const uNickname = document.querySelector("#u-nickname");
-            const uSignature = document.querySelector("#u-signature");
-            const uSave = document.querySelector("#u-save");
-            const uStatus = document.querySelector("#u-status");
-
-            // 载入已保存的信息
-            function loadUser() {
-                try {
-                    const u = JSON.parse(localStorage.getItem(USER_KEY));
-                    if (u && u.avatar) {
-                        uAvatar.value = u.avatar;
-                        avatarPreview.textContent = u.avatar;
-                    }
-                    if (u && u.nickname) {
-                        uNickname.value = u.nickname;
-                    }
-                    if (u && u.signature) {
-                        uSignature.value = u.signature;
-                    }
-                } catch {
-                    // 没有保存过就用默认
-                }
-            }
-
-            // 输入头像时实时预览
-            uAvatar.addEventListener("input", () => {
-                avatarPreview.textContent = uAvatar.value.trim() || "🐱";
-            });
-
-            // 保存
-            uSave.addEventListener("click", () => {
-                localStorage.setItem(USER_KEY, JSON.stringify({
-                    avatar: uAvatar.value.trim() || "🐱",
-                    nickname: uNickname.value.trim() || "小喵",
-                    signature: uSignature.value.trim() || "",
-                }));
-                uStatus.textContent = "已保存 ✓ 首页侧边栏会自动更新";
-            });
-
-            loadUser();
-        </script>
+        <script src="assets/js/store.js"></script>
+        <script src="assets/js/user.js"></script>
 
     </body>
 </html>
