@@ -15,6 +15,7 @@ window.Store = (function () {
         panel: "xingyue_panel",         // 面板状态
         user: "xingyue_user",           // 用户昵称 / 头像
         visited: "xingyue_visited",     // 是否已进入过首页
+        lastEmail: "xingyue_last_email",// 上次登录用的邮箱（下次自动填充）
     };
 
     // ---------- 基础读写 ----------

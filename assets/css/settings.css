@@ -897,6 +897,30 @@
     font-size: 44px;
 }
 
+/* 登录状态提示（用户设置页顶部） */
+.user-account {
+    margin: -12px 0 20px;
+
+    padding: 8px 12px;
+
+    border-radius: 8px;
+
+    background-color: #f7f7f7;
+
+    font-size: 13px;
+    line-height: 1.6;
+
+    color: #999999;
+
+    word-break: break-all;
+}
+
+.user-account-on {
+    background-color: rgba(102, 204, 255, 0.12);
+
+    color: var(--main-color);
+}
+
 /* ==============================
    手机端适配（设置页 / 用户设置页）
    ============================== */
