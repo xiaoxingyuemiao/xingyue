@@ -193,10 +193,12 @@ body {
     font-weight: bold;
 }
 
-/* Live2D 的文字比"首页 / 插画 / 周边"长，
-   把这一项的右侧内边距收窄，让文字完整显示（左边缘仍与其他项对齐） */
+/* Live2D 的文字比"首页 / 插画 / 周边"长：
+   左右内边距对称收窄 + 文字居中，保证完整显示同时保持居中 */
 #menu-live2d {
-    padding-right: 10px;
+    justify-content: center;
+
+    padding: 0 12px;
 }
 
 /* ---------- "关于"：hover 展开子菜单 ---------- */
