@@ -77,6 +77,7 @@ sidebarMenu.addEventListener("click", (event) => {
 
     const targets = {
         "menu-settings": "settings.html",
+        "menu-live2d-param": "live2d-param.html",
         "menu-gallery": "chahua.html",
         "menu-merch": "zhoubian.html",
         "menu-news": "dongtai.html",
