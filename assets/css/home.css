@@ -826,6 +826,12 @@ body {
 
 @media (max-width: 768px) {
 
+    /* ---------- 背景：手机端换成竖版背景图 ---------- */
+
+    .background {
+        background-image: url("../../images/supingbeijing.jpg");
+    }
+
     /* ---------- 侧边栏：更窄（展开 120px / 收起 50px） ---------- */
 
     .sidebar {
