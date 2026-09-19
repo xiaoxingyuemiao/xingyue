@@ -779,6 +779,178 @@ body {
 }
 
 /* ==============================
+   邮箱登录面板
+   ============================== */
+
+.auth-panel {
+    position: absolute;
+
+    left: 14px;
+    bottom: 14px;
+
+    width: 240px;
+
+    z-index: 20;
+
+    padding: 14px;
+
+    box-sizing: border-box;
+
+    background-color: #ffffff;
+
+    border-radius: 14px;
+
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+
+    animation: pickerIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.auth-panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 12px;
+
+    font-size: 15px;
+    font-weight: bold;
+
+    color: var(--text-color);
+}
+
+.auth-panel-close {
+    padding: 0 4px;
+
+    border: none;
+
+    background: transparent;
+
+    font-size: 14px;
+
+    color: #999999;
+
+    cursor: pointer;
+}
+
+.auth-panel-close:hover {
+    color: var(--main-color);
+}
+
+.auth-input {
+    display: block;
+
+    width: 100%;
+
+    padding: 9px 12px;
+
+    box-sizing: border-box;
+
+    border: 1px solid #e6e6e6;
+    border-radius: 9px;
+
+    outline: none;
+
+    font-size: 16px; /* 小于 16px 时 iOS 会自动放大页面 */
+
+    color: var(--text-color);
+
+    transition: border-color 0.2s ease;
+}
+
+.auth-input:focus {
+    border-color: var(--main-color);
+}
+
+.auth-btn {
+    display: block;
+
+    width: 100%;
+
+    margin-top: 10px;
+    padding: 9px;
+
+    border: none;
+    border-radius: 9px;
+
+    background-color: var(--main-color);
+
+    color: #ffffff;
+
+    font-size: 14px;
+    font-weight: bold;
+
+    cursor: pointer;
+
+    transition: opacity 0.2s ease;
+}
+
+.auth-btn:hover {
+    opacity: 0.86;
+}
+
+.auth-btn:disabled {
+    opacity: 0.6;
+
+    cursor: default;
+}
+
+.auth-btn-plain {
+    background-color: #f0f0f0;
+
+    color: #666666;
+}
+
+.auth-link {
+    display: block;
+
+    width: 100%;
+
+    margin-top: 8px;
+    padding: 0;
+
+    border: none;
+
+    background: transparent;
+
+    font-size: 12.5px;
+
+    color: #999999;
+
+    cursor: pointer;
+}
+
+.auth-link:hover {
+    color: var(--main-color);
+}
+
+.auth-done-mail {
+    margin: 0;
+
+    font-size: 13.5px;
+
+    color: var(--text-color);
+
+    word-break: break-all;
+}
+
+.auth-msg {
+    margin: 10px 0 0;
+
+    font-size: 12.5px;
+    line-height: 1.6;
+
+    color: #999999;
+}
+
+.auth-msg-error {
+    color: #e05b5b;
+}
+
+.auth-msg-ok {
+    color: #3aa76d;
+}
+
+/* ==============================
    手机端适配（首页）
    ============================== */
 

@@ -1,4 +1,4 @@
-﻿// ================================
+// ================================
 // 星月小窝 2.0 —— 首页脚本
 // ================================
 
@@ -89,11 +89,146 @@ sidebarMenu.addEventListener("click", (event) => {
     }
 });
 
-// ---------- 用户区域：点击进入用户设置 ----------
+// ---------- 用户区域：邮箱登录 / 用户设置 ----------
+
+const authPanel = document.querySelector("#auth-panel");
+const authPanelClose = document.querySelector("#auth-panel-close");
+const authPanelTitle = document.querySelector("#auth-panel-title");
+const authStepEmail = document.querySelector("#auth-step-email");
+const authStepCode = document.querySelector("#auth-step-code");
+const authStepDone = document.querySelector("#auth-step-done");
+const authEmail = document.querySelector("#auth-email");
+const authCode = document.querySelector("#auth-code");
+const authSend = document.querySelector("#auth-send");
+const authVerify = document.querySelector("#auth-verify");
+const authResend = document.querySelector("#auth-resend");
+const authSignout = document.querySelector("#auth-signout");
+const authDoneMail = document.querySelector("#auth-done-mail");
+const authMsg = document.querySelector("#auth-msg");
+const userStatusEl = document.querySelector(".user-status");
+
+// 记住刚发送验证码的邮箱（登录时用）
+let pendingEmail = "";
+
+function setAuthMsg(text, kind) {
+    authMsg.textContent = text || "";
+    authMsg.className = "auth-msg" + (kind ? " auth-msg-" + kind : "");
+}
+
+// 根据登录状态切换面板内容
+function renderAuthPanel() {
+    const user = window.Auth.current();
+    authPanelTitle.textContent = user ? "已登录" : "邮箱登录";
+    authStepEmail.hidden = !!user;
+    authStepCode.hidden = !!user;
+    authStepDone.hidden = !user;
+    if (user) {
+        authDoneMail.textContent = user.email;
+    } else if (pendingEmail) {
+        authStepEmail.hidden = true;
+        authStepCode.hidden = false;
+    }
+}
+
+// 更新侧边栏底部的用户区域
+function renderAuthState() {
+    const user = window.Auth.current();
+    if (user) {
+        userStatusEl.textContent = user.email;
+        sidebarUser.title = "已登录（点击打开用户设置）";
+    } else {
+        userStatusEl.textContent = "点击登录";
+        sidebarUser.title = "邮箱登录";
+    }
+    renderAuthPanel();
+}
+
+function openAuthPanel() {
+    authPanel.hidden = false;
+    setAuthMsg("");
+    renderAuthPanel();
+    if (!window.Auth.isConfigured()) {
+        setAuthMsg("还没配置 Supabase（见 assets/data/supabase-config.js）", "error");
+    }
+}
+
+function closeAuthPanel() {
+    authPanel.hidden = true;
+    authCode.value = "";
+    setAuthMsg("");
+}
 
 sidebarUser.addEventListener("click", () => {
-    window.location.href = "user.html";
+    const user = window.Auth.current();
+    if (user) {
+        // 已登录 → 进入用户设置页
+        window.location.href = "user.html";
+    } else if (authPanel.hidden) {
+        openAuthPanel();
+    } else {
+        closeAuthPanel();
+    }
 });
+
+authPanelClose.addEventListener("click", closeAuthPanel);
+
+// 第 1 步：发送验证码
+authSend.addEventListener("click", async () => {
+    const email = authEmail.value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        setAuthMsg("请输入正确的邮箱地址", "error");
+        return;
+    }
+    authSend.disabled = true;
+    authSend.textContent = "发送中……";
+    try {
+        await window.Auth.sendCode(email);
+        pendingEmail = email;
+        setAuthMsg("验证码已发送，请到邮箱查看（可能在垃圾邮件里）", "ok");
+        renderAuthPanel();
+        authCode.focus();
+    } catch (e) {
+        setAuthMsg(e.message || "发送失败，请稍后再试", "error");
+    } finally {
+        authSend.disabled = false;
+        authSend.textContent = "发送验证码";
+    }
+});
+
+// 第 2 步：验证码登录
+authVerify.addEventListener("click", async () => {
+    const token = authCode.value.trim();
+    if (!/^\d{4,8}$/.test(token)) {
+        setAuthMsg("请输入邮件里的数字验证码", "error");
+        return;
+    }
+    authVerify.disabled = true;
+    authVerify.textContent = "验证中……";
+    try {
+        await window.Auth.verifyCode(pendingEmail || authEmail.value.trim(), token);
+        pendingEmail = "";
+        setAuthMsg("登录成功 ✓", "ok");
+    } catch (e) {
+        setAuthMsg(e.message || "验证码不正确", "error");
+    } finally {
+        authVerify.disabled = false;
+        authVerify.textContent = "登录";
+    }
+});
+
+// 重新发送
+authResend.addEventListener("click", () => {
+    authSend.click();
+});
+
+// 退出登录
+authSignout.addEventListener("click", async () => {
+    await window.Auth.signOut();
+    setAuthMsg("已退出登录", "ok");
+});
+
+// 登录 / 退出时刷新界面
+window.Auth.onChange(renderAuthState);
 
 // 从本地读取用户信息（昵称 / 头像），没有就保持默认
 function renderUserInfo() {
@@ -602,6 +737,10 @@ chatInput.addEventListener("keydown", (event) => {
 
 renderBubble();
 renderUserInfo();
+
+// 登录状态：先按本地凭证渲染一次，再异步刷新过期凭证
+renderAuthState();
+window.Auth.init();
 
 // 初始化 Live2D（异步加载默认模型，不影响页面进入）
 Live2D.init();
