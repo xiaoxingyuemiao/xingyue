@@ -220,9 +220,10 @@ body.lp-page {
 
     gap: 6px;
 
-    font-size: 14px;
+    /* 与版权行同字号、同颜色 */
+    font-size: 13px;
 
-    color: var(--text-color);
+    color: #999999;
 
     text-decoration: none;
 
