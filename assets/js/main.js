@@ -428,39 +428,49 @@ function appendMessageElement(name, text, isUser) {
 }
 
 // ================================
-// 常驻气泡：展示"最近一轮完整对话"（你说的话 + 角色的回复）
-// 角色回复到达时用新一轮替换旧一轮（上滑过渡）
-// 电脑端：一直显示；手机端：显示 10 秒后自动消失
+// 常驻气泡：展示最近的若干轮完整对话（你说的话 + 角色的回复）
+// 电脑端：3 轮（第 4 轮出现时第 1 轮滑出）
+// 手机端：1 轮，显示 10 秒后自动消失
 // ================================
+
+// 电脑端展示的对话轮数（想多显示几轮改这里）
+const DESKTOP_ROUNDS = 3;
 
 // 手机端判定（与 CSS 的移动端断点保持一致）
 function isMobileView() {
     return window.matchMedia("(max-width: 768px)").matches;
 }
 
-// 最近一轮对话：最后一条角色回复 + 它前面紧邻的那条用户消息
-function latestRound() {
-    let idx = -1;
-    for (let i = chatHistory.length - 1; i >= 0; i--) {
-        if (!chatHistory[i].isUser) {
-            idx = i;
-            break;
+// 最近 N 轮对话，按时间顺序摊平返回
+// （一轮 = 一条用户消息 + 紧跟的角色回复）
+function latestRounds(count) {
+    const rounds = [];
+    let i = chatHistory.length - 1;
+
+    while (i >= 0 && rounds.length < count) {
+        // 末尾还没被回复的用户消息：跳过
+        if (chatHistory[i].isUser) {
+            i--;
+            continue;
         }
+        const reply = chatHistory[i];
+        const round = [];
+        if (i > 0 && chatHistory[i - 1].isUser) {
+            round.push(chatHistory[i - 1]); // 你说的话
+            i -= 2;
+        } else {
+            i -= 1;
+        }
+        round.push(reply); // 角色的回复
+        rounds.unshift(round);
     }
-    if (idx < 0) {
-        return []; // 还没有角色回复 → 气泡为空
-    }
-    const round = [];
-    if (idx > 0 && chatHistory[idx - 1].isUser) {
-        round.push(chatHistory[idx - 1]);
-    }
-    round.push(chatHistory[idx]);
-    return round;
+
+    return rounds.flat();
 }
 
 let bubbleTimer = null;
 
-// 渲染常驻气泡（新一轮上滑顶掉旧一轮）
+// 渲染气泡（新一轮上滑顶掉最旧一轮）
 function renderBubble() {
     if (bubbleTimer) {
         clearTimeout(bubbleTimer);
@@ -469,18 +479,26 @@ function renderBubble() {
 
     messageList.innerHTML = "";
 
-    const round = latestRound();
-    if (round.length === 0) {
+    const mobile = isMobileView();
+    const msgs = latestRounds(mobile ? 1 : DESKTOP_ROUNDS);
+    if (msgs.length === 0) {
         return;
     }
 
-    round.forEach((m, i) => {
+    // 只有最后两条（最新一轮）播放入场动画，更早的静止显示
+    const animateFrom = Math.max(0, msgs.length - 2);
+
+    msgs.forEach((m, i) => {
         const el = appendMessageElement(m.name, m.text, m.isUser);
-        el.style.animationDelay = i * 90 + "ms";
+        if (i >= animateFrom) {
+            el.style.animationDelay = (i - animateFrom) * 90 + "ms";
+        } else {
+            el.classList.add("message-static");
+        }
     });
 
     // 手机端：10 秒后自动消失（上滑淡出）
-    if (isMobileView()) {
+    if (mobile) {
         bubbleTimer = setTimeout(() => {
             for (const el of Array.from(messageList.children)) {
                 el.classList.add("message-fade-out");

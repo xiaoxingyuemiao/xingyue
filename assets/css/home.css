@@ -540,6 +540,13 @@ body {
 
 }
 
+/* 更早的对话：静止显示，不播入场动画 */
+.message-static {
+    opacity: 1;
+
+    animation: none;
+}
+
 .message-name {
     margin-bottom: 3px;
 
