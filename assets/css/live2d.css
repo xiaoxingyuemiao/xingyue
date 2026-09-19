@@ -218,12 +218,12 @@ body.lp-page {
 .lp-ps {
     margin: 0;
 
-    padding-top: 22px;
+    padding-top: 14px;
 
     border-top: 1px dashed #e2e2e2;
 
-    font-size: 14px;
-    line-height: 1.9;
+    font-size: 13.5px;
+    line-height: 1.7;
 
     color: #8a8a8a;
 }
@@ -240,15 +240,21 @@ body.lp-page {
     text-align: center;
 }
 
-.lp-footer-links {
+.lp-footer-columns {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
 
-    gap: 8px 24px;
+    gap: 10px 44px;
+}
 
-    margin: 0;
+.lp-footer-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    gap: 8px;
 }
 
 .lp-footer-link {
@@ -264,6 +270,8 @@ body.lp-page {
 
     text-decoration: none;
 
+    white-space: nowrap;
+
     transition: color 0.2s ease;
 }
 
@@ -276,6 +284,8 @@ body.lp-page {
 }
 
 .lp-copyright {
+    margin-top: 16px;
+
     font-size: 13px;
 
     color: #999999;
