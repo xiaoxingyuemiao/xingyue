@@ -359,14 +359,25 @@ body.lp-page {
     }
 
     .lp-footer {
-        padding: 18px 14px;
+        padding: 16px 12px;
     }
 
-    .lp-footer-links {
+    /* 手机端：3 列间距收窄，列内行距略小 */
+    .lp-footer-columns {
         gap: 8px 16px;
     }
 
+    .lp-footer-col {
+        gap: 6px;
+    }
+
     .lp-footer-link {
-        font-size: 13px;
+        font-size: 12.5px;
+    }
+
+    .lp-copyright {
+        margin-top: 12px;
+
+        font-size: 12.5px;
     }
 }
