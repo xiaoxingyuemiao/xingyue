@@ -32,6 +32,9 @@ const rolePickerList = document.querySelector("#role-picker-list");
 let collapseTimer = null;
 let manualExpanded = false;
 
+// 鼠标正停在「关于」或其右侧子菜单上（此时不自动收起，见下面的子菜单逻辑）
+let submenuHover = false;
+
 sidebar.addEventListener("mouseenter", () => {
     // 悬停在收起后的窄条上才展开（没有 hover 到就不展开）
     manualExpanded = false;
@@ -42,16 +45,62 @@ sidebar.addEventListener("mouseenter", () => {
     homeScreen.classList.remove("sidebar-collapsed");
 });
 
-sidebar.addEventListener("mouseleave", () => {
-    if (manualExpanded) {
-        return;
+// 取消收起定时器并立刻展开（鼠标进入侧边栏 / 「关于」子菜单时用）
+function openSidebarNow() {
+    if (collapseTimer) {
+        clearTimeout(collapseTimer);
+        collapseTimer = null;
     }
-    // 0.1s 内自动收回
+    homeScreen.classList.remove("sidebar-collapsed");
+}
+
+// 0.1s 内自动收回
+function scheduleCollapse() {
+    if (collapseTimer) {
+        clearTimeout(collapseTimer);
+    }
     collapseTimer = setTimeout(() => {
         homeScreen.classList.add("sidebar-collapsed");
         collapseTimer = null;
     }, 100);
+}
+
+sidebar.addEventListener("mouseleave", () => {
+    if (manualExpanded || submenuHover) {
+        return;
+    }
+    scheduleCollapse();
 });
+
+// ---------- 「关于」子菜单（右侧的角色列表）----------
+// 子菜单弹在侧边栏右侧 6px 处（那道空隙由 CSS 的伪元素桥接）。
+// 这里再兜一层：鼠标停在「关于」或子菜单上期间不收起侧边栏，
+// 指针离开这块区域（超出角色选择框）才恢复 0.1s 自动收起。
+
+const submenuParent = document.querySelector(".sidebar-item-parent");
+const submenu = document.querySelector(".sidebar-submenu");
+
+if (submenuParent && submenu) {
+    const holdSidebar = () => {
+        submenuHover = true;
+        openSidebarNow();
+    };
+
+    const releaseSidebar = () => {
+        submenuHover = false;
+        // 稍等一下再判断：可能只是从「关于」跨到子菜单、或从子菜单跨回「关于」的路上
+        setTimeout(() => {
+            if (!submenuHover && !manualExpanded && !sidebar.matches(":hover")) {
+                scheduleCollapse();
+            }
+        }, 120);
+    };
+
+    submenuParent.addEventListener("mouseenter", holdSidebar);
+    submenuParent.addEventListener("mouseleave", releaseSidebar);
+    submenu.addEventListener("mouseenter", holdSidebar);
+    submenu.addEventListener("mouseleave", releaseSidebar);
+}
 
 sidebarToggle.addEventListener("click", () => {
     const collapsed = homeScreen.classList.contains("sidebar-collapsed");

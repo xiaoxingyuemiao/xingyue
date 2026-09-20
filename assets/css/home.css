@@ -237,6 +237,21 @@ body {
     display: flex;
 }
 
+/* 鼠标从「关于」移向右侧子菜单时必须越过那 6px 空隙：
+   :hover 会在空隙里断掉 → 子菜单闪退 → 侧边栏跟着收起。
+   这条不可见的伪元素把空隙铺满，让两边的 hover 区域连成一片 */
+.sidebar-submenu::before {
+    content: "";
+
+    position: absolute;
+
+    left: -6px;
+    top: 0;
+    bottom: 0;
+
+    width: 6px;
+}
+
 .sidebar-submenu-item {
     display: block;
 
