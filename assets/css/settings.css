@@ -880,6 +880,86 @@
     color: var(--text-color);
 }
 
+/* ---------- 退出登录（卡片最下方，小按钮 + 一层原地确认） ---------- */
+
+.user-signout {
+    margin-top: 22px;
+
+    text-align: center;
+}
+
+.user-signout-btn {
+    padding: 7px 20px;
+
+    border: 1px solid #f2d8d8;
+    border-radius: 999px;
+
+    background-color: #fdf1f1;
+
+    color: #d9534f;
+
+    font-size: 13px;
+
+    cursor: pointer;
+
+    transition: background-color 0.2s ease;
+}
+
+.user-signout-btn:hover {
+    background-color: #fbe4e4;
+}
+
+.user-signout-confirm {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 10px;
+
+    font-size: 13px;
+
+    color: #8a8f99;
+}
+
+/* 上面那条 display: flex 会盖过 [hidden]，这里补回来 */
+.user-signout-confirm[hidden] {
+    display: none;
+}
+
+.user-signout-yes,
+.user-signout-no {
+    padding: 6px 16px;
+
+    border: none;
+    border-radius: 999px;
+
+    font-size: 13px;
+
+    cursor: pointer;
+
+    transition: filter 0.2s ease, background-color 0.2s ease;
+}
+
+.user-signout-yes {
+    background-color: #d9534f;
+
+    color: #ffffff;
+}
+
+.user-signout-yes:hover {
+    filter: brightness(1.06);
+}
+
+.user-signout-no {
+    background-color: #eef1f5;
+
+    color: #55606d;
+}
+
+.user-signout-no:hover {
+    background-color: #e3e8ee;
+}
+
 .user-avatar-preview {
     display: flex;
     align-items: center;

@@ -58,12 +58,24 @@
                     <button class="settings-btn settings-btn-primary" id="u-save" type="button">
                         保存
                     </button>
-                    <button class="settings-btn settings-btn-danger" id="u-signout" type="button" hidden>
-                        退出登录
-                    </button>
                 </div>
 
                 <p class="modal-status" id="u-status"></p>
+
+                <!-- 退出登录：放在卡片最下方，点一下会先在原地问一次 -->
+                <div class="user-signout" id="u-signout-area" hidden>
+
+                    <button class="user-signout-btn" id="u-signout" type="button">
+                        退出登录
+                    </button>
+
+                    <div class="user-signout-confirm" id="u-signout-confirm" hidden>
+                        <span>确定要退出吗？</span>
+                        <button class="user-signout-yes" id="u-signout-yes" type="button">确定</button>
+                        <button class="user-signout-no" id="u-signout-no" type="button">取消</button>
+                    </div>
+
+                </div>
 
             </section>
 

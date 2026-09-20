@@ -13,9 +13,15 @@ const uAvatarFile = document.querySelector("#u-avatar-file");
 const uNickname = document.querySelector("#u-nickname");
 const uSignature = document.querySelector("#u-signature");
 const uSave = document.querySelector("#u-save");
-const uSignout = document.querySelector("#u-signout");
 const uStatus = document.querySelector("#u-status");
 const uAccount = document.querySelector("#u-account");
+
+// 退出登录（卡片最下方）：点一下先在原地问一次，确认后才真的退
+const uSignoutArea = document.querySelector("#u-signout-area");
+const uSignout = document.querySelector("#u-signout");
+const uSignoutConfirm = document.querySelector("#u-signout-confirm");
+const uSignoutYes = document.querySelector("#u-signout-yes");
+const uSignoutNo = document.querySelector("#u-signout-no");
 
 const DEFAULT_AVATAR = "🐱"; // 默认头像：没上传过图片时用它
 const AVATAR_SIZE = 128; // 上传的图片会居中裁成正方形并缩到这个尺寸再保存
@@ -46,7 +52,7 @@ function renderAvatarPreview() {
     renderAvatar(avatarPreview, pickedAvatar || savedAvatar);
 }
 
-// 顶部显示登录状态；没登录就不显示「退出登录」
+// 顶部显示登录状态；「退出登录」整块只在登录后出现，且每次都回到未确认状态
 function renderAccount() {
     if (!uAccount) {
         return;
@@ -59,22 +65,32 @@ function renderAccount() {
         uAccount.textContent = "未登录 —— 回首页点左下角用户栏即可登录";
         uAccount.className = "user-account";
     }
-    if (uSignout) {
-        uSignout.hidden = !user;
+
+    if (uSignoutArea) {
+        uSignoutArea.hidden = !user;
+        uSignout.hidden = false;
+        uSignoutConfirm.hidden = true;
     }
 }
 
-// 退出登录（原来在首页那个小面板里，现在挪到这一页）
-if (uSignout) {
-    uSignout.addEventListener("click", async () => {
-        if (!window.confirm("确定要退出登录吗？")) {
-            return;
-        }
-        await window.Auth.signOut();
-        uStatus.textContent = "已退出登录";
-        renderAccount();
-    });
-}
+// 点「退出登录」→ 先在原地问一次（不用浏览器原生弹窗）
+uSignout.addEventListener("click", () => {
+    uSignout.hidden = true;
+    uSignoutConfirm.hidden = false;
+});
+
+// 取消 → 把确认收回去
+uSignoutNo.addEventListener("click", () => {
+    uSignoutConfirm.hidden = true;
+    uSignout.hidden = false;
+});
+
+// 确定 → 真的退出
+uSignoutYes.addEventListener("click", async () => {
+    await window.Auth.signOut();
+    uStatus.textContent = "已退出登录";
+    renderAccount();
+});
 
 // 昵称最多 6 个字（汉字算 1 个）；个性签名不限长度
 const NICKNAME_MAX = 6;
