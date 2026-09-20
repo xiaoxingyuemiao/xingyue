@@ -1,0 +1,267 @@
+/* ==============================
+   插画页：横向长画廊
+   （画框与背景花草由 assets/js/gallery.js 生成，这里只管长相）
+   ============================== */
+
+.gallery-body {
+    overflow-x: hidden; /* 横向滚动交给画廊自己处理，页面本身不横滚 */
+}
+
+.gallery {
+    display: flex;
+    flex-direction: column;
+
+    /* 兜底值：JS 会按顶栏/页脚的实测高度设 inline height 覆盖它 */
+    height: calc(100vh - 190px);
+    min-height: 360px;
+
+    padding: 10px 0 14px;
+
+    box-sizing: border-box;
+}
+
+/* ---------- 滚动视口 ---------- */
+
+.gallery-viewport {
+    flex: 1;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    scroll-behavior: smooth;
+
+    /* 原生滚动条藏起来，用下面的毛线球代替 */
+    scrollbar-width: none;
+}
+
+.gallery-viewport::-webkit-scrollbar {
+    display: none;
+}
+
+/* ---------- 长画布 ---------- */
+
+.gallery-canvas {
+    position: relative;
+
+    height: 100%;
+    width: 2000px; /* 真实宽度由 JS 按画框数量算出来 */
+
+    overflow: hidden;
+
+    /* 卡通自然风：淡淡的草地绿 */
+    background: linear-gradient(180deg, #f4fbf0 0%, #e9f5df 55%, #dfeece 100%);
+}
+
+/* ---------- 背景的花草树木 ---------- */
+
+.gallery-deco {
+    position: absolute;
+
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 118%; /* 比画布宽一点，视差平移时不会露边 */
+
+    pointer-events: none;
+
+    z-index: 0;
+}
+
+.deco-item {
+    position: absolute;
+
+    line-height: 1;
+
+    user-select: none;
+
+    transform-origin: 50% 100%;
+
+    animation-name: deco-sway;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+}
+
+@keyframes deco-sway {
+    from {
+        transform: translateY(0) rotate(var(--rot, 0deg));
+    }
+
+    to {
+        transform: translateY(-12px) rotate(calc(var(--rot, 0deg) + 5deg));
+    }
+}
+
+/* ---------- 画框层 ---------- */
+
+.gallery-frames {
+    position: absolute;
+
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+
+    z-index: 1;
+}
+
+/* 木制画框 */
+.frame {
+    position: absolute;
+
+    padding: 12px;
+
+    box-sizing: border-box;
+
+    /* 木纹：一条条细纹 + 木头渐变 */
+    background:
+        repeating-linear-gradient(90deg, rgba(60, 36, 18, 0.07) 0 2px, transparent 2px 9px),
+        linear-gradient(155deg, #bd8654 0%, #a06a3b 55%, #8a5730 100%);
+
+    border-radius: 8px;
+
+    box-shadow:
+        0 12px 26px rgba(88, 60, 36, 0.26),
+        inset 0 0 0 2px rgba(255, 255, 255, 0.16);
+
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.frame:hover {
+    transform: translateY(-6px);
+
+    box-shadow:
+        0 18px 32px rgba(88, 60, 36, 0.32),
+        inset 0 0 0 2px rgba(255, 255, 255, 0.22);
+}
+
+/* 画作区域：以后把 <img> 放进这里就会自动铺满 */
+.frame-art {
+    width: 100%;
+    height: 100%;
+
+    overflow: hidden;
+
+    border-radius: 4px;
+
+    /* 暂定木色（浅一号），贴上画之后就被盖住了 */
+    background:
+        repeating-linear-gradient(90deg, rgba(120, 84, 52, 0.12) 0 3px, rgba(120, 84, 52, 0.02) 3px 10px),
+        linear-gradient(160deg, #ddb489 0%, #cb9c69 100%);
+
+    box-shadow: inset 0 0 0 2px rgba(88, 60, 36, 0.22);
+}
+
+.frame-art img {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+}
+
+/* ---------- 毛线球滚动条 ---------- */
+
+.yarn-bar {
+    position: relative;
+
+    height: 46px;
+
+    margin: 8px 30px 0;
+
+    flex-shrink: 0;
+
+    cursor: pointer;
+}
+
+/* 毛线：一条断断续续的线 */
+.yarn-thread {
+    position: absolute;
+
+    left: 16px;
+    right: 16px;
+    top: 50%;
+
+    height: 3px;
+
+    margin-top: -1.5px;
+
+    border-radius: 3px;
+
+    background-image: linear-gradient(90deg, #cfe3bd 0 11px, transparent 11px 19px);
+    background-size: 19px 3px;
+
+    opacity: 0.85;
+}
+
+/* 毛线球本体 */
+.yarn-ball {
+    position: absolute;
+
+    left: 0;
+    top: 50%;
+
+    width: 40px;
+    height: 40px;
+
+    margin-top: -20px;
+
+    border-radius: 50%;
+
+    /* 两圈斜纹模拟毛线缠绕 */
+    background:
+        repeating-linear-gradient(42deg, rgba(255, 255, 255, 0.38) 0 3px, transparent 3px 7px),
+        repeating-linear-gradient(-40deg, rgba(255, 255, 255, 0.22) 0 3px, transparent 3px 9px),
+        radial-gradient(circle at 34% 30%, #ffd9e7 0%, #f2a5c4 58%, #d97fa8 100%);
+
+    box-shadow:
+        0 6px 14px rgba(176, 108, 143, 0.38),
+        inset -3px -4px 8px rgba(150, 80, 115, 0.22);
+
+    cursor: grab;
+
+    touch-action: none;
+
+    /* 位置用 transform 走（GPU 合成，不触发重排），拖动才跟手 */
+    transform: translateX(var(--ball-x, 0px)) scale(var(--ball-scale, 1));
+
+    transition: transform 0.15s ease;
+}
+
+.yarn-ball:hover {
+    --ball-scale: 1.08;
+}
+
+/* 拖动中：稍微放大，并且关掉过渡 —— 否则每帧都要补间，手感会发黏 */
+.yarn-ball.dragging {
+    --ball-scale: 1.14;
+
+    cursor: grabbing;
+
+    transition: none;
+}
+
+/* ---------- 手机端 ---------- */
+
+@media (max-width: 768px) {
+
+    /* 高度由 JS 统一算，这里不再重复设置 */
+
+    .frame {
+        padding: 9px;
+    }
+
+    .yarn-bar {
+        height: 42px;
+
+        margin: 6px 14px 0;
+    }
+
+    .yarn-ball {
+        width: 36px;
+        height: 36px;
+
+        margin-top: -18px;
+    }
+}

@@ -6,20 +6,38 @@
         <title>插画 - 星月小窝</title>
 
         <link rel="stylesheet" href="assets/css/style.css">
+        <link rel="stylesheet" href="assets/css/gallery.css">
 
         <link rel="icon" href="images/wangzhanmeiye.png">
     </head>
-    <body>
+    <body class="gallery-body">
 
         <!-- 导航栏（由 assets/js/common.js 注入） -->
         <div id="site-header"></div>
 
-        <main>
-            <section class="wip-page">
-                <div class="wip-icon">🖼️</div>
-                <h2>插画</h2>
-                <p>还在装修中，敬请期待～</p>
-            </section>
+        <!-- 横向长画廊：画框与背景花草都由 assets/js/gallery.js 随机生成 -->
+        <main class="gallery">
+
+            <div class="gallery-viewport" id="gallery-viewport">
+
+                <div class="gallery-canvas" id="gallery-canvas">
+
+                    <!-- 背景的花草树木 -->
+                    <div class="gallery-deco" id="gallery-deco"></div>
+
+                    <!-- 画框（从左到右编号，编号只写在 data 属性里，不显示） -->
+                    <div class="gallery-frames" id="gallery-frames"></div>
+
+                </div>
+
+            </div>
+
+            <!-- 毛线球滚动条：拖它、点轨道、滚轮都能移动画廊 -->
+            <div class="yarn-bar" id="yarn-bar">
+                <div class="yarn-thread"></div>
+                <div class="yarn-ball" id="yarn-ball" title="拖动我去逛画廊"></div>
+            </div>
+
         </main>
 
         <!-- 页脚（由 assets/js/common.js 注入） -->
@@ -31,5 +49,6 @@
         </script>
 
         <script src="assets/js/common.js"></script>
+        <script src="assets/js/gallery.js"></script>
     </body>
 </html>
