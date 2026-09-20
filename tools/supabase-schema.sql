@@ -21,7 +21,9 @@
 
 
 -- ------------------------------------------------------------
--- ① uid 池：1 ~ 2000，user_id 为 null 表示空闲
+-- ① uid 池
+--    1000 ~ 3000 是「正常分配区」：新用户按从小到大顺序拿号
+--    1 ~ 999 是「保留区」：不放进池子，永远不会被自动分配（留给测试账号手动指定）
 -- ------------------------------------------------------------
 create table if not exists public.uid_pool (
     uid         int primary key,
@@ -29,10 +31,13 @@ create table if not exists public.uid_pool (
     assigned_at timestamptz
 );
 
--- 预生成编号（已存在的会跳过）
+-- 只预生成 1000 起的号（1~999 保留，需要时手动 insert）
 insert into public.uid_pool (uid)
-select generate_series(1, 2000)
+select generate_series(1000, 3000)
 on conflict (uid) do nothing;
+
+-- 如果之前误把保留号放进了池子，清掉空闲的那些
+delete from public.uid_pool where uid < 1000 and user_id is null;
 
 
 -- ------------------------------------------------------------
@@ -73,7 +78,8 @@ create table if not exists public.chat_sessions (
 
 
 -- ------------------------------------------------------------
--- ⑤ 新用户注册 → 自动分配一个空闲 uid（随机挑，注销空出来的会优先被复用）
+-- ⑤ 新用户注册 → 分配 uid（从 1000 起，按从小到大顺序给）
+--    注销后被释放的号会重新变空闲，于是会被下一个新用户优先拿到
 -- ------------------------------------------------------------
 create or replace function public.handle_new_user()
 returns trigger
@@ -84,16 +90,16 @@ as $$
 declare
     picked int;
 begin
-    -- 从池子里随机挑一个空闲编号
+    -- 取「1000 以上、最小的空闲编号」→ 顺序递增
     select uid into picked
     from public.uid_pool
-    where user_id is null
-    order by random()
+    where user_id is null and uid >= 1000
+    order by uid
     limit 1;
 
     if picked is null then
-        -- 池子用完了：往后加一个（并顺便扩容到 2000 以上）
-        select coalesce(max(uid), 0) + 1 into picked from public.uid_pool;
+        -- 池子里的号都用完了：往后加一个（并入库）
+        select coalesce(max(uid), 999) + 1 into picked from public.uid_pool;
         insert into public.uid_pool (uid, user_id, assigned_at)
         values (picked, new.id, now())
         on conflict (uid) do update set user_id = new.id, assigned_at = now();
@@ -212,6 +218,7 @@ grant select, insert, update, delete on public.chat_sessions to authenticated;
 -- ⑨ 补齐历史用户（脚本执行前就注册过的账号）
 --   触发器只对"之后注册"的用户生效，之前的老账号没有 profiles 行，
 --   那段代码一次性给它们补上 uid + profiles（可重复执行，已补过的会跳过）
+--   编号同样从 1000 起顺序分配
 -- ------------------------------------------------------------
 do $$
 declare
@@ -224,12 +231,12 @@ begin
     loop
         select uid into picked
         from public.uid_pool
-        where user_id is null
-        order by random()
+        where user_id is null and uid >= 1000
+        order by uid
         limit 1;
 
         if picked is null then
-            select coalesce(max(uid), 0) + 1 into picked from public.uid_pool;
+            select coalesce(max(uid), 999) + 1 into picked from public.uid_pool;
             insert into public.uid_pool (uid, user_id, assigned_at)
             values (picked, u.id, now());
         else
@@ -248,7 +255,41 @@ end $$;
 
 
 -- ------------------------------------------------------------
--- ⑩ 注销账号用的数据库函数
+-- ⑩ 把已有的「保留区编号」迁到 1000 起（可选，只跑一次）
+--   如果之前的测试账号拿到了 1~999 里的号，跑这段会重新分配成 1000+
+-- ------------------------------------------------------------
+-- do $$
+-- declare
+--     p record;
+--     picked int;
+-- begin
+--     for p in select user_id, uid from public.profiles where uid < 1000
+--     loop
+--         update public.uid_pool set user_id = null, assigned_at = null where uid = p.uid;
+--
+--         select uid into picked from public.uid_pool
+--         where user_id is null and uid >= 1000 order by uid limit 1;
+--
+--         update public.uid_pool set user_id = p.user_id, assigned_at = now() where uid = picked;
+--         update public.profiles set uid = picked where user_id = p.user_id;
+--     end loop;
+-- end $$;
+
+
+-- ------------------------------------------------------------
+-- ⑪ 手动给某个测试账号指定保留号（1~999）
+--   1. 先在 Authentication → Users 里找到那个账号的 id（UUID）
+--   2. 把下面的 <用户UUID> 和 1 换成你要的
+-- ------------------------------------------------------------
+-- insert into public.uid_pool (uid, user_id, assigned_at)
+-- values (1, '<用户UUID>', now())
+-- on conflict (uid) do update set user_id = excluded.user_id, assigned_at = now();
+--
+-- update public.profiles set uid = 1 where user_id = '<用户UUID>';
+
+
+-- ------------------------------------------------------------
+-- ⑫ 注销账号用的数据库函数
 --   Supabase 不允许前端直接删自己的账号（DELETE /auth/v1/user 会返回 405），
 --   所以用一个 security definer 函数代劳：
 --     · 函数内部只允许删「当前登录者自己」那一行（auth.uid()）
@@ -276,7 +317,7 @@ grant execute on function public.delete_own_account() to authenticated;
 
 
 -- ------------------------------------------------------------
--- ⑪ 自检：看看建好了没
+-- ⑬ 自检：看看建好了没
 -- ------------------------------------------------------------
 -- 空闲编号数量（应该接近 2000）
 -- select count(*) as free_uids from public.uid_pool where user_id is null;
