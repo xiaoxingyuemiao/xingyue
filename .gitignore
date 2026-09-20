@@ -23,7 +23,8 @@ Desktop.ini
 
 # ==============================
 # 密钥与敏感信息 —— 绝对禁止上传！
-# （本地 .git/hooks/pre-commit + pre-push 守卫会双重拦截）
+# （tools/hooks/ 里的 pre-commit + pre-push 守卫会双重拦截，
+#   每个协作者 clone 后执行一次 npm run hooks 才会生效）
 # ==============================
 
 # 环境变量文件（.env.example / .env.sample 是模板，允许提交）

@@ -6,7 +6,8 @@
   "scripts": {
     "start": "npx --yes serve .",
     "preview": "npx --yes serve .",
-    "check": "node tools/check.js"
+    "check": "node tools/check.js",
+    "hooks": "git config core.hooksPath tools/hooks"
   },
   "dependencies": {},
   "devDependencies": {}

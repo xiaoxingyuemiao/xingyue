@@ -1,0 +1,24 @@
+#!/bin/sh
+# ================================
+# 提交前检查（pre-commit）
+#   1. 代码检查：node tools/check.js（JS 语法 / 模型 JSON 与引用 / 页面链接 / 元素 id）
+#   2. 密钥扫描：暂存区里有没有密钥、凭证、.env 之类
+#
+# 装到仓库里（每个协作者 clone 后做一次）：
+#   npm run hooks          # 等价于 git config core.hooksPath tools/hooks
+# 临时绕过（谨慎）：
+#   git commit --no-verify
+# ================================
+
+cd "$(git rev-parse --show-toplevel)" || exit 1
+
+if ! command -v node >/dev/null 2>&1; then
+    echo "⚠️  没找到 node，跳过提交前检查（想启用请先装 Node.js）"
+    exit 0
+fi
+
+echo "🔍 检查代码……"
+node tools/check.js || exit 1
+
+echo "🔍 扫描密钥……"
+git diff --cached --name-only --diff-filter=ACM | node tools/hooks/scan-secrets.js || exit 1

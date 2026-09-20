@@ -1,0 +1,20 @@
+#!/bin/sh
+# ================================
+# 推送前检查（pre-push）
+# 把仓库里所有已跟踪的文件再扫一遍密钥 —— 防的是"提交时用 --no-verify 绕过
+# pre-commit，然后直接把密钥推上去"这种情况。
+#
+# 装到仓库里（每个协作者 clone 后做一次）：
+#   npm run hooks          # 等价于 git config core.hooksPath tools/hooks
+# 临时绕过（谨慎）：
+#   git push --no-verify
+# ================================
+
+cd "$(git rev-parse --show-toplevel)" || exit 1
+
+if ! command -v node >/dev/null 2>&1; then
+    exit 0
+fi
+
+echo "🔍 推送前扫描密钥……"
+git ls-files | node tools/hooks/scan-secrets.js || exit 1
