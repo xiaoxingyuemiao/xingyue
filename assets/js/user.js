@@ -52,11 +52,12 @@ uAvatar.addEventListener("input", () => {
     avatarPreview.textContent = uAvatar.value.trim() || "🐱";
 });
 
-// 保存
+// 保存（昵称最多 6 个汉字：输入框已用 maxlength 限制，这里再兜一层防止粘贴绕过；
+// 个性签名不限制长度）
 uSave.addEventListener("click", () => {
     window.Store.writeJSON(USER_KEY, {
         avatar: uAvatar.value.trim() || "🐱",
-        nickname: uNickname.value.trim() || "小喵",
+        nickname: (uNickname.value.trim() || "小喵").slice(0, 6),
         signature: uSignature.value.trim() || "",
     });
     uStatus.textContent = "已保存 ✓ 首页侧边栏会自动更新";
