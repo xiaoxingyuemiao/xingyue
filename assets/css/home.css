@@ -149,6 +149,10 @@ body {
     height: 34px;
 
     border-radius: 8px;
+
+    /* 网站图标不参与拖选，也不能被拖出去 */
+    user-select: none;
+    -webkit-user-drag: none;
 }
 
 /* ---------- 菜单（每个按钮整行可点击，点击范围占满侧边栏宽度） ---------- */
@@ -718,6 +722,10 @@ body {
     height: 24px;
 
     border-radius: 50%;
+
+    /* 角色按钮图标不参与拖选，也不能被拖出去 */
+    user-select: none;
+    -webkit-user-drag: none;
 }
 
 .chat-role-btn:hover {
