@@ -385,6 +385,22 @@ body {
 
     width: 100%;
     height: 100vh;
+
+    /* 显示时整块淡入：侧边栏、左下角用户区、主空间同步出现，
+       不会出现"某一个元素比别人先冒出来"的闪动 */
+    animation: homeScreenIn 0.22s ease-out;
+}
+
+@keyframes homeScreenIn {
+
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+
 }
 
 /* ==============================
@@ -683,32 +699,6 @@ body {
     font-weight: bold;
 
     overflow: hidden; /* 超出的部分直接裁掉，不加省略号 */
-}
-
-.user-status {
-    margin-top: 2px;
-
-    font-size: 13px;
-
-    opacity: 0.55;
-
-    overflow: hidden;
-
-    /* 签名由 main.js 按「每行最多 6 个字符」插好换行符，这里让换行生效；
-       平时只露第一行，鼠标移上来（白底延长）才把第二行也显示出来 */
-    white-space: pre-line;
-    line-height: 1.25;
-    max-height: 1.3em;
-}
-
-/* 鼠标移上来：白底向右延长，第二行签名也一起显示 */
-.sidebar-user:hover .user-status {
-    max-height: none;
-}
-
-/* 签名有两行时，头像和名字整体往上挪一点点，底部不至于太挤 */
-.sidebar-user.two-lines:hover {
-    padding-bottom: 18px;
 }
 
 /* ---------- 收起状态（44px：图标两侧各留 5px） ---------- */
@@ -1335,10 +1325,6 @@ body {
 
     .user-name {
         font-size: 15px;
-    }
-
-    .user-status {
-        font-size: 12px;
     }
 
     /* ---------- 登录框（手机端回到居中：屏幕窄，靠右会挤） ---------- */

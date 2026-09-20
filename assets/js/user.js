@@ -14,7 +14,6 @@ const uNickname = document.querySelector("#u-nickname");
 const uSignature = document.querySelector("#u-signature");
 const uSave = document.querySelector("#u-save");
 const uStatus = document.querySelector("#u-status");
-const uAccount = document.querySelector("#u-account");
 
 // 退出登录（卡片最下方）：点一下先在原地问一次，确认后才真的退
 const uSignoutArea = document.querySelector("#u-signout-area");
@@ -52,19 +51,9 @@ function renderAvatarPreview() {
     renderAvatar(avatarPreview, pickedAvatar || savedAvatar);
 }
 
-// 顶部显示登录状态；「退出登录」整块只在登录后出现，且每次都回到未确认状态
+// 顶部不再显示登录状态；「退出登录」整块只在登录后出现，且每次都回到未确认状态
 function renderAccount() {
-    if (!uAccount) {
-        return;
-    }
     const user = window.Auth && window.Auth.current ? window.Auth.current() : null;
-    if (user) {
-        uAccount.textContent = "已登录：" + user.email;
-        uAccount.className = "user-account user-account-on";
-    } else {
-        uAccount.textContent = "未登录 —— 回首页点左下角用户栏即可登录";
-        uAccount.className = "user-account";
-    }
 
     if (uSignoutArea) {
         uSignoutArea.hidden = !user;
@@ -95,8 +84,8 @@ uSignoutYes.addEventListener("click", async () => {
     window.location.href = "index.html";
 });
 
-// 昵称最多 6 个字（汉字算 1 个）；个性签名不限长度
-const NICKNAME_MAX = 6;
+// 昵称最多 12 个字符（汉字、字母、数字都算 1 个）；个性签名不限长度
+const NICKNAME_MAX = 12;
 
 // 按「字符」截断：用 Array.from 而不是 slice，免得把 emoji 这种字符切成两半
 function cutNickname(text) {
@@ -109,7 +98,7 @@ function limitNicknameInput() {
     const cut = cutNickname(uNickname.value);
     if (cut !== uNickname.value) {
         uNickname.value = cut;
-        uStatus.textContent = "昵称最多 " + NICKNAME_MAX + " 个字，超出的部分已自动去掉";
+        uStatus.textContent = "昵称最多 " + NICKNAME_MAX + " 个字符，超出的部分已自动去掉";
     }
 }
 
@@ -215,10 +204,14 @@ function loadUser() {
     renderAvatarPreview();
 }
 
-// 保存：昵称先规范到 6 个字以内并写回输入框，签名不限制长度
+// 保存：昵称先规范到 12 个字符以内并写回输入框，签名不限制长度
+// 没填昵称时用默认名（小窝第 N 成员）
 uSave.addEventListener("click", () => {
     limitNicknameInput();
-    const nickname = uNickname.value.trim() || "小喵";
+    const fallback = (window.Auth && window.Auth.defaultDisplayName)
+        ? window.Auth.defaultDisplayName()
+        : "小窝成员";
+    const nickname = uNickname.value.trim() || fallback;
     uNickname.value = nickname;
 
     const avatar = pickedAvatar || savedAvatar || DEFAULT_AVATAR;

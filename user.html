@@ -57,10 +57,7 @@
                         个人资料
                     </h2>
 
-<!-- 登录状态（已登录时显示邮箱） -->
-                <p class="user-account" id="u-account"></p>
-
-                <!-- 头像预览 -->
+<!-- 头像预览 -->
                 <div class="user-avatar-preview" id="avatar-preview">🐱</div>
 
                 <!-- 上传头像：图片会居中裁成正方形、缩到 128×128 存本地；
@@ -77,10 +74,10 @@
 
 
                 <label class="settings-label" for="u-nickname">
-                    昵称（最多 6 个汉字）
+                    昵称（最多 12 个字符，留空则用「小窝第 N 成员」）
                 </label>
 
-                <input class="settings-input" id="u-nickname" type="text" maxlength="6" placeholder="最多六个字">
+                <input class="settings-input" id="u-nickname" type="text" maxlength="12" placeholder="最多十二个字符">
 
 
                 <label class="settings-label" for="u-signature">

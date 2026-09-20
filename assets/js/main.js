@@ -137,56 +137,24 @@ sidebarMenu.addEventListener("click", (event) => {
     }
 });
 
-// ---------- 用户区域：登录状态 / 用户设置 ----------
+// ---------- 用户区域：登录状态 / 个人中心 ----------
 
-const userStatusEl = document.querySelector(".user-status");
-
-// 侧边栏太窄，邮箱显示成前 10 个字符 + 省略号（完整邮箱放 title）
-function shortEmail(email) {
-    const name = String(email || "").split("@")[0];
-    return name.length > 10 ? name.slice(0, 10) + "…" : name;
-}
-
-// 侧边栏签名排版：每行最多 6 个字符、最多两行；
-// 超过两行的容量时，第 2 行的最后一个字符位置换成省略号
-const SIGNATURE_LINE_CHARS = 6;
-const SIGNATURE_LINE_MAX = 2;
-
-function formatSignature(text) {
-    const chars = Array.from(String(text || ""));
-    const capacity = SIGNATURE_LINE_CHARS * SIGNATURE_LINE_MAX;
-
-    let shown = chars;
-    if (chars.length > capacity) {
-        shown = chars.slice(0, capacity - 1).concat("…");
-    }
-
-    const lines = [];
-    for (let i = 0; i < shown.length; i += SIGNATURE_LINE_CHARS) {
-        lines.push(shown.slice(i, i + SIGNATURE_LINE_CHARS).join(""));
-    }
-    return { text: lines.join("\n"), lines: lines.length };
-}
-
-// 更新侧边栏底部的用户区域
+// 更新侧边栏底部的用户区域：只展示「头像 + 名字」
+// 名字优先用用户设的昵称，没设过就用默认名（小窝第 N 成员）；未登录显示「点击登录」
 function renderAuthState() {
     const user = window.Auth.current();
     const profile = window.Store.readJSON(window.Store.KEYS.user, null);
-    const signature = (profile && profile.signature) || "";
+    const nickname = (profile && profile.nickname) || "";
 
-    // 名字下面：优先显示个性签名（每行 6 个字符、最多两行），
-    // 没写签名时才回退到邮箱前缀（已登录）/「点击登录」
-    if (signature) {
-        const sig = formatSignature(signature);
-        userStatusEl.textContent = sig.text;
-        // 两行签名时整块往上挪一点点（见 home.css 的 .sidebar-user.two-lines）
-        sidebarUser.classList.toggle("two-lines", sig.lines > 1);
+    if (nickname) {
+        userNameEl.textContent = nickname;
+    } else if (user) {
+        userNameEl.textContent = window.Auth.defaultDisplayName();
     } else {
-        sidebarUser.classList.remove("two-lines");
-        userStatusEl.textContent = user ? shortEmail(user.email) : "点击登录";
+        userNameEl.textContent = "点击登录";
     }
 
-    // 不设 title：鼠标移到左下角用户栏时不再弹出提示框（HTML 里可能写死的也一并清掉）
+    // 不设 title：鼠标移到左下角用户栏时不再弹出提示框
     sidebarUser.removeAttribute("title");
 }
 
@@ -223,12 +191,9 @@ function renderAvatar(el, avatar) {
     el.textContent = (value && Array.from(value).length <= 4) ? value : "🐱";
 }
 
-// 从本地读取用户信息（昵称 / 头像），没有就保持默认
+// 从本地读取头像（名字由 renderAuthState 负责）
 function renderUserInfo() {
     const u = window.Store.readJSON(window.Store.KEYS.user, null);
-    if (u && u.nickname) {
-        userNameEl.textContent = u.nickname;
-    }
     renderAvatar(userAvatarEl, u && u.avatar);
 }
 
