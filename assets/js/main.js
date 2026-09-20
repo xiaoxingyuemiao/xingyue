@@ -196,13 +196,13 @@ function renderAuthState() {
 sidebarUser.addEventListener("click", () => {
     const user = window.Auth.current();
     if (user) {
-        // 已登录 → 进入用户设置页
+        // 已登录 → 进入个人中心（个人资料 + 设置）
         window.location.href = "user.html";
     } else {
-        // 未登录（包括游客进入的）→ 回到第一次进来那个登录页，停在第一张卡
-        // （首页左下角的小面板先不用了，相关代码保留着，以后想改回来随时可以）
+        // 未登录（包括游客进入的）→ 回到起始屏，停在"登录"卡
         authScreen.style.display = "flex";
-        showStartChoiceStep();
+        showAuthCard("login");
+        setCardMsg(loginMsg, "");
     }
 });
 
@@ -246,151 +246,407 @@ function enterHomeScreen() {
     homeScreen.style.display = "flex";
 }
 
-guestButton.addEventListener("click", () => {
-    enterHomeScreen();
-});
+// ================================
+// 起始屏：四张卡（选择方式 / 登录 / 注册 / 找回密码）
+// 登录支持两种方式：邮箱+密码、邮箱+验证码
+// ================================
 
-// ---------- 起始屏第二张卡：邮箱 + 验证码 ----------
+const authCards = {
+    choice: document.querySelector("#start-step-choice"),
+    login: document.querySelector("#start-step-login"),
+    register: document.querySelector("#start-step-register"),
+    forgot: document.querySelector("#start-step-forgot"),
+};
 
-const startStepChoice = document.querySelector("#start-step-choice");
-const startStepCode = document.querySelector("#start-step-code");
-const startEmail = document.querySelector("#start-email");
-const startCode = document.querySelector("#start-code");
-const startSend = document.querySelector("#start-send");
-const startVerify = document.querySelector("#start-verify");
-const startBack = document.querySelector("#start-back");
-const startMsg = document.querySelector("#start-msg");
+// ---- 登录卡 ----
+const loginEmail = document.querySelector("#login-email");
+const loginPassword = document.querySelector("#login-password");
+const loginModePassword = document.querySelector("#login-mode-password");
+const loginModeCode = document.querySelector("#login-mode-code");
+const loginCode = document.querySelector("#login-code");
+const loginSend = document.querySelector("#login-send");
+const loginSubmit = document.querySelector("#login-submit");
+const loginSwitch = document.querySelector("#login-switch");
+const loginForgot = document.querySelector("#login-forgot");
+const loginToRegister = document.querySelector("#login-to-register");
+const loginBack = document.querySelector("#login-back");
+const loginSubtitle = document.querySelector("#login-subtitle");
+const loginMsg = document.querySelector("#login-msg");
 
-let startPendingEmail = ""; // 刚发过验证码的邮箱
-let startResendTimer = null;
+// ---- 注册卡 ----
+const regEmail = document.querySelector("#reg-email");
+const regPassword = document.querySelector("#reg-password");
+const regPassword2 = document.querySelector("#reg-password2");
+const regCode = document.querySelector("#reg-code");
+const regSubmit = document.querySelector("#reg-submit");
+const regToLogin = document.querySelector("#reg-to-login");
+const regBack = document.querySelector("#reg-back");
+const regMsg = document.querySelector("#reg-msg");
 
-function setStartMsg(text, kind) {
-    startMsg.textContent = text || "";
-    startMsg.className = "auth-msg" + (kind ? " auth-msg-" + kind : "");
+// ---- 找回密码卡 ----
+const fgEmail = document.querySelector("#fg-email");
+const fgCode = document.querySelector("#fg-code");
+const fgSend = document.querySelector("#fg-send");
+const fgPassword = document.querySelector("#fg-password");
+const fgPassword2 = document.querySelector("#fg-password2");
+const fgSubmit = document.querySelector("#fg-submit");
+const fgBack = document.querySelector("#fg-back");
+const fgMsg = document.querySelector("#fg-msg");
+
+// 状态
+let loginUseCode = false;   // 登录方式：false = 密码，true = 验证码
+const resendTimers = { login: null, reg: null, forgot: null };
+
+function isEmail(v) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v || "").trim());
 }
 
-// 翻到第二张卡：卡片位置不变，只是换了内容
-function showStartCodeStep() {
-    startStepChoice.hidden = true;
-    startStepCode.hidden = false;
-    setStartMsg("");
+function setCardMsg(el, text, kind) {
+    el.textContent = text || "";
+    el.className = "auth-msg" + (kind ? " auth-msg-" + kind : "");
+}
 
-    // 自动填上次用过的邮箱
-    if (!startEmail.value) {
-        startEmail.value = window.Store.readJSON(window.Store.KEYS.lastEmail, "") || "";
+function rememberEmail(email) {
+    window.Store.writeJSON(window.Store.KEYS.lastEmail, email);
+}
+
+function lastEmail() {
+    return window.Store.readJSON(window.Store.KEYS.lastEmail, "") || "";
+}
+
+// 切换显示的卡片
+function showAuthCard(name) {
+    for (const key of Object.keys(authCards)) {
+        authCards[key].hidden = key !== name;
     }
-    startEmail.focus();
+    // 回到登录卡时，自动填上次用过的邮箱
+    if (name === "login" && !loginEmail.value) {
+        loginEmail.value = lastEmail();
+    }
+    if (name === "forgot" && !fgEmail.value) {
+        fgEmail.value = lastEmail();
+    }
+    if (name === "login") {
+        loginEmail.focus();
+    } else if (name === "register") {
+        regEmail.focus();
+    } else if (name === "forgot") {
+        fgEmail.focus();
+    }
 }
 
-// 翻回第一张卡
-function showStartChoiceStep() {
-    startStepCode.hidden = true;
-    startStepChoice.hidden = false;
-    startCode.value = "";
-    setStartMsg("");
-}
-
-// 60 秒重发倒计时（Supabase 有冷却，先拦住，免得点了被报"太频繁"）
-function startResendCountdown() {
-    if (startResendTimer) {
-        clearInterval(startResendTimer);
+// 通用的重发倒计时（按钮上显示剩余秒数）
+function startResendCountdown(key, btn, normalText) {
+    if (resendTimers[key]) {
+        clearInterval(resendTimers[key]);
     }
     let left = 60;
-    startSend.disabled = true;
-    startSend.textContent = left + " 秒后可重发";
-
-    startResendTimer = setInterval(() => {
+    btn.disabled = true;
+    btn.textContent = left + " 秒后可重发";
+    resendTimers[key] = setInterval(() => {
         left--;
         if (left <= 0) {
-            clearInterval(startResendTimer);
-            startResendTimer = null;
-            startSend.disabled = false;
-            startSend.textContent = "发送验证码";
+            clearInterval(resendTimers[key]);
+            resendTimers[key] = null;
+            btn.disabled = false;
+            btn.textContent = normalText;
         } else {
-            startSend.textContent = left + " 秒后可重发";
+            btn.textContent = left + " 秒后可重发";
         }
     }, 1000);
 }
 
-// 发送验证码
-startSend.addEventListener("click", async () => {
-    const email = startEmail.value.trim();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        setStartMsg("请输入正确的邮箱地址", "error");
-        return;
-    }
-    if (!window.Auth.isConfigured()) {
-        setStartMsg("还没配置 Supabase（见 assets/data/supabase-config.js）", "error");
-        return;
-    }
-
-    startSend.disabled = true;
-    startSend.textContent = "发送中……";
-    try {
-        await window.Auth.sendCode(email);
-        startPendingEmail = email;
-        window.Store.writeJSON(window.Store.KEYS.lastEmail, email);
-        setStartMsg("验证码已发送到 " + email + "，请查收（可能在垃圾邮件里）", "ok");
-        startCode.focus();
-        startResendCountdown();
-    } catch (e) {
-        setStartMsg(e.message || "发送失败，请稍后再试", "error");
-        startSend.disabled = false;
-        startSend.textContent = "发送验证码";
-    }
-});
-
-// 验证码登录：通过就进首页
-startVerify.addEventListener("click", async () => {
-    const token = startCode.value.trim();
-    if (!/^\d{4,10}$/.test(token)) {
-        setStartMsg("请输入邮件里的数字验证码", "error");
-        return;
-    }
-
-    startVerify.disabled = true;
-    startVerify.textContent = "验证中……";
-    try {
-        await window.Auth.verifyCode(startPendingEmail || startEmail.value.trim(), token);
-        startPendingEmail = "";
-        startCode.value = "";
-        setStartMsg("登录成功 ✓ 正在进入……", "ok");
-        setTimeout(enterHomeScreen, 600);
-    } catch (e) {
-        setStartMsg(e.message || "验证码不正确", "error");
-        startCode.select();
-    } finally {
-        startVerify.disabled = false;
-        startVerify.textContent = "登录";
-    }
-});
-
-// 回车快捷提交
-startEmail.addEventListener("keydown", (event) => {
-    if (event.key === "Enter" && !startSend.disabled) {
-        startSend.click();
-    }
-});
-startCode.addEventListener("keydown", (event) => {
-    if (event.key === "Enter" && !startVerify.disabled) {
-        startVerify.click();
-    }
-});
-
-startBack.addEventListener("click", showStartChoiceStep);
-
-// 「登录」「注册」都翻到第二张卡（已注册的邮箱也能登录：验证码流程对老账号同样发码）
-function startEmailAuth() {
-    showStartCodeStep();
+// 登录成功后统一收尾
+function authSuccess(text, msgEl) {
+    setCardMsg(msgEl, text + " ✓ 正在进入……", "ok");
+    setTimeout(enterHomeScreen, 600);
 }
 
+// ---------- 选择卡 ----------
+
+guestButton.addEventListener("click", () => {
+    enterHomeScreen();
+});
+
 if (loginButton) {
-    loginButton.addEventListener("click", startEmailAuth);
+    loginButton.addEventListener("click", () => {
+        showAuthCard("login");
+        setCardMsg(loginMsg, "");
+    });
 }
 
 if (registerButton) {
-    registerButton.addEventListener("click", startEmailAuth);
+    registerButton.addEventListener("click", () => {
+        showAuthCard("register");
+        setCardMsg(regMsg, "");
+    });
 }
+
+// ---------- 登录卡：两种方式切换 ----------
+
+function applyLoginMode() {
+    loginModePassword.hidden = loginUseCode;
+    loginModeCode.hidden = !loginUseCode;
+    loginSubtitle.textContent = loginUseCode ? "邮箱 + 验证码" : "邮箱 + 密码";
+    loginSwitch.textContent = loginUseCode ? "改用密码登录" : "改用验证码登录";
+}
+
+loginSwitch.addEventListener("click", () => {
+    loginUseCode = !loginUseCode;
+    applyLoginMode();
+    setCardMsg(loginMsg, "");
+});
+
+// 发送验证码（登录用）
+loginSend.addEventListener("click", async () => {
+    const email = loginEmail.value.trim();
+    if (!isEmail(email)) {
+        setCardMsg(loginMsg, "请输入正确的邮箱地址", "error");
+        return;
+    }
+    loginSend.disabled = true;
+    loginSend.textContent = "发送中……";
+    try {
+        await window.Auth.sendCode(email);
+        rememberEmail(email);
+        setCardMsg(loginMsg, "验证码已发送到 " + email + "，请查收（可能在垃圾邮件里）", "ok");
+        loginCode.focus();
+        startResendCountdown("login", loginSend, "发送验证码");
+    } catch (e) {
+        setCardMsg(loginMsg, e.message || "发送失败，请稍后再试", "error");
+        loginSend.disabled = false;
+        loginSend.textContent = "发送验证码";
+    }
+});
+
+// 登录提交
+loginSubmit.addEventListener("click", async () => {
+    const email = loginEmail.value.trim();
+    if (!isEmail(email)) {
+        setCardMsg(loginMsg, "请输入正确的邮箱地址", "error");
+        return;
+    }
+
+    loginSubmit.disabled = true;
+    loginSubmit.textContent = "登录中……";
+    try {
+        if (loginUseCode) {
+            const token = loginCode.value.trim();
+            if (!/^\d{4,10}$/.test(token)) {
+                throw new Error("请输入邮件里的数字验证码");
+            }
+            await window.Auth.verifyCode(email, token);
+            rememberEmail(email);
+        } else {
+            const password = loginPassword.value;
+            if (!password) {
+                throw new Error("请输入密码（也可以改用验证码登录）");
+            }
+            await window.Auth.signInWithPassword(email, password);
+            rememberEmail(email);
+        }
+        loginPassword.value = "";
+        loginCode.value = "";
+        authSuccess("登录成功", loginMsg);
+    } catch (e) {
+        setCardMsg(loginMsg, e.message || "登录失败，请检查邮箱和密码", "error");
+    } finally {
+        loginSubmit.disabled = false;
+        loginSubmit.textContent = "登录";
+    }
+});
+
+// 回车提交
+for (const el of [loginEmail, loginPassword, loginCode]) {
+    el.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            loginSubmit.click();
+        }
+    });
+}
+
+loginForgot.addEventListener("click", () => {
+    showAuthCard("forgot");
+    setCardMsg(fgMsg, "");
+});
+
+loginToRegister.addEventListener("click", () => {
+    showAuthCard("register");
+    setCardMsg(regMsg, "");
+    // 把登录卡填的邮箱带过去
+    if (!regEmail.value && loginEmail.value.trim()) {
+        regEmail.value = loginEmail.value.trim();
+    }
+});
+
+loginBack.addEventListener("click", () => {
+    showAuthCard("choice");
+});
+
+// ---------- 注册卡 ----------
+
+let regCodeSent = false; // 是否已经发过注册验证码
+
+regSubmit.addEventListener("click", async () => {
+    const email = regEmail.value.trim();
+    const pwd = regPassword.value;
+    const pwd2 = regPassword2.value;
+
+    if (!isEmail(email)) {
+        setCardMsg(regMsg, "请输入正确的邮箱地址", "error");
+        return;
+    }
+    if (pwd.length < 6) {
+        setCardMsg(regMsg, "密码至少 6 位", "error");
+        return;
+    }
+    if (pwd !== pwd2) {
+        setCardMsg(regMsg, "两次输入的密码不一样，请检查", "error");
+        return;
+    }
+
+    regSubmit.disabled = true;
+    regSubmit.textContent = "处理中……";
+    try {
+        const code = regCode.value.trim();
+
+        // 还没发码 → 先创建账号（Supabase 会发确认验证码）
+        if (!regCodeSent || !code) {
+            const result = await window.Auth.signUp(email, pwd);
+            rememberEmail(email);
+            if (result.needVerify === false) {
+                // 项目没开邮箱确认，注册即登录
+                authSuccess("注册成功", regMsg);
+                return;
+            }
+            regCodeSent = true;
+            setCardMsg(regMsg, "验证码已发送到 " + email + "，请填入邮件里的验证码，然后再点一次「注册」", "ok");
+            regCode.focus();
+            return;
+        }
+
+        // 已发码且填了验证码 → 校验并完成注册
+        await window.Auth.verifySignup(email, code);
+        authSuccess("注册成功", regMsg);
+    } catch (e) {
+        setCardMsg(regMsg, e.message || "注册失败，请稍后再试", "error");
+    } finally {
+        regSubmit.disabled = false;
+        regSubmit.textContent = "注册";
+    }
+});
+
+for (const el of [regEmail, regPassword, regPassword2, regCode]) {
+    el.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            regSubmit.click();
+        }
+    });
+}
+
+regToLogin.addEventListener("click", () => {
+    showAuthCard("login");
+    setCardMsg(loginMsg, "");
+    if (!loginEmail.value && regEmail.value.trim()) {
+        loginEmail.value = regEmail.value.trim();
+    }
+});
+
+regBack.addEventListener("click", () => {
+    showAuthCard("choice");
+});
+
+// ---------- 忘记密码卡 ----------
+
+fgSend.addEventListener("click", async () => {
+    const email = fgEmail.value.trim();
+    if (!isEmail(email)) {
+        setCardMsg(fgMsg, "请输入注册时用的邮箱", "error");
+        return;
+    }
+    fgSend.disabled = true;
+    fgSend.textContent = "发送中……";
+    try {
+        await window.Auth.sendRecovery(email);
+        rememberEmail(email);
+        setCardMsg(fgMsg, "重置验证码已发送到 " + email + "，请查收（可能在垃圾邮件里）", "ok");
+        fgCode.focus();
+        startResendCountdown("forgot", fgSend, "发送验证码");
+    } catch (e) {
+        setCardMsg(fgMsg, e.message || "发送失败，请稍后再试", "error");
+        fgSend.disabled = false;
+        fgSend.textContent = "发送验证码";
+    }
+});
+
+fgSubmit.addEventListener("click", async () => {
+    const email = fgEmail.value.trim();
+    const token = fgCode.value.trim();
+    const pwd = fgPassword.value;
+    const pwd2 = fgPassword2.value;
+
+    if (!isEmail(email)) {
+        setCardMsg(fgMsg, "请输入注册时用的邮箱", "error");
+        return;
+    }
+    if (!/^\d{4,10}$/.test(token)) {
+        setCardMsg(fgMsg, "请输入邮件里的数字验证码", "error");
+        return;
+    }
+    if (pwd.length < 6) {
+        setCardMsg(fgMsg, "新密码至少 6 位", "error");
+        return;
+    }
+    if (pwd !== pwd2) {
+        setCardMsg(fgMsg, "两次输入的新密码不一样，请检查", "error");
+        return;
+    }
+
+    fgSubmit.disabled = true;
+    fgSubmit.textContent = "重置中……";
+    try {
+        // 1. 校验验证码（会拿到一个临时登录态）
+        await window.Auth.verifyRecovery(email, token);
+        // 2. 用这个登录态设置新密码
+        await window.Auth.updatePassword(pwd);
+        // 3. 退出临时登录态，让用户用新密码正式登录
+        await window.Auth.signOut();
+        rememberEmail(email);
+
+        fgCode.value = "";
+        fgPassword.value = "";
+        fgPassword2.value = "";
+        showAuthCard("login");
+        loginUseCode = false;
+        applyLoginMode();
+        loginEmail.value = email;
+        setCardMsg(loginMsg, "密码已重置 ✓ 请用新密码登录", "ok");
+    } catch (e) {
+        setCardMsg(fgMsg, e.message || "重置失败，请检查验证码", "error");
+    } finally {
+        fgSubmit.disabled = false;
+        fgSubmit.textContent = "重置密码";
+    }
+});
+
+for (const el of [fgEmail, fgCode, fgPassword, fgPassword2]) {
+    el.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            fgSubmit.click();
+        }
+    });
+}
+
+fgBack.addEventListener("click", () => {
+    showAuthCard("login");
+    setCardMsg(loginMsg, "");
+});
+
+// 初始状态：登录卡默认密码方式
+applyLoginMode();
 
 // ================================
 // 设置（与设置页面共用 localStorage，读写统一走 assets/js/store.js）

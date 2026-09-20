@@ -220,7 +220,7 @@ body {
     background-color: #e3e8ee;
 }
 
-/* 起始屏第二张卡（邮箱 + 验证码）：输入框之间留点空隙 */
+/* 起始屏的输入框：之间留点空隙（登录 / 注册 / 找回密码三张卡通用） */
 .auth-box .auth-input {
     margin-bottom: 12px;
 
@@ -228,9 +228,26 @@ body {
     user-select: text;
 }
 
-/* 第二张卡的副标题离输入框近一点（第一张卡下面接的是按钮，需要更大留白） */
-#start-step-code p {
-    margin-bottom: 18px;
+/* 输入卡片的副标题离输入框近一点（第一张卡下面接的是按钮，需要更大留白） */
+#start-step-login p,
+#start-step-register p,
+#start-step-forgot p {
+    margin-bottom: 16px;
+}
+
+/* 返回上一步：比功能链接更小更淡，和它们区分开 */
+.auth-link-back {
+    margin-top: 16px;
+
+    font-size: 13px;
+
+    color: #aab2bd;
+}
+
+/* 密码 / 验证码两种模式的容器（本身不需要额外间距） */
+#login-mode-password,
+#login-mode-code {
+    margin: 0;
 }
 
 /* ==============================

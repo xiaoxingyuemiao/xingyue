@@ -1,4 +1,4 @@
-﻿// ================================
+// ================================
 // 邮箱验证码登录（assets/js/auth.js）
 // 用 Supabase Auth 的 REST 接口实现（原生 fetch，无需 SDK）：
 //   1. 输入邮箱 → POST /auth/v1/otp      发送 6 位验证码
@@ -111,15 +111,26 @@ window.Auth = (function () {
                 "验证码发送次数已达上限，请稍后再试"],
             // 账号
             [/user already registered/i,
-                "这个邮箱已经注册过了，直接获取验证码登录就行"],
+                "这个邮箱已经注册过了，直接登录就行（或点「忘记密码」重置）"],
             [/signups not allowed/i,
                 "当前设置不允许注册新用户"],
             [/unable to validate email|invalid format|email address.*invalid/i,
                 "邮箱格式不正确，请检查后重试"],
             [/email not confirmed/i,
-                "邮箱还没有验证，请先完成验证"],
+                "邮箱还没有验证，请先完成邮箱验证"],
             [/user not found/i,
-                "这个邮箱还没有注册过"],
+                "这个邮箱还没有注册过，先去注册一个吧"],
+            // 密码
+            [/invalid login credentials/i,
+                "邮箱或密码不正确，请检查后重试（也可以改用验证码登录）"],
+            [/password should be at least (\d+) characters/i,
+                "密码太短了，至少要 6 位"],
+            [/new password should be different/i,
+                "新密码不能和原密码一样"],
+            [/weak password|password.*too weak/i,
+                "密码强度太弱，换一个复杂点的吧"],
+            [/auth session missing|session.*not found|invalid refresh token/i,
+                "登录状态已失效，请重新登录"],
             // 网络
             [/failed to fetch|networkerror|load failed|network request failed/i,
                 "网络连接失败，请检查网络后重试"],
@@ -142,7 +153,7 @@ window.Auth = (function () {
         }
     }
 
-    // ---------- 发送验证码 ----------
+    // ---------- 发送验证码（登录 / 注册用）----------
 
     async function sendCode(email) {
         if (!isConfigured()) {
@@ -159,30 +170,130 @@ window.Auth = (function () {
         return true;
     }
 
-    // ---------- 验证码登录 ----------
+    // ---------- 统一的凭证保存 ----------
 
-    async function verifyCode(email, token) {
+    function saveSessionFromAuth(data, fallbackEmail) {
+        writeSession({
+            access_token: data.access_token,
+            refresh_token: data.refresh_token,
+            expires_at: Date.now() + (data.expires_in || 3600) * 1000,
+            email: (data.user && data.user.email) || fallbackEmail,
+            user_id: data.user && data.user.id,
+        });
+        emit();
+        return current();
+    }
+
+    // 校验验证码（type: email 登录 / signup 注册确认 / recovery 找回密码）
+    async function verifyToken(email, token, type) {
         if (!isConfigured()) {
             throw new Error("还没有配置 Supabase");
         }
         const res = await apiFetch(apiBase() + "/auth/v1/verify", {
             method: "POST",
             headers: headers(),
-            body: JSON.stringify({ email: email, token: token, type: "email" }),
+            body: JSON.stringify({ email: email, token: token, type: type }),
+        });
+        if (!res.ok) {
+            throw new Error(await errorText(res));
+        }
+        return await res.json();
+    }
+
+    // ---------- 验证码登录 ----------
+
+    async function verifyCode(email, token) {
+        const data = await verifyToken(email, token, "email");
+        return saveSessionFromAuth(data, email);
+    }
+
+    // ---------- 密码登录 ----------
+
+    async function signInWithPassword(email, password) {
+        if (!isConfigured()) {
+            throw new Error("还没有配置 Supabase");
+        }
+        const res = await apiFetch(apiBase() + "/auth/v1/token?grant_type=password", {
+            method: "POST",
+            headers: headers(),
+            body: JSON.stringify({ email: email, password: password }),
         });
         if (!res.ok) {
             throw new Error(await errorText(res));
         }
         const data = await res.json();
-        writeSession({
-            access_token: data.access_token,
-            refresh_token: data.refresh_token,
-            expires_at: Date.now() + (data.expires_in || 3600) * 1000,
-            email: (data.user && data.user.email) || email,
-            user_id: data.user && data.user.id,
+        return saveSessionFromAuth(data, email);
+    }
+
+    // ---------- 注册（邮箱 + 密码）----------
+    // 返回 { needVerify: true } 表示还需要填邮件里的验证码
+    // 返回 { needVerify: false } 表示项目没开邮箱确认，已经直接登录了
+
+    async function signUp(email, password) {
+        if (!isConfigured()) {
+            throw new Error("还没有配置 Supabase");
+        }
+        const res = await apiFetch(apiBase() + "/auth/v1/signup", {
+            method: "POST",
+            headers: headers(),
+            body: JSON.stringify({ email: email, password: password }),
         });
-        emit();
-        return current();
+        if (!res.ok) {
+            throw new Error(await errorText(res));
+        }
+        const data = await res.json();
+        if (data.access_token) {
+            saveSessionFromAuth(data, email);
+            return { needVerify: false };
+        }
+        return { needVerify: true };
+    }
+
+    // 注册后的验证码确认（type: signup）
+    async function verifySignup(email, token) {
+        const data = await verifyToken(email, token, "signup");
+        return saveSessionFromAuth(data, email);
+    }
+
+    // ---------- 忘记密码 ----------
+
+    // 发重置密码邮件（邮件模板里的验证码来自 Reset password 模板）
+    async function sendRecovery(email) {
+        if (!isConfigured()) {
+            throw new Error("还没有配置 Supabase");
+        }
+        const res = await apiFetch(apiBase() + "/auth/v1/recover", {
+            method: "POST",
+            headers: headers(),
+            body: JSON.stringify({ email: email }),
+        });
+        if (!res.ok) {
+            throw new Error(await errorText(res));
+        }
+        return true;
+    }
+
+    // 用找回验证码换取临时登录态（type: recovery）
+    async function verifyRecovery(email, token) {
+        const data = await verifyToken(email, token, "recovery");
+        return saveSessionFromAuth(data, email);
+    }
+
+    // 修改当前登录用户的密码（需要已有登录凭证）
+    async function updatePassword(newPassword) {
+        const s = readSession();
+        if (!s || !s.access_token) {
+            throw new Error("登录状态已失效，请重新登录");
+        }
+        const res = await apiFetch(apiBase() + "/auth/v1/user", {
+            method: "PUT",
+            headers: headers(s.access_token),
+            body: JSON.stringify({ password: newPassword }),
+        });
+        if (!res.ok) {
+            throw new Error(await errorText(res));
+        }
+        return true;
     }
 
     // ---------- 刷新过期凭证 ----------
@@ -254,5 +365,12 @@ window.Auth = (function () {
         refresh: refresh,
         signOut: signOut,
         init: init,
+        // 密码 / 注册 / 找回密码
+        signInWithPassword: signInWithPassword,
+        signUp: signUp,
+        verifySignup: verifySignup,
+        sendRecovery: sendRecovery,
+        verifyRecovery: verifyRecovery,
+        updatePassword: updatePassword,
     };
 })();

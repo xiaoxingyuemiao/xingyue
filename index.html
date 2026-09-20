@@ -50,34 +50,123 @@
 
             </div>
 
-            <!-- 第二张卡：邮箱 + 验证码（与第一张同一个位置，点登录 / 注册后翻过来） -->
-            <div class="auth-box" id="start-step-code" hidden>
+            <!-- 第二张卡：登录（密码 / 验证码两种方式） -->
+            <div class="auth-box" id="start-step-login" hidden>
 
                 <h1>
-                    登录 / 注册
+                    登录
                 </h1>
 
-                <p>
-                    输入邮箱获取验证码
+                <p id="login-subtitle">
+                    邮箱 + 密码
                 </p>
 
-                <input class="auth-input" id="start-email" type="email" placeholder="你的邮箱" autocomplete="email">
+                <input class="auth-input" id="login-email" type="email" placeholder="邮箱" autocomplete="email">
 
-                <input class="auth-input" id="start-code" type="text" inputmode="numeric" maxlength="10" placeholder="邮件里的验证码">
+                <!-- 方式一：密码 -->
+                <div id="login-mode-password">
+                    <input class="auth-input" id="login-password" type="password" placeholder="密码" autocomplete="current-password">
+                </div>
 
-                <button class="auth-btn-soft" id="start-send" type="button">
-                    发送验证码
-                </button>
+                <!-- 方式二：验证码 -->
+                <div id="login-mode-code" hidden>
+                    <input class="auth-input" id="login-code" type="text" inputmode="numeric" maxlength="10" placeholder="邮件里的验证码">
+                    <button class="auth-btn-soft" id="login-send" type="button">
+                        发送验证码
+                    </button>
+                </div>
 
-                <button class="auth-btn-primary" id="start-verify" type="button">
+                <button class="auth-btn-primary" id="login-submit" type="button">
                     登录
                 </button>
 
-                <button class="auth-link" id="start-back" type="button">
+                <button class="auth-link" id="login-switch" type="button">
+                    改用验证码登录
+                </button>
+
+                <button class="auth-link" id="login-forgot" type="button">
+                    忘记密码？
+                </button>
+
+                <button class="auth-link" id="login-to-register" type="button">
+                    没有账号？去注册一个吧
+                </button>
+
+                <button class="auth-link auth-link-back" id="login-back" type="button">
                     ← 返回
                 </button>
 
-                <div class="auth-msg" id="start-msg"></div>
+                <div class="auth-msg" id="login-msg"></div>
+
+            </div>
+
+            <!-- 第三张卡：注册（邮箱 + 密码 + 确认密码 + 验证码） -->
+            <div class="auth-box" id="start-step-register" hidden>
+
+                <h1>
+                    注册
+                </h1>
+
+                <p>
+                    邮箱 + 密码 + 验证码
+                </p>
+
+                <input class="auth-input" id="reg-email" type="email" placeholder="邮箱" autocomplete="email">
+
+                <input class="auth-input" id="reg-password" type="password" placeholder="密码（至少 6 位）" autocomplete="new-password">
+
+                <input class="auth-input" id="reg-password2" type="password" placeholder="再次输入密码" autocomplete="new-password">
+
+                <input class="auth-input" id="reg-code" type="text" inputmode="numeric" maxlength="10" placeholder="邮件里的验证码">
+
+                <button class="auth-btn-primary" id="reg-submit" type="button">
+                    注册
+                </button>
+
+                <button class="auth-link" id="reg-to-login" type="button">
+                    已经有账号了？去登录吧
+                </button>
+
+                <button class="auth-link auth-link-back" id="reg-back" type="button">
+                    ← 返回
+                </button>
+
+                <div class="auth-msg" id="reg-msg"></div>
+
+            </div>
+
+            <!-- 第四张卡：忘记密码（邮箱验证码 → 新密码） -->
+            <div class="auth-box" id="start-step-forgot" hidden>
+
+                <h1>
+                    重置密码
+                </h1>
+
+                <p>
+                    邮箱验证码 → 设置新密码
+                </p>
+
+                <input class="auth-input" id="fg-email" type="email" placeholder="注册时用的邮箱" autocomplete="email">
+
+                <input class="auth-input" id="fg-code" type="text" inputmode="numeric" maxlength="10" placeholder="邮件里的验证码">
+
+                <button class="auth-btn-soft" id="fg-send" type="button">
+                    发送验证码
+                </button>
+
+                <input class="auth-input" id="fg-password" type="password" placeholder="新密码（至少 6 位）" autocomplete="new-password">
+
+                <input class="auth-input" id="fg-password2" type="password" placeholder="再次输入新密码" autocomplete="new-password">
+
+                <button class="auth-btn-primary" id="fg-submit" type="button">
+                    重置密码
+                </button>
+
+                <button class="auth-link auth-link-back" id="fg-back" type="button">
+                    ← 返回登录
+                </button>
+
+                <div class="auth-msg" id="fg-msg"></div>
 
             </div>
 
