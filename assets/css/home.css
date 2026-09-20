@@ -35,8 +35,8 @@ body {
 
     overflow: hidden;
 
-    /* 登录页的文字 / 按钮 / 插画都不参与拖选（这一屏里没有输入框；
-       以后若在卡片里加输入框，记得单独给它放开 user-select） */
+    /* 登录页的文字 / 按钮 / 插画都不参与拖选；
+       第二张卡里的输入框在下面单独用 user-select: text 放开 */
     user-select: none;
 
     /* 图片加载前的兜底底色 */
@@ -218,6 +218,19 @@ body {
 
 .auth-btn-ghost:hover {
     background-color: #e3e8ee;
+}
+
+/* 起始屏第二张卡（邮箱 + 验证码）：输入框之间留点空隙 */
+.auth-box .auth-input {
+    margin-bottom: 12px;
+
+    /* 整屏是禁选的，但输入框必须能选中 / 编辑 */
+    user-select: text;
+}
+
+/* 第二张卡的副标题离输入框近一点（第一张卡下面接的是按钮，需要更大留白） */
+#start-step-code p {
+    margin-bottom: 18px;
 }
 
 /* ==============================

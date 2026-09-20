@@ -25,7 +25,8 @@
             <!-- 压暗一层，白卡片和文字才看得清 -->
             <div class="auth-overlay"></div>
 
-            <div class="auth-box">
+            <!-- 第一张卡：选登录方式 -->
+            <div class="auth-box" id="start-step-choice">
 
                 <h1>
                     星月小窝
@@ -46,6 +47,37 @@
                 <button class="guest-button auth-btn-ghost" type="button">
                     游客进入
                 </button>
+
+            </div>
+
+            <!-- 第二张卡：邮箱 + 验证码（与第一张同一个位置，点登录 / 注册后翻过来） -->
+            <div class="auth-box" id="start-step-code" hidden>
+
+                <h1>
+                    登录 / 注册
+                </h1>
+
+                <p>
+                    输入邮箱获取验证码
+                </p>
+
+                <input class="auth-input" id="start-email" type="email" placeholder="你的邮箱" autocomplete="email">
+
+                <input class="auth-input" id="start-code" type="text" inputmode="numeric" maxlength="10" placeholder="邮件里的验证码">
+
+                <button class="auth-btn-soft" id="start-send" type="button">
+                    发送验证码
+                </button>
+
+                <button class="auth-btn-primary" id="start-verify" type="button">
+                    登录
+                </button>
+
+                <button class="auth-link" id="start-back" type="button">
+                    ← 返回
+                </button>
+
+                <div class="auth-msg" id="start-msg"></div>
 
             </div>
 

@@ -430,27 +430,146 @@ guestButton.addEventListener("click", () => {
     enterHomeScreen();
 });
 
-// 「邮箱注册」：直接进入首页并打开左下角的邮箱验证码面板（与侧边栏用户区同一个面板）
-// 已经注册过的邮箱也能走这里登录 —— Supabase 的验证码流程对老账号同样发码
-function startEmailAuth(mode) {
-    enterHomeScreen();
-    openAuthPanel(mode);
-    // 面板在首页左下角，等页面显示后自动聚焦邮箱输入框
-    setTimeout(() => {
-        authEmail.focus();
-    }, 50);
+// ---------- 起始屏第二张卡：邮箱 + 验证码 ----------
+
+const startStepChoice = document.querySelector("#start-step-choice");
+const startStepCode = document.querySelector("#start-step-code");
+const startEmail = document.querySelector("#start-email");
+const startCode = document.querySelector("#start-code");
+const startSend = document.querySelector("#start-send");
+const startVerify = document.querySelector("#start-verify");
+const startBack = document.querySelector("#start-back");
+const startMsg = document.querySelector("#start-msg");
+
+let startPendingEmail = ""; // 刚发过验证码的邮箱
+let startResendTimer = null;
+
+function setStartMsg(text, kind) {
+    startMsg.textContent = text || "";
+    startMsg.className = "auth-msg" + (kind ? " auth-msg-" + kind : "");
+}
+
+// 翻到第二张卡：卡片位置不变，只是换了内容
+function showStartCodeStep() {
+    startStepChoice.hidden = true;
+    startStepCode.hidden = false;
+    setStartMsg("");
+
+    // 自动填上次用过的邮箱
+    if (!startEmail.value) {
+        startEmail.value = window.Store.readJSON(window.Store.KEYS.lastEmail, "") || "";
+    }
+    startEmail.focus();
+}
+
+// 翻回第一张卡
+function showStartChoiceStep() {
+    startStepCode.hidden = true;
+    startStepChoice.hidden = false;
+    startCode.value = "";
+    setStartMsg("");
+}
+
+// 60 秒重发倒计时（Supabase 有冷却，先拦住，免得点了被报"太频繁"）
+function startResendCountdown() {
+    if (startResendTimer) {
+        clearInterval(startResendTimer);
+    }
+    let left = 60;
+    startSend.disabled = true;
+    startSend.textContent = left + " 秒后可重发";
+
+    startResendTimer = setInterval(() => {
+        left--;
+        if (left <= 0) {
+            clearInterval(startResendTimer);
+            startResendTimer = null;
+            startSend.disabled = false;
+            startSend.textContent = "发送验证码";
+        } else {
+            startSend.textContent = left + " 秒后可重发";
+        }
+    }, 1000);
+}
+
+// 发送验证码
+startSend.addEventListener("click", async () => {
+    const email = startEmail.value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        setStartMsg("请输入正确的邮箱地址", "error");
+        return;
+    }
+    if (!window.Auth.isConfigured()) {
+        setStartMsg("还没配置 Supabase（见 assets/data/supabase-config.js）", "error");
+        return;
+    }
+
+    startSend.disabled = true;
+    startSend.textContent = "发送中……";
+    try {
+        await window.Auth.sendCode(email);
+        startPendingEmail = email;
+        window.Store.writeJSON(window.Store.KEYS.lastEmail, email);
+        setStartMsg("验证码已发送到 " + email + "，请查收（可能在垃圾邮件里）", "ok");
+        startCode.focus();
+        startResendCountdown();
+    } catch (e) {
+        setStartMsg(e.message || "发送失败，请稍后再试", "error");
+        startSend.disabled = false;
+        startSend.textContent = "发送验证码";
+    }
+});
+
+// 验证码登录：通过就进首页
+startVerify.addEventListener("click", async () => {
+    const token = startCode.value.trim();
+    if (!/^\d{4,10}$/.test(token)) {
+        setStartMsg("请输入邮件里的数字验证码", "error");
+        return;
+    }
+
+    startVerify.disabled = true;
+    startVerify.textContent = "验证中……";
+    try {
+        await window.Auth.verifyCode(startPendingEmail || startEmail.value.trim(), token);
+        startPendingEmail = "";
+        startCode.value = "";
+        setStartMsg("登录成功 ✓ 正在进入……", "ok");
+        setTimeout(enterHomeScreen, 600);
+    } catch (e) {
+        setStartMsg(e.message || "验证码不正确", "error");
+        startCode.select();
+    } finally {
+        startVerify.disabled = false;
+        startVerify.textContent = "登录";
+    }
+});
+
+// 回车快捷提交
+startEmail.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && !startSend.disabled) {
+        startSend.click();
+    }
+});
+startCode.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && !startVerify.disabled) {
+        startVerify.click();
+    }
+});
+
+startBack.addEventListener("click", showStartChoiceStep);
+
+// 「登录」「注册」都翻到第二张卡（已注册的邮箱也能登录：验证码流程对老账号同样发码）
+function startEmailAuth() {
+    showStartCodeStep();
 }
 
 if (loginButton) {
-    loginButton.addEventListener("click", () => {
-        startEmailAuth("login");
-    });
+    loginButton.addEventListener("click", startEmailAuth);
 }
 
 if (registerButton) {
-    registerButton.addEventListener("click", () => {
-        startEmailAuth("register");
-    });
+    registerButton.addEventListener("click", startEmailAuth);
 }
 
 // ================================

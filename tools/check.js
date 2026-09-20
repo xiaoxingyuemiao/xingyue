@@ -195,10 +195,30 @@ function checkSelectors(htmlFile) {
     }
 }
 
+// 6) 同一页面里的 id 不能重复（重复会让 querySelector 拿到错的元素）
+function checkDuplicateIds(htmlFile) {
+    const html = fs.readFileSync(htmlFile, "utf8");
+    const seen = new Set();
+    const dups = [];
+
+    for (const m of html.matchAll(/id="([A-Za-z0-9_-]+)"/g)) {
+        if (seen.has(m[1])) {
+            dups.push(m[1]);
+        }
+        seen.add(m[1]);
+    }
+
+    if (dups.length > 0) {
+        failed++;
+        console.error("✗ " + rel(htmlFile) + " 里有重复 id: " + [...new Set(dups)].join(", "));
+    }
+}
+
 for (const name of fs.readdirSync(ROOT)) {
     if (name.endsWith(".html")) {
         checkLinks(path.join(ROOT, name));
         checkSelectors(path.join(ROOT, name));
+        checkDuplicateIds(path.join(ROOT, name));
     }
 }
 
