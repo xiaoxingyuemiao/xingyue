@@ -844,43 +844,10 @@
 }
 
 /* ==============================
-   用户设置页面（user.html 共用）
+   个人中心（user.html）的「个人资料」分区
    ============================== */
 
-.user-page {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    flex: 1;
-
-    padding: 80px 20px 60px;
-
-    box-sizing: border-box;
-}
-
-.user-card {
-    width: 100%;
-    max-width: 420px;
-
-    background-color: var(--surface-color);
-
-    padding: 32px;
-
-    border-radius: 24px;
-
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-}
-
-.user-card h2 {
-    margin: 0 0 18px;
-
-    font-size: 22px;
-
-    color: var(--text-color);
-}
-
-/* ---------- 退出登录（卡片最下方，小按钮 + 一层原地确认） ---------- */
+/* ---------- 退出登录（分区最下方，小按钮 + 一层原地确认） ---------- */
 
 .user-signout {
     margin-top: 22px;
@@ -1132,17 +1099,7 @@
         font-size: 16px;
     }
 
-    /* ---------- 用户设置页 ---------- */
-
-    .user-page {
-        padding: 68px 14px 40px;
-    }
-
-    .user-card {
-        padding: 22px 18px;
-
-        border-radius: 18px;
-    }
+    /* ---------- 个人中心的头像预览 ---------- */
 
     .user-avatar-preview {
         width: 72px;

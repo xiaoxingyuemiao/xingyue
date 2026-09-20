@@ -124,7 +124,6 @@ sidebarMenu.addEventListener("click", (event) => {
     }
 
     const targets = {
-        "menu-settings": "settings.html",
         "menu-live2d": "live2d.html",
         "menu-gallery": "chahua.html",
         "menu-merch": "zhoubian.html",
@@ -955,7 +954,8 @@ function renderRolePicker() {
     addBtn.appendChild(addIcon);
     addBtn.addEventListener("click", (event) => {
         event.stopPropagation();
-        window.location.href = "settings.html#role";
+        // 去个人中心的「角色设定」分区
+        window.location.href = "user.html#role";
     });
     rolePickerList.appendChild(addBtn);
 }

@@ -1,7 +1,7 @@
 // ================================
 // 数据层（assets/js/store.js）
 // 统一管理 localStorage：key 常量、读写封装、旧数据迁移
-// 所有页面共用（index.html / settings.html / user.html）
+// 所有页面共用（index.html / user.html / 各子页面）
 // ================================
 
 window.Store = (function () {

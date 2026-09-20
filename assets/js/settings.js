@@ -97,8 +97,8 @@ for (const item of navItems) {
     });
 }
 
-// 打开页面时按 hash 定位视图（主页"对话"会跳到 #dialogue）
-const initialView = (location.hash || "#api").slice(1);
+// 打开页面时按 hash 定位视图（默认个人资料；#role / #api / #dialogue 可直达）
+const initialView = (location.hash || "#profile").slice(1);
 switchView(initialView);
 
 // ================================
