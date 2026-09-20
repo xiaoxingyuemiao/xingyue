@@ -148,7 +148,7 @@ window.Auth = (function () {
                 "这个邮箱还没有注册过，先去注册一个吧"],
             // 密码
             [/invalid login credentials/i,
-                "邮箱或密码不正确，请检查后重试（也可以改用验证码登录）"],
+                "邮箱或密码不正确，请检查后重试"],
             [/password should be at least (\d+) characters/i,
                 "密码太短了，至少要 6 位"],
             [/new password should be different/i,

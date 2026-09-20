@@ -342,9 +342,13 @@ uDeleteYes.addEventListener("click", async () => {
     uDeleteYes.disabled = true;
 
     try {
-        // 1. 验证密码（密码不对会直接报"邮箱或密码不正确"）
+        // 1. 验证密码（密码不对会报错）
         uDeleteYes.textContent = "验证密码……";
-        await window.Auth.signInWithPassword(user.email, password);
+        try {
+            await window.Auth.signInWithPassword(user.email, password);
+        } catch (e) {
+            throw new Error("密码不正确（如果这个账号本来就没设过密码，请先去登录页用「忘记密码」设一个）");
+        }
 
         // 2. 验证邮箱验证码
         uDeleteYes.textContent = "验证验证码……";
