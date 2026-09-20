@@ -344,11 +344,7 @@ uDeleteYes.addEventListener("click", async () => {
     try {
         // 1. 验证密码（密码不对会报错）
         uDeleteYes.textContent = "验证密码……";
-        try {
-            await window.Auth.signInWithPassword(user.email, password);
-        } catch (e) {
-            throw new Error("密码不正确（如果这个账号本来就没设过密码，请先去登录页用「忘记密码」设一个）");
-        }
+        await window.Auth.signInWithPassword(user.email, password);
 
         // 2. 验证邮箱验证码
         uDeleteYes.textContent = "验证验证码……";
@@ -369,7 +365,12 @@ uDeleteYes.addEventListener("click", async () => {
         localStorage.removeItem(window.Store.KEYS.lastUser);
         window.location.href = "index.html";
     } catch (e) {
-        uDeleteStatus.textContent = "注销失败：" + (e.message || e);
+        // 密码错、验证码错、验证码过期……一律提示同一句，不区分是哪个不对
+        const msg = String(e.message || "");
+        const isVerifyFail = /密码|验证码|credentials|token|expired|incorrect/i.test(msg);
+        uDeleteStatus.textContent = isVerifyFail
+            ? "✗ 密码或验证码不正确，请检查后重试"
+            : "✗ 注销失败：" + msg;
         uDeleteYes.disabled = false;
         uDeleteYes.textContent = "确定注销";
     }
