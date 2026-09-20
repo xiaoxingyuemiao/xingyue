@@ -248,7 +248,35 @@ end $$;
 
 
 -- ------------------------------------------------------------
--- ⑩ 自检：看看建好了没
+-- ⑩ 注销账号用的数据库函数
+--   Supabase 不允许前端直接删自己的账号（DELETE /auth/v1/user 会返回 405），
+--   所以用一个 security definer 函数代劳：
+--     · 函数内部只允许删「当前登录者自己」那一行（auth.uid()）
+--     · 删除会触发上面的 on_auth_user_deleted → 释放 uid
+--     · profiles / user_settings / chat_sessions 会级联删除
+-- ------------------------------------------------------------
+create or replace function public.delete_own_account()
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+    if auth.uid() is null then
+        raise exception '未登录，不能注销账号';
+    end if;
+
+    delete from auth.users where id = auth.uid();
+end;
+$$;
+
+-- 只有登录用户能调用，且只能删自己
+revoke all on function public.delete_own_account() from public;
+grant execute on function public.delete_own_account() to authenticated;
+
+
+-- ------------------------------------------------------------
+-- ⑪ 自检：看看建好了没
 -- ------------------------------------------------------------
 -- 空闲编号数量（应该接近 2000）
 -- select count(*) as free_uids from public.uid_pool where user_id is null;

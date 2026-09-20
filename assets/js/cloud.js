@@ -240,22 +240,26 @@ window.Cloud = (function () {
     }
 
     // ---------- 注销账号 ----------
-    // 删除 Supabase 账号：数据库触发器会把 uid 还回池子，
-    // 资料 / 设置 / 对话记录会被级联删除
+    // Supabase 不允许前端直接删自己的账号，所以调用数据库函数 delete_own_account()：
+    //   函数内部只删「当前登录者自己」那一行 → 触发释放 uid → 级联删除资料/设置/对话
     async function deleteAccount() {
-        const token = window.Auth.accessToken && window.Auth.accessToken();
-        if (!token || !isConfigured()) {
+        if (!isReady()) {
             throw new Error("未登录或未配置云端");
         }
-        const res = await fetch(String(cfg().url).replace(/\/+$/, "") + "/auth/v1/user", {
-            method: "DELETE",
-            headers: {
-                "apikey": cfg().anonKey,
-                "Authorization": "Bearer " + token,
-            },
+        const res = await fetch(String(cfg().url).replace(/\/+$/, "") + "/rest/v1/rpc/delete_own_account", {
+            method: "POST",
+            headers: authHeaders({ "Prefer": "return=minimal" }),
+            body: JSON.stringify({}),
         });
         if (!res.ok) {
-            throw new Error("注销失败（HTTP " + res.status + "）");
+            let detail = "";
+            try {
+                const data = await res.json();
+                detail = data.message || data.hint || JSON.stringify(data);
+            } catch (e) {
+                detail = "HTTP " + res.status;
+            }
+            throw new Error("注销失败：" + detail);
         }
         return true;
     }
