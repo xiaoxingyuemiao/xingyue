@@ -308,12 +308,12 @@ body {
 
     transition: max-width 0.25s ease, background-color 0.2s ease, border-radius 0.2s ease;
 
-    /* 白底平时只有侧边栏那么宽（超出的名字/签名先裁掉），
-       鼠标移上来才向右延长成一张圆角蓝卡（见下面的 :hover）。
+    /* 白底平时只比侧边栏宽一个汉字（+15px = 名字的字号）：
+       不 hover 时能看到约两个汉字 + 省略号，再长的部分等鼠标移上来才延长显示。
        用 max-width 而不是 width 做延长，是因为 max-width 可以过渡，
        延长过程才是平滑的；下沿始终贴着屏幕底部 */
     width: max-content;
-    max-width: 100%;
+    max-width: calc(100% + 15px);
 
     overflow: hidden;
 
@@ -404,6 +404,10 @@ body {
     justify-content: center;
 
     padding: 14px 0;
+
+    /* 收起时只显示头像：宽度要撑满整条侧边栏，头像才会居中 ——
+       否则上面那条 width: max-content 只剩头像那么宽，会贴到左边去 */
+    width: 100%;
 }
 
 /* ==============================
