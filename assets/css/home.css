@@ -15,7 +15,7 @@ body {
     overflow: hidden;
 }
 
-/* ---------- 登录 ---------- */
+/* ---------- 首次进入的登录页（Pixiv 风格：整屏插画 + 右侧白卡片） ---------- */
 
 .auth-screen {
     position: fixed;
@@ -25,25 +25,135 @@ body {
     display: none;
 
     align-items: center;
-    justify-content: center;
+    justify-content: flex-end; /* 卡片整体靠右 */
+
+    padding-right: clamp(40px, 9vw, 150px);
+
+    box-sizing: border-box;
 
     z-index: 1000;
 
-    background-color: #ffffff;
+    overflow: hidden;
+
+    /* 图片加载前的兜底底色 */
+    background-color: #1c1c22;
+}
+
+/* 背景：星瑶与月瓷两张图叠在同一位置轮播 */
+.auth-bg {
+    position: absolute;
+
+    inset: 0;
+
+    z-index: 0;
+}
+
+.auth-bg-img {
+    position: absolute;
+
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    opacity: 0;
+
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+/* 第 1 张（星瑶）：0–4.5s 显示 → 淡出 → 9.5–10s 淡入 */
+.auth-bg-img:first-child {
+    animation: auth-bg-first 10s ease-in-out infinite;
+}
+
+/* 第 2 张（月瓷）：0–4.5s 隐藏 → 淡入 → 5.5–9.5s 显示 → 淡出 */
+.auth-bg-img:last-child {
+    animation: auth-bg-second 10s ease-in-out infinite;
+}
+
+/* 两个动画互补，10 秒一个循环，交界处不会闪 */
+@keyframes auth-bg-first {
+    0%,
+    45% {
+        opacity: 1;
+    }
+
+    55%,
+    95% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes auth-bg-second {
+    0%,
+    45% {
+        opacity: 0;
+    }
+
+    55%,
+    95% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+/* 压暗一层：整体偏暗，白卡片才跳得出来 */
+.auth-overlay {
+    position: absolute;
+
+    inset: 0;
+
+    z-index: 1;
+
+    background: linear-gradient(180deg, rgba(18, 20, 28, 0.34), rgba(18, 20, 28, 0.58));
 }
 
 .auth-box {
-    width: 320px;
+    position: relative;
+
+    z-index: 2;
+
+    width: 340px;
+    max-width: calc(100vw - 40px);
+
+    padding: 34px 28px 28px;
+
+    box-sizing: border-box;
 
     text-align: center;
+
+    background-color: rgba(255, 255, 255, 0.97);
+
+    border-radius: 18px;
+
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
 }
 
 .auth-box h1 {
-    margin-bottom: 10px;
+    margin: 0 0 8px;
+
+    font-size: 26px;
+    letter-spacing: 2px;
+
+    color: var(--main-color);
 }
 
 .auth-box p {
-    margin-bottom: 30px;
+    margin: 0 0 26px;
+
+    font-size: 14px;
+
+    color: #8a8f99;
 }
 
 .auth-box button {
@@ -51,13 +161,58 @@ body {
 
     width: 100%;
 
-    margin: 10px 0;
-    padding: 12px;
+    margin: 0 0 12px;
+    padding: 13px;
 
     border: none;
     border-radius: 10px;
 
+    font-size: 16px;
+
     cursor: pointer;
+
+    transition: filter 0.2s ease, background-color 0.2s ease;
+}
+
+.auth-box button:last-child {
+    margin-bottom: 0;
+}
+
+/* 主按钮：登录 */
+.auth-btn-primary {
+    background-color: var(--main-color);
+
+    color: #ffffff;
+
+    font-weight: bold;
+}
+
+.auth-btn-primary:hover {
+    filter: brightness(1.06);
+}
+
+/* 次按钮：注册（浅蓝底 + 主色字） */
+.auth-btn-soft {
+    background-color: rgba(102, 204, 255, 0.16);
+
+    color: #2b93c9;
+
+    font-weight: bold;
+}
+
+.auth-btn-soft:hover {
+    background-color: rgba(102, 204, 255, 0.26);
+}
+
+/* 弱按钮：游客进入 */
+.auth-btn-ghost {
+    background-color: #eef1f5;
+
+    color: #55606d;
+}
+
+.auth-btn-ghost:hover {
+    background-color: #e3e8ee;
 }
 
 /* ==============================
@@ -1147,12 +1302,20 @@ body {
         font-size: 12px;
     }
 
-    /* ---------- 登录框 ---------- */
+    /* ---------- 登录框（手机端回到居中：屏幕窄，靠右会挤） ---------- */
+
+    .auth-screen {
+        justify-content: center;
+
+        padding-right: 0;
+    }
 
     .auth-box {
-        width: calc(100vw - 60px);
+        width: calc(100vw - 48px);
 
-        max-width: 320px;
+        max-width: 340px;
+
+        padding: 28px 22px 22px;
     }
 
     /* ---------- Live2D 窗口：改为屏幕比例（居中偏上，给聊天让出下半屏） ---------- */

@@ -13,8 +13,17 @@
 
     <body>
 
-        <!-- 登录 / 注册 / 游客入口 -->
+        <!-- 首次进入的登录页（Pixiv 风格：整屏插画 + 右侧白色卡片） -->
         <div class="auth-screen">
+
+            <!-- 背景：星瑶 / 月瓷 轮播，先显示星瑶，每 5 秒换一张 -->
+            <div class="auth-bg">
+                <img class="auth-bg-img" src="images/xingyao-bg.jpg" alt="">
+                <img class="auth-bg-img" src="images/yueci-bg.jpg" alt="">
+            </div>
+
+            <!-- 压暗一层，白卡片和文字才看得清 -->
+            <div class="auth-overlay"></div>
 
             <div class="auth-box">
 
@@ -26,15 +35,15 @@
                     欢迎回来
                 </p>
 
-                <button id="auth-login" type="button">
+                <button class="auth-btn-primary" id="auth-login" type="button">
                     登录
                 </button>
 
-                <button id="auth-register" type="button">
+                <button class="auth-btn-soft" id="auth-register" type="button">
                     注册
                 </button>
 
-                <button class="guest-button" type="button">
+                <button class="guest-button auth-btn-ghost" type="button">
                     游客进入
                 </button>
 

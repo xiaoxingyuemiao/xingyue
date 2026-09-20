@@ -430,7 +430,8 @@ guestButton.addEventListener("click", () => {
     enterHomeScreen();
 });
 
-// 「登录」「注册」：直接进入首页并打开左下角的邮箱验证码面板（与侧边栏用户区同一个面板）
+// 「邮箱注册」：直接进入首页并打开左下角的邮箱验证码面板（与侧边栏用户区同一个面板）
+// 已经注册过的邮箱也能走这里登录 —— Supabase 的验证码流程对老账号同样发码
 function startEmailAuth(mode) {
     enterHomeScreen();
     openAuthPanel(mode);
