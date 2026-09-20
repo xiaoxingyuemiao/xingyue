@@ -85,11 +85,14 @@ uSignoutNo.addEventListener("click", () => {
     uSignout.hidden = false;
 });
 
-// 确定 → 真的退出
+// 确定 → 真的退出，然后回到第一次进来那个登录页（第一张卡）
 uSignoutYes.addEventListener("click", async () => {
     await window.Auth.signOut();
-    uStatus.textContent = "已退出登录";
-    renderAccount();
+
+    // 清掉"已经进过首页"的标记：这样回到 index.html 时会重新显示登录页
+    localStorage.removeItem(window.Store.KEYS.visited);
+
+    window.location.href = "index.html";
 });
 
 // 昵称最多 6 个字（汉字算 1 个）；个性签名不限长度
