@@ -28,10 +28,13 @@
                 <div class="user-avatar-preview" id="avatar-preview">🐱</div>
 
                 <!-- 上传头像：图片会居中裁成正方形、缩到 128×128 存本地；
-                     不上传就一直是默认头像 🐱 -->
+                     不上传（或点「恢复默认头像」）就一直是默认头像 🐱 -->
                 <div class="user-avatar-actions">
                     <button class="settings-btn" id="u-avatar-pick" type="button">
                         设置头像
+                    </button>
+                    <button class="settings-btn" id="u-avatar-reset" type="button">
+                        恢复默认头像
                     </button>
                     <input id="u-avatar-file" type="file" accept="image/*" hidden>
                 </div>

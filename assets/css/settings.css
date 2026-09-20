@@ -904,10 +904,13 @@
     user-select: none;
 }
 
-/* 「设置头像」按钮：居中放在头像预览下面 */
+/* 「设置头像 / 恢复默认头像」两个按钮：居中放在头像预览下面 */
 .user-avatar-actions {
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
+
+    gap: 10px;
 
     margin: -8px 0 22px;
 }
@@ -915,7 +918,7 @@
 .user-avatar-actions .settings-btn {
     flex: none;
 
-    padding: 10px 26px;
+    padding: 10px 22px;
 
     font-size: 15px;
 }

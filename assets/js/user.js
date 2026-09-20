@@ -8,6 +8,7 @@ const USER_KEY = window.Store.KEYS.user;
 
 const avatarPreview = document.querySelector("#avatar-preview");
 const uAvatarPick = document.querySelector("#u-avatar-pick");
+const uAvatarReset = document.querySelector("#u-avatar-reset");
 const uAvatarFile = document.querySelector("#u-avatar-file");
 const uNickname = document.querySelector("#u-nickname");
 const uSignature = document.querySelector("#u-signature");
@@ -15,25 +16,29 @@ const uSave = document.querySelector("#u-save");
 const uStatus = document.querySelector("#u-status");
 const uAccount = document.querySelector("#u-account");
 
-const DEFAULT_AVATAR = "🐱"; // 默认头像：用户没上传图片时用它
+const DEFAULT_AVATAR = "🐱"; // 默认头像：没上传过图片时用它
 const AVATAR_SIZE = 128; // 上传的图片会居中裁成正方形并缩到这个尺寸再保存
 
-// 已保存的头像 + 本次新选的头像（DataURL）
+// 已保存的头像 + 本次新选的头像（DataURL 或 emoji）
 let savedAvatar = DEFAULT_AVATAR;
 let pickedAvatar = "";
 
-// 头像可能是 emoji 文字，也可能是上传的图片（DataURL），这里统一渲染
+// 头像可能是 emoji 文字，也可能是上传的图片（DataURL），这里统一渲染。
+// 遇到既不是图片、又长得不像 emoji 的异常值（例如被当文本渲染的一长串数据），
+// 一律回退默认头像，避免显示出乱码
 function renderAvatar(el, avatar) {
-    const value = avatar || DEFAULT_AVATAR;
+    const value = String(avatar || "");
+
     if (value.indexOf("data:image") === 0) {
         el.textContent = "";
         el.style.backgroundImage = "url(" + value + ")";
         el.style.backgroundSize = "cover";
         el.style.backgroundPosition = "center";
-    } else {
-        el.style.backgroundImage = "";
-        el.textContent = value;
+        return;
     }
+
+    el.style.backgroundImage = "";
+    el.textContent = (value && Array.from(value).length <= 4) ? value : DEFAULT_AVATAR;
 }
 
 function renderAvatarPreview() {
@@ -149,6 +154,13 @@ uAvatarFile.addEventListener("change", () => {
         .finally(() => {
             uAvatarFile.value = ""; // 清空后，同一个文件再选一次也能触发 change
         });
+});
+
+// 恢复默认头像：和选图一样先预览，点「保存」才真正写入
+uAvatarReset.addEventListener("click", () => {
+    pickedAvatar = DEFAULT_AVATAR;
+    renderAvatarPreview();
+    uStatus.textContent = "已切回默认头像，点最下面的「保存」生效 ✓";
 });
 
 // 载入已保存的信息（以前存进去的超长昵称也顺手规范一下）

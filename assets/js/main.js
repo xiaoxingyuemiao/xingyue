@@ -389,18 +389,21 @@ authSignout.addEventListener("click", async () => {
 // 登录 / 退出时刷新界面
 window.Auth.onChange(renderAuthState);
 
-// 头像可能是 emoji 文字（默认 🐱），也可能是用户上传的图片（DataURL）
+// 头像可能是 emoji 文字（默认 🐱），也可能是用户上传的图片（DataURL）。
+// 异常值（既不是图片、也不像短 emoji）一律回退默认，避免显示出一长串乱码
 function renderAvatar(el, avatar) {
-    const value = avatar || "🐱";
+    const value = String(avatar || "");
+
     if (value.indexOf("data:image") === 0) {
         el.textContent = "";
         el.style.backgroundImage = "url(" + value + ")";
         el.style.backgroundSize = "cover";
         el.style.backgroundPosition = "center";
-    } else {
-        el.style.backgroundImage = "";
-        el.textContent = value;
+        return;
     }
+
+    el.style.backgroundImage = "";
+    el.textContent = (value && Array.from(value).length <= 4) ? value : "🐱";
 }
 
 // 从本地读取用户信息（昵称 / 头像），没有就保持默认
