@@ -35,6 +35,10 @@ body {
 
     overflow: hidden;
 
+    /* 登录页的文字 / 按钮 / 插画都不参与拖选（这一屏里没有输入框；
+       以后若在卡片里加输入框，记得单独给它放开 user-select） */
+    user-select: none;
+
     /* 图片加载前的兜底底色 */
     background-color: #1c1c22;
 }
@@ -126,7 +130,8 @@ body {
     width: 340px;
     max-width: calc(100vw - 40px);
 
-    padding: 34px 28px 28px;
+    /* 上下留白加大，整块卡片更修长 */
+    padding: 46px 30px 40px;
 
     box-sizing: border-box;
 
@@ -140,7 +145,7 @@ body {
 }
 
 .auth-box h1 {
-    margin: 0 0 8px;
+    margin: 0 0 12px;
 
     font-size: 26px;
     letter-spacing: 2px;
@@ -149,7 +154,7 @@ body {
 }
 
 .auth-box p {
-    margin: 0 0 26px;
+    margin: 0 0 34px;
 
     font-size: 14px;
 
@@ -161,8 +166,8 @@ body {
 
     width: 100%;
 
-    margin: 0 0 12px;
-    padding: 13px;
+    margin: 0 0 14px;
+    padding: 15px;
 
     border: none;
     border-radius: 10px;
