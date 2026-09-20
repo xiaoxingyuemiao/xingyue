@@ -1,10 +1,105 @@
-# 双人协同操作手册（同步原理 · 流程图 · 冲突处理）
+# Git 协作指南（环境准备 · 日常协同 · 冲突处理）
 
 > 适用仓库：`https://github.com/xiaoxingyuemiao/xingyue.git`（私有仓库，主分支 `main`）
-> 本文是 `docs/03-协作指南.md` 的进阶篇：03 讲「第一次怎么装好」，本文讲「两个人日常怎么配合、撞车了怎么办」。
-> 命令都可在 **Git Bash / PowerShell / 终端** 里直接执行。
+> 本文合并了原来的《协作指南》和《双人协同操作手册》，一篇看完就够，不用翻两份。
+> 命令都可以在 **Git Bash / PowerShell / 终端**里直接执行。
 
 ---
+
+## 第一部分：第一次准备（新成员从这里开始，只做一次）
+
+## 第 1 步：告诉 Git 你是谁（只做一次）
+
+```bash
+git config --global user.name "你的名字"
+git config --global user.email "你注册GitHub用的邮箱"
+```
+
+作用：以后每次提交都会记上你的名字。引号里的内容换成你自己的。
+
+---
+
+## 第 2 步：让电脑能连上我们的私有仓库（只做一次）
+
+二选一，**推荐方式 A**。
+
+### 方式 A：SSH 密钥（推荐，一劳永逸）
+
+1. 在终端输入，然后一路按回车（不要输密码也可以）：
+
+   ```bash
+   ssh-keygen -t ed25519 -C "你的GitHub邮箱"
+   ```
+
+2. 查看并复制输出的内容（一整行 `ssh-ed25519 AAAA...`）：
+
+   ```bash
+   cat ~/.ssh/id_ed25519.pub
+   ```
+
+3. 浏览器打开 GitHub → 右上角头像 → **Settings** → **SSH and GPG keys** → **New SSH key** → 粘贴 → **Add SSH key**
+
+4. 测试是否成功：
+
+   ```bash
+   ssh -T git@github.com
+   ```
+
+   看到 `Hi 你的用户名! You've successfully authenticated...` 就成功了。
+
+### 方式 B：HTTPS + 个人访问令牌（不想弄密钥就用这个）
+
+1. GitHub → 头像 → **Settings** → **Developer settings** → **Personal access tokens** → **Tokens (classic)** → **Generate new token** → 勾选 `repo` → 生成并**立刻复制保存**（只显示一次）
+2. 后面所有命令里的地址换成：`https://github.com/xiaoxingyuemiao/xingyue.git`
+3. 提示输入账号密码时：用户名填你的 GitHub 用户名，**密码填令牌**（不是你的登录密码）
+
+---
+
+## 第 3 步：把仓库拉到你的电脑（clone）
+
+```bash
+git clone git@github.com:xiaoxingyuemiao/xingyue.git
+cd xingyue
+```
+
+作用：把 GitHub 上全部文件下载到当前文件夹，以后**就在这个文件夹里改文件**。
+成功标志：文件夹里能看到 index.html、README.md 等文件。
+
+> 接下来「开工先 pull、改完马上 push、撞车怎么办」这些日常动作，
+> 都在下面的**第二部分**里详细讲，这里就不重复了。
+
+---
+
+## 装上防密钥泄露的钩子（每个协作者 clone 后做一次）
+
+仓库里已经带好了两个钩子脚本（`tools/hooks/`）：提交前跑代码检查 + 扫一遍密钥，推送前再扫一遍全仓库。
+git 默认不认这个目录，所以**每个人都要在自己的仓库目录里装一次**：
+
+```bash
+cd xingyue
+npm run hooks
+```
+
+（等价于 `git config core.hooksPath tools/hooks`。这是本机仓库的设置，不会随 clone 传过来，所以换电脑要重做。）
+
+装好之后：
+
+- 提交里一旦出现 `sb_secret_...`、`sk-...`、私钥、`.env` 这类东西，会被直接拦下并说明原因
+- 每次提交前自动跑 `node tools/check.js`（JS 语法、模型文件与内部引用、页面链接、元素 id 全查一遍）
+- 万一钩子误拦了你确定要提交的东西：`git commit --no-verify`（绕过检查，谨慎用）
+
+---
+
+## 不想敲命令？用 GitHub Desktop（图形界面）
+
+1. 下载安装 https://desktop.github.com ，登录你的 GitHub 账号
+2. **File → Clone repository** → 选 xingyue → Clone
+3. 日常操作全有按钮：`Fetch origin` / `Pull` / `Commit to main` / `Push origin`
+   逻辑和上面的命令行完全一样，适合不习惯命令行的伙伴。
+
+---
+
+## 第二部分：日常协同与冲突处理
 
 ## 一、双人协同到底是怎么协同的
 
@@ -417,8 +512,12 @@ git fetch origin && git reset --hard origin/main
 
 ---
 
-## 七、相关文档
+---
 
-- `docs/03-协作指南.md`：首次环境准备（Git 安装、SSH 密钥、clone、装钩子）
-- `docs/04-双人协同操作手册.md`：本文（日常协同、流程图、冲突处理）
-- `docs/05-AI协作约定.md`：两个人各自用 AI 写代码时的分工、指令模板、公共文件规则
+## 相关文档
+
+- `docs/01-网站定位.md`：这个站是做什么的
+- `docs/02-网站结构.md`：目录结构、页面清单、实现进度
+- `docs/03-Git协作指南.md`：本文（环境准备 + 日常协同 + 冲突处理）
+- `docs/04-AI协作约定.md`：两个人各自用 AI 写代码时的分工与规则
+- `docs/05-网站流程图.md`：网站流程图（现状 + 改造目标）
