@@ -1059,6 +1059,50 @@
     display: none;
 }
 
+.user-danger-note {
+    color: #8a8f99 !important;
+
+    font-size: 13px;
+}
+
+/* 注销验证：密码 / 验证码输入框 */
+.user-danger-confirm .settings-input {
+    margin-bottom: 10px;
+}
+
+.user-danger-row {
+    display: flex;
+    align-items: stretch;
+
+    gap: 8px;
+
+    margin-bottom: 14px;
+}
+
+.user-danger-row .settings-input {
+    flex: 1;
+
+    margin-bottom: 0;
+
+    height: 40px;
+
+    box-sizing: border-box;
+}
+
+.user-danger-row .settings-btn {
+    min-width: 64px;
+
+    flex-shrink: 0;
+
+    height: 40px;
+
+    box-sizing: border-box;
+}
+
+.user-danger-actions {
+    margin-top: 4px;
+}
+
 .user-danger-yes,
 .user-danger-no {
     padding: 6px 16px;

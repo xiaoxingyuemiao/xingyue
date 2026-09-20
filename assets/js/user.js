@@ -252,36 +252,122 @@ uSave.addEventListener("click", async () => {
     }
 });
 
-// ---------- 注销账号（危险操作：删账号 → 释放 uid → 清本地） ----------
+// ---------- 注销账号（危险操作：先验密码 + 邮箱验证码） ----------
+
+const uDeletePassword = document.querySelector("#u-delete-password");
+const uDeleteCode = document.querySelector("#u-delete-code");
+const uDeleteSend = document.querySelector("#u-delete-send");
+const uDeleteStatus = document.querySelector("#u-delete-status");
+
+let deleteTimer = null;
+
+function startDeleteCountdown() {
+    if (deleteTimer) {
+        clearInterval(deleteTimer);
+    }
+    let left = 60;
+    uDeleteSend.disabled = true;
+    uDeleteSend.textContent = left + "s";
+    deleteTimer = setInterval(() => {
+        left--;
+        if (left <= 0) {
+            clearInterval(deleteTimer);
+            deleteTimer = null;
+            uDeleteSend.disabled = false;
+            uDeleteSend.textContent = "发送";
+        } else {
+            uDeleteSend.textContent = left + "s";
+        }
+    }, 1000);
+}
 
 uDelete.addEventListener("click", () => {
     uDelete.hidden = true;
     uDeleteConfirm.hidden = false;
+    uDeleteStatus.textContent = "";
+    uDeletePassword.value = "";
+    uDeleteCode.value = "";
+    uDeletePassword.focus();
 });
 
 uDeleteNo.addEventListener("click", () => {
     uDeleteConfirm.hidden = true;
     uDelete.hidden = false;
+    uDeletePassword.value = "";
+    uDeleteCode.value = "";
+    uDeleteStatus.textContent = "";
 });
 
-uDeleteYes.addEventListener("click", async () => {
-    uDeleteYes.disabled = true;
-    uDeleteYes.textContent = "注销中……";
+// 发送注销验证码（发到当前账号的邮箱）
+uDeleteSend.addEventListener("click", async () => {
+    const user = window.Auth.current();
+    if (!user) {
+        uDeleteStatus.textContent = "登录状态已失效，请重新登录";
+        return;
+    }
+    uDeleteSend.disabled = true;
+    uDeleteSend.textContent = "…";
     try {
+        await window.Auth.sendCode(user.email);
+        uDeleteStatus.textContent = "验证码已发送到 " + user.email + "，请查收";
+        uDeleteCode.focus();
+        startDeleteCountdown();
+    } catch (e) {
+        uDeleteStatus.textContent = e.message || "发送失败，请稍后再试";
+        uDeleteSend.disabled = false;
+        uDeleteSend.textContent = "发送";
+    }
+});
+
+// 确定注销：密码 + 验证码都过了才真的删
+uDeleteYes.addEventListener("click", async () => {
+    const user = window.Auth.current();
+    if (!user) {
+        uDeleteStatus.textContent = "登录状态已失效，请重新登录";
+        return;
+    }
+
+    const password = uDeletePassword.value;
+    const code = uDeleteCode.value.trim();
+
+    if (!password) {
+        uDeleteStatus.textContent = "请输入当前账号的密码";
+        return;
+    }
+    if (!/^\d{4,10}$/.test(code)) {
+        uDeleteStatus.textContent = "请先点「发送」，再填入邮箱里的验证码";
+        return;
+    }
+
+    uDeleteYes.disabled = true;
+
+    try {
+        // 1. 验证密码（密码不对会直接报"邮箱或密码不正确"）
+        uDeleteYes.textContent = "验证密码……";
+        await window.Auth.signInWithPassword(user.email, password);
+
+        // 2. 验证邮箱验证码
+        uDeleteYes.textContent = "验证验证码……";
+        await window.Auth.verifyCode(user.email, code);
+
+        // 3. 删除账号（数据库函数会把 uid 还回池子并级联删除数据）
+        uDeleteYes.textContent = "注销中……";
         if (window.Cloud && window.Cloud.isReady()) {
             await window.Cloud.deleteAccount();
         }
-        // 清掉本地与这个账号有关的数据
+
+        // 4. 清掉本地与这个账号有关的数据，回登录页
         localStorage.removeItem(USER_KEY);
         localStorage.removeItem(window.Store.KEYS.uid);
         localStorage.removeItem(window.Store.KEYS.memberNo);
         localStorage.removeItem(window.Store.KEYS.auth);
         localStorage.removeItem(window.Store.KEYS.visited);
+        localStorage.removeItem(window.Store.KEYS.lastUser);
         window.location.href = "index.html";
     } catch (e) {
+        uDeleteStatus.textContent = "注销失败：" + (e.message || e);
         uDeleteYes.disabled = false;
         uDeleteYes.textContent = "确定注销";
-        uStatus.textContent = "注销失败：" + (e.message || e);
     }
 });
 

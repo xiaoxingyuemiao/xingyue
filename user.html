@@ -118,9 +118,25 @@
                     </button>
 
                     <div class="user-danger-confirm" id="u-delete-confirm" hidden>
-                        <p>注销后账号、云端资料、角色和对话记录都会被<strong>永久删除</strong>，且无法恢复。<br>确定要注销吗？</p>
-                        <button class="user-danger-yes" id="u-delete-yes" type="button">确定注销</button>
-                        <button class="user-danger-no" id="u-delete-no" type="button">取消</button>
+
+                        <p>注销后账号、云端资料、角色和对话记录都会被<strong>永久删除</strong>，且无法恢复。</p>
+
+                        <p class="user-danger-note">为了确认是你本人，请输入当前账号的密码和邮箱验证码：</p>
+
+                        <input class="settings-input" id="u-delete-password" type="password" placeholder="当前密码" autocomplete="current-password">
+
+                        <div class="user-danger-row">
+                            <input class="settings-input" id="u-delete-code" type="text" inputmode="numeric" maxlength="10" placeholder="邮箱验证码">
+                            <button class="settings-btn" id="u-delete-send" type="button">发送</button>
+                        </div>
+
+                        <div class="user-danger-actions">
+                            <button class="user-danger-yes" id="u-delete-yes" type="button">确定注销</button>
+                            <button class="user-danger-no" id="u-delete-no" type="button">取消</button>
+                        </div>
+
+                        <p class="modal-status" id="u-delete-status"></p>
+
                     </div>
 
                 </div>
