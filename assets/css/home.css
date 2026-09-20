@@ -267,8 +267,12 @@ body {
 .auth-box .auth-eye {
     position: absolute;
 
-    right: 8px;
-    top: 19px;
+    right: 6px;
+    top: 50%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
     width: 28px;
     height: 28px;
@@ -277,7 +281,7 @@ body {
     padding: 0;
 
     border: none;
-    border-radius: 7px;
+    border-radius: 0;
 
     background: transparent;
 
@@ -288,18 +292,10 @@ body {
     cursor: pointer;
 
     transform: translateY(-50%);
-
-    transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .auth-box .auth-eye svg {
     display: block;
-}
-
-.auth-box .auth-eye:hover {
-    background-color: rgba(0, 0, 0, 0.05);
-
-    color: var(--main-color);
 }
 
 /* ---------- 密码实时提示：不符合才出现，符合时整行隐藏 ---------- */
