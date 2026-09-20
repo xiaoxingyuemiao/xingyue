@@ -230,6 +230,9 @@ nav {
     border-radius: 20px;
 
     overflow: hidden;
+
+    /* 头像不参与拖选：星瑶 / 月瓷是立绘图片，小喵这里是大号 emoji 文字 */
+    user-select: none;
 }
 
 .about-portrait img {
@@ -237,6 +240,9 @@ nav {
     height: 100%;
 
     object-fit: contain;
+
+    /* 立绘也不允许被拖出去 */
+    -webkit-user-drag: none;
 }
 
 /* 没有立绘的角色（小喵）用大表情代替 */
