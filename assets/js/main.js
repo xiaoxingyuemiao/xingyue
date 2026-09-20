@@ -308,6 +308,75 @@ function passwordProblem(pwd) {
     return "";
 }
 
+// ---------- 密码框：小眼睛（显示 / 隐藏）+ 实时规则提示 ----------
+
+// 小眼睛：点击切换明文 / 密文（自己实现，不受浏览器原生按钮影响）
+for (const eye of document.querySelectorAll(".auth-eye")) {
+    eye.addEventListener("click", () => {
+        const input = document.getElementById(eye.dataset.target);
+        if (!input) {
+            return;
+        }
+        const show = input.type === "password";
+        input.type = show ? "text" : "password";
+        eye.textContent = show ? "🙈" : "👁";
+        eye.setAttribute("aria-label", show ? "隐藏密码" : "显示密码");
+        input.focus();
+    });
+}
+
+// 实时校验：输入密码时立刻显示是否符合规则
+function watchPasswordRule(input, hintEl) {
+    if (!input || !hintEl) {
+        return;
+    }
+    input.addEventListener("input", () => {
+        const value = input.value;
+        if (!value) {
+            hintEl.textContent = "";
+            hintEl.className = "auth-hint";
+            return;
+        }
+        const problem = passwordProblem(value);
+        if (problem) {
+            hintEl.textContent = "✗ " + problem;
+            hintEl.className = "auth-hint auth-hint-bad";
+        } else {
+            hintEl.textContent = "✓ 密码符合要求";
+            hintEl.className = "auth-hint auth-hint-ok";
+        }
+    });
+}
+
+// 实时校验：两次密码是否一致
+function watchPasswordMatch(input, otherInput, hintEl) {
+    if (!input || !otherInput || !hintEl) {
+        return;
+    }
+    const check = () => {
+        if (!input.value) {
+            hintEl.textContent = "";
+            hintEl.className = "auth-hint";
+            return;
+        }
+        if (input.value === otherInput.value) {
+            hintEl.textContent = "✓ 两次输入一致";
+            hintEl.className = "auth-hint auth-hint-ok";
+        } else {
+            hintEl.textContent = "✗ 两次输入的密码不一样";
+            hintEl.className = "auth-hint auth-hint-bad";
+        }
+    };
+    input.addEventListener("input", check);
+    otherInput.addEventListener("input", check);
+}
+
+// 注册卡 + 找回密码卡的实时提示
+watchPasswordRule(regPassword, document.querySelector("#reg-password-hint"));
+watchPasswordMatch(regPassword2, regPassword, document.querySelector("#reg-password2-hint"));
+watchPasswordRule(fgPassword, document.querySelector("#fg-password-hint"));
+watchPasswordMatch(fgPassword2, fgPassword, document.querySelector("#fg-password2-hint"));
+
 function setCardMsg(el, text, kind) {
     el.textContent = text || "";
     el.className = "auth-msg" + (kind ? " auth-msg-" + kind : "");

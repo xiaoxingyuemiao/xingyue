@@ -243,6 +243,97 @@ body {
     font-size: 13px;
 }
 
+/* ---------- 密码框：右侧小眼睛（显示 / 隐藏密码） ---------- */
+
+.auth-pwd {
+    position: relative;
+}
+
+.auth-pwd .auth-input {
+    padding-right: 44px;
+
+    margin-bottom: 4px;
+}
+
+.auth-box .auth-eye {
+    position: absolute;
+
+    right: 8px;
+    top: 19px;
+
+    width: 28px;
+    height: 28px;
+
+    margin: 0;
+    padding: 0;
+
+    border: none;
+    border-radius: 7px;
+
+    background: transparent;
+
+    font-size: 14px;
+    line-height: 1;
+
+    color: #9aa3ad;
+
+    cursor: pointer;
+
+    transform: translateY(-50%);
+
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.auth-box .auth-eye:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+
+    color: var(--main-color);
+}
+
+/* ---------- 密码规则 / 一致性 的实时提示 ---------- */
+
+.auth-hint {
+    min-height: 17px;
+
+    margin: 0 0 8px;
+
+    font-size: 12px;
+    line-height: 1.4;
+
+    text-align: left;
+
+    color: #9aa3ad;
+}
+
+.auth-hint-ok {
+    color: #3aa76d;
+}
+
+.auth-hint-bad {
+    color: #e05b5b;
+}
+
+/* ---------- 两个文字链接并排一行（改用验证码登录 ｜ 忘记密码？） ---------- */
+
+.auth-links-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 16px;
+
+    margin: 10px 0 4px;
+}
+
+.auth-links-row .auth-link {
+    display: inline-block;
+
+    width: auto;
+
+    margin: 0;
+    padding: 0;
+}
+
 /* 起始屏的输入框：之间留点空隙（登录 / 注册 / 找回密码三张卡通用） */
 .auth-box .auth-input {
     margin-bottom: 12px;
