@@ -140,54 +140,14 @@ sidebarMenu.addEventListener("click", (event) => {
     }
 });
 
-// ---------- 用户区域：邮箱登录 / 用户设置 ----------
+// ---------- 用户区域：登录状态 / 用户设置 ----------
 
-const authPanel = document.querySelector("#auth-panel");
-const authPanelClose = document.querySelector("#auth-panel-close");
-const authPanelTitle = document.querySelector("#auth-panel-title");
-const authStepEmail = document.querySelector("#auth-step-email");
-const authStepCode = document.querySelector("#auth-step-code");
-const authStepDone = document.querySelector("#auth-step-done");
-const authEmail = document.querySelector("#auth-email");
-const authCode = document.querySelector("#auth-code");
-const authSend = document.querySelector("#auth-send");
-const authVerify = document.querySelector("#auth-verify");
-const authResend = document.querySelector("#auth-resend");
-const authSignout = document.querySelector("#auth-signout");
-const authDoneMail = document.querySelector("#auth-done-mail");
-const authMsg = document.querySelector("#auth-msg");
 const userStatusEl = document.querySelector(".user-status");
-
-// 记住刚发送验证码的邮箱（登录时用）
-let pendingEmail = "";
-
-function setAuthMsg(text, kind) {
-    authMsg.textContent = text || "";
-    authMsg.className = "auth-msg" + (kind ? " auth-msg-" + kind : "");
-}
 
 // 侧边栏太窄，邮箱显示成前 10 个字符 + 省略号（完整邮箱放 title）
 function shortEmail(email) {
     const name = String(email || "").split("@")[0];
     return name.length > 10 ? name.slice(0, 10) + "…" : name;
-}
-
-// 根据登录状态切换面板内容
-function renderAuthPanel() {
-    const user = window.Auth.current();
-    authPanelTitle.textContent = user ? "已登录" : (authPanelMode === "register" ? "邮箱注册" : "邮箱登录");
-    authStepDone.hidden = !user;
-    if (user) {
-        authStepEmail.hidden = true;
-        authStepCode.hidden = true;
-        authDoneMail.textContent = user.email;
-    } else if (pendingEmail) {
-        authStepEmail.hidden = true;
-        authStepCode.hidden = false;
-    } else {
-        authStepEmail.hidden = false;
-        authStepCode.hidden = true;
-    }
 }
 
 // 侧边栏签名排版：每行最多 6 个字符、最多两行；
@@ -231,57 +191,6 @@ function renderAuthState() {
 
     // 不设 title：鼠标移到左下角用户栏时不再弹出提示框（HTML 里可能写死的也一并清掉）
     sidebarUser.removeAttribute("title");
-
-    renderAuthPanel();
-}
-
-// 面板模式：login（登录）/ register（注册）——两者都是邮箱验证码流程，
-// 区别只是标题与提示语（未注册的邮箱由 Supabase 自动创建账号）
-let authPanelMode = "login";
-
-function openAuthPanel(mode) {
-    authPanelMode = mode === "register" ? "register" : "login";
-    authPanel.hidden = false;
-    setAuthMsg(authPanelMode === "register"
-        ? "输入邮箱获取验证码，第一次登录会自动创建账号"
-        : "");
-    // 自动填入上次用过的邮箱
-    if (!authEmail.value) {
-        authEmail.value = window.Store.readJSON(window.Store.KEYS.lastEmail, "") || "";
-    }
-    renderAuthPanel();
-    if (!window.Auth.isConfigured()) {
-        setAuthMsg("还没配置 Supabase（见 assets/data/supabase-config.js）", "error");
-    }
-}
-
-function closeAuthPanel() {
-    authPanel.hidden = true;
-    authCode.value = "";
-    setAuthMsg("");
-}
-
-// 重发倒计时（Supabase 有 60 秒冷却，避免用户点了被报"太频繁"）
-let resendTimer = null;
-
-function startResendCountdown(seconds) {
-    if (resendTimer) {
-        clearInterval(resendTimer);
-    }
-    let left = seconds;
-    authResend.disabled = true;
-    authResend.textContent = "没收到？" + left + " 秒后可重发";
-    resendTimer = setInterval(() => {
-        left--;
-        if (left <= 0) {
-            clearInterval(resendTimer);
-            resendTimer = null;
-            authResend.disabled = false;
-            authResend.textContent = "没收到？重新发送";
-        } else {
-            authResend.textContent = "没收到？" + left + " 秒后可重发";
-        }
-    }, 1000);
 }
 
 sidebarUser.addEventListener("click", () => {
@@ -289,101 +198,12 @@ sidebarUser.addEventListener("click", () => {
     if (user) {
         // 已登录 → 进入用户设置页
         window.location.href = "user.html";
-    } else if (authPanel.hidden) {
-        openAuthPanel();
     } else {
-        closeAuthPanel();
+        // 未登录（包括游客进入的）→ 回到第一次进来那个登录页，停在第一张卡
+        // （首页左下角的小面板先不用了，相关代码保留着，以后想改回来随时可以）
+        authScreen.style.display = "flex";
+        showStartChoiceStep();
     }
-});
-
-authPanelClose.addEventListener("click", closeAuthPanel);
-
-// 第 1 步：发送验证码
-authSend.addEventListener("click", async () => {
-    const email = authEmail.value.trim();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        setAuthMsg("请输入正确的邮箱地址", "error");
-        return;
-    }
-    authSend.disabled = true;
-    authSend.textContent = "发送中……";
-    try {
-        await window.Auth.sendCode(email);
-        pendingEmail = email;
-        window.Store.writeJSON(window.Store.KEYS.lastEmail, email);
-        setAuthMsg("验证码已发送到 " + email + "，请查收（可能在垃圾邮件里）", "ok");
-        renderAuthPanel();
-        authCode.focus();
-        startResendCountdown(60);
-    } catch (e) {
-        setAuthMsg(e.message || "发送失败，请稍后再试", "error");
-    } finally {
-        authSend.disabled = false;
-        authSend.textContent = "发送验证码";
-    }
-});
-
-// 第 2 步：验证码登录
-authVerify.addEventListener("click", async () => {
-    // 验证码长度由 Supabase 决定（常见 6~8 位），这里放宽到 4~10 位
-    const token = authCode.value.trim();
-    if (!/^\d{4,10}$/.test(token)) {
-        setAuthMsg("请输入邮件里的数字验证码", "error");
-        return;
-    }
-    authVerify.disabled = true;
-    authVerify.textContent = "验证中……";
-    try {
-        await window.Auth.verifyCode(pendingEmail || authEmail.value.trim(), token);
-        pendingEmail = "";
-        authCode.value = "";
-        setAuthMsg("登录成功 ✓", "ok");
-        if (resendTimer) {
-            clearInterval(resendTimer);
-            resendTimer = null;
-            authResend.disabled = false;
-            authResend.textContent = "没收到？重新发送";
-        }
-        // 让"登录成功"提示停留一下，再切成已登录状态
-        setTimeout(() => {
-            if (!authPanel.hidden) {
-                renderAuthPanel();
-            }
-        }, 900);
-    } catch (e) {
-        setAuthMsg(e.message || "验证码不正确", "error");
-        authCode.select();
-    } finally {
-        authVerify.disabled = false;
-        authVerify.textContent = "登录";
-    }
-});
-
-// 重新发送
-authResend.addEventListener("click", () => {
-    authSend.click();
-});
-
-// 回车键快捷操作
-authEmail.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && !authSend.disabled) {
-        authSend.click();
-    }
-});
-
-authCode.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && !authVerify.disabled) {
-        authVerify.click();
-    }
-});
-
-// 退出登录
-authSignout.addEventListener("click", async () => {
-    if (!window.confirm("确定要退出登录吗？")) {
-        return;
-    }
-    await window.Auth.signOut();
-    setAuthMsg("已退出登录", "ok");
 });
 
 // 登录 / 退出时刷新界面

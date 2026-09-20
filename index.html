@@ -227,47 +227,6 @@
                 </div>
 
 
-                <!-- 邮箱登录面板（点击侧边栏底部用户区域打开） -->
-                <div class="auth-panel" id="auth-panel" hidden>
-
-                    <div class="auth-panel-head">
-                        <span id="auth-panel-title">邮箱登录</span>
-                        <button class="auth-panel-close" id="auth-panel-close" type="button">✕</button>
-                    </div>
-
-                    <!-- 第 1 步：输入邮箱 -->
-                    <div id="auth-step-email">
-
-                        <input class="auth-input" id="auth-email" type="email" placeholder="你的邮箱" autocomplete="email">
-
-                        <button class="auth-btn" id="auth-send" type="button">发送验证码</button>
-
-                    </div>
-
-                    <!-- 第 2 步：输入验证码 -->
-                    <div id="auth-step-code" hidden>
-
-                        <input class="auth-input" id="auth-code" type="text" inputmode="numeric" maxlength="10" placeholder="输入邮件里的验证码">
-
-                        <button class="auth-btn" id="auth-verify" type="button">登录</button>
-
-                        <button class="auth-link" id="auth-resend" type="button">没收到？重新发送</button>
-
-                    </div>
-
-                    <!-- 已登录 -->
-                    <div id="auth-step-done" hidden>
-
-                        <p class="auth-done-mail" id="auth-done-mail"></p>
-
-                        <button class="auth-btn auth-btn-plain" id="auth-signout" type="button">退出登录</button>
-
-                    </div>
-
-                    <p class="auth-msg" id="auth-msg"></p>
-
-                </div>
-
             </main>
 
         </div>

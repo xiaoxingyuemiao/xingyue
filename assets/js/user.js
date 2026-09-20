@@ -13,6 +13,7 @@ const uAvatarFile = document.querySelector("#u-avatar-file");
 const uNickname = document.querySelector("#u-nickname");
 const uSignature = document.querySelector("#u-signature");
 const uSave = document.querySelector("#u-save");
+const uSignout = document.querySelector("#u-signout");
 const uStatus = document.querySelector("#u-status");
 const uAccount = document.querySelector("#u-account");
 
@@ -45,7 +46,7 @@ function renderAvatarPreview() {
     renderAvatar(avatarPreview, pickedAvatar || savedAvatar);
 }
 
-// 顶部显示登录状态
+// 顶部显示登录状态；没登录就不显示「退出登录」
 function renderAccount() {
     if (!uAccount) {
         return;
@@ -55,9 +56,24 @@ function renderAccount() {
         uAccount.textContent = "已登录：" + user.email;
         uAccount.className = "user-account user-account-on";
     } else {
-        uAccount.textContent = "未登录 —— 回首页点侧边栏底部即可用邮箱登录";
+        uAccount.textContent = "未登录 —— 回首页点左下角用户栏即可登录";
         uAccount.className = "user-account";
     }
+    if (uSignout) {
+        uSignout.hidden = !user;
+    }
+}
+
+// 退出登录（原来在首页那个小面板里，现在挪到这一页）
+if (uSignout) {
+    uSignout.addEventListener("click", async () => {
+        if (!window.confirm("确定要退出登录吗？")) {
+            return;
+        }
+        await window.Auth.signOut();
+        uStatus.textContent = "已退出登录";
+        renderAccount();
+    });
 }
 
 // 昵称最多 6 个字（汉字算 1 个）；个性签名不限长度
