@@ -372,6 +372,22 @@ body {
     opacity: 0.55;
 
     overflow: hidden;
+
+    /* 签名由 main.js 按「每行最多 6 个字符」插好换行符，这里让换行生效；
+       平时只露第一行，鼠标移上来（白底延长）才把第二行也显示出来 */
+    white-space: pre-line;
+    line-height: 1.25;
+    max-height: 1.3em;
+}
+
+/* 鼠标移上来：白底向右延长，第二行签名也一起显示 */
+.sidebar-user:hover .user-status {
+    max-height: none;
+}
+
+/* 签名有两行时，头像和名字整体往上挪一点点，底部不至于太挤 */
+.sidebar-user.two-lines:hover {
+    padding-bottom: 18px;
 }
 
 /* ---------- 收起状态（44px：图标两侧各留 5px） ---------- */

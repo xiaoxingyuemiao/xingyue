@@ -190,6 +190,27 @@ function renderAuthPanel() {
     }
 }
 
+// 侧边栏签名排版：每行最多 6 个字符、最多两行；
+// 超过两行的容量时，第 2 行的最后一个字符位置换成省略号
+const SIGNATURE_LINE_CHARS = 6;
+const SIGNATURE_LINE_MAX = 2;
+
+function formatSignature(text) {
+    const chars = Array.from(String(text || ""));
+    const capacity = SIGNATURE_LINE_CHARS * SIGNATURE_LINE_MAX;
+
+    let shown = chars;
+    if (chars.length > capacity) {
+        shown = chars.slice(0, capacity - 1).concat("…");
+    }
+
+    const lines = [];
+    for (let i = 0; i < shown.length; i += SIGNATURE_LINE_CHARS) {
+        lines.push(shown.slice(i, i + SIGNATURE_LINE_CHARS).join(""));
+    }
+    return { text: lines.join("\n"), lines: lines.length };
+}
+
 // 更新侧边栏底部的用户区域
 function renderAuthState() {
     const user = window.Auth.current();
@@ -197,14 +218,16 @@ function renderAuthState() {
     const nickname = (profile && profile.nickname) || "";
     const signature = (profile && profile.signature) || "";
 
-    // 名字下面一行：优先显示个性签名（用户设置里填的那个），
+    // 名字下面：优先显示个性签名（每行 6 个字符、最多两行），
     // 没写签名时才回退到邮箱前缀（已登录）/「点击登录」
     if (signature) {
-        userStatusEl.textContent = signature;
-    } else if (user) {
-        userStatusEl.textContent = shortEmail(user.email);
+        const sig = formatSignature(signature);
+        userStatusEl.textContent = sig.text;
+        // 两行签名时整块往上挪一点点（见 home.css 的 .sidebar-user.two-lines）
+        sidebarUser.classList.toggle("two-lines", sig.lines > 1);
     } else {
-        userStatusEl.textContent = "点击登录";
+        sidebarUser.classList.remove("two-lines");
+        userStatusEl.textContent = user ? shortEmail(user.email) : "点击登录";
     }
 
     // 名字太长会被省略号截断，完整信息放进 title 悬停可见
