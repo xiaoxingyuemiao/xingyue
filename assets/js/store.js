@@ -17,6 +17,8 @@ window.Store = (function () {
         visited: "xingyue_visited",     // 是否已进入过首页
         lastEmail: "xingyue_last_email",// 上次登录用的邮箱（下次自动填充）
         memberNo: "xingyue_member_no",  // 默认显示名里的编号（小窝第 N 成员）
+        uid: "xingyue_uid",             // 云端分配的全局唯一编号
+        syncKey: "xingyue_sync_key",    // 是否把 API 秘钥同步到云端（布尔）
     };
 
     // ---------- 基础读写 ----------

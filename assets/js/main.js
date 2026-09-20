@@ -172,7 +172,13 @@ sidebarUser.addEventListener("click", () => {
 });
 
 // 登录 / 退出时刷新界面
-window.Auth.onChange(renderAuthState);
+// 登录 / 退出时刷新界面；登录成功后顺带拉一次云端资料
+window.Auth.onChange(() => {
+    renderAuthState();
+    if (window.Auth.current()) {
+        syncFromCloud();
+    }
+});
 
 // 头像可能是 emoji 文字（默认 🐱），也可能是用户上传的图片（DataURL）。
 // 异常值（既不是图片、也不像短 emoji）一律回退默认，避免显示出一长串乱码
@@ -195,6 +201,34 @@ function renderAvatar(el, avatar) {
 function renderUserInfo() {
     const u = window.Store.readJSON(window.Store.KEYS.user, null);
     renderAvatar(userAvatarEl, u && u.avatar);
+}
+
+// 登录后从云端拉一次资料：uid（默认名字要用）+ 昵称 / 头像 / 签名
+// 云端是"跟着账号走"的那一份，本地只是缓存
+async function syncFromCloud() {
+    if (!window.Cloud || !window.Cloud.isReady()) {
+        return;
+    }
+    try {
+        const p = await window.Cloud.profile();
+        if (!p) {
+            return;
+        }
+        if (p.uid) {
+            window.Store.writeJSON(window.Store.KEYS.uid, p.uid);
+        }
+        const local = window.Store.readJSON(window.Store.KEYS.user, null) || {};
+        window.Store.writeJSON(window.Store.KEYS.user, {
+            nickname: p.nickname || local.nickname || "",
+            avatar: p.avatar || local.avatar || "🐱",
+            signature: p.signature || local.signature || "",
+        });
+        renderUserInfo();
+        renderAuthState();
+        console.log("☁️ 云端资料已同步（uid: " + p.uid + "）");
+    } catch (e) {
+        console.warn("云端资料同步失败（不影响本地使用）：", e);
+    }
 }
 
 // ---------- 起始屏：游客进入 / 登录 / 注册 ----------
@@ -1218,9 +1252,13 @@ chatInput.addEventListener("keydown", (event) => {
 renderBubble();
 renderUserInfo();
 
-// 登录状态：先按本地凭证渲染一次，再异步刷新过期凭证
+// 登录状态：先按本地凭证渲染一次，再异步刷新过期凭证 + 拉一次云端资料
 renderAuthState();
-window.Auth.init();
+window.Auth.init().then(() => {
+    if (window.Auth.current()) {
+        syncFromCloud();
+    }
+});
 
 // 页面长时间挂着时，定期续期登录凭证（每 30 分钟）
 setInterval(() => {

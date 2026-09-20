@@ -61,10 +61,20 @@ window.Auth = (function () {
         return s && s.email ? s : null;
     }
 
+    // 当前登录凭证（云端读写要用它做 Authorization）
+    function accessToken() {
+        const s = readSession();
+        return (s && s.access_token) || "";
+    }
+
     // ---------- 默认显示名：小窝第 N 成员 ----------
-    // N 目前在本机随机分配并记住（同一个浏览器里保持不变）；
-    // 接入云端 uid 之后会换成全局编号，保证不同用户不重复。
+    // N 优先用云端分配的 uid（登录后由 cloud.js 同步到本地）；
+    // 没有云端编号时，退回本机随机编号（保证界面总有名字可显示）。
     function memberNo() {
+        const cloudUid = window.Store.readJSON(window.Store.KEYS.uid, 0);
+        if (Number.isFinite(cloudUid) && cloudUid > 0) {
+            return cloudUid;
+        }
         let no = window.Store.readJSON(window.Store.KEYS.memberNo, 0);
         if (!Number.isFinite(no) || no <= 0) {
             no = Math.floor(Math.random() * 9000) + 1000;
@@ -375,6 +385,7 @@ window.Auth = (function () {
     return {
         isConfigured: isConfigured,
         current: current,
+        accessToken: accessToken,
         defaultDisplayName: defaultDisplayName,
         onChange: onChange,
         sendCode: sendCode,
