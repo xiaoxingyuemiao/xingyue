@@ -549,11 +549,15 @@ function renderRolePicker() {
     rolePickerList.innerHTML = "";
     const current = getChatRole();
 
-    // 官方角色（星瑶、月瓷 在最上面）
-    const officialRoles = ["星瑶", "月瓷"].map((name) => ({
+    // 官方角色（星瑶、月瓷 在最上面）：avatar 是名字左边的头像
+    const officialRoles = [
+        { name: "星瑶", avatar: "images/xingyao-avatar.jpg" },
+        { name: "月瓷", avatar: "images/yueci-avatar.jpg" },
+    ].map((r) => ({
         kind: "official",
         id: null,
-        name: name,
+        name: r.name,
+        avatar: r.avatar,
     }));
 
     // 我的角色（按创建顺序）
@@ -622,7 +626,17 @@ function roleItemEl(role, active) {
     btn.type = "button";
     btn.className = "role-picker-item" + (active ? " active" : "");
 
+    // 有头像的角色（官方角色）：头像排在名字左边，把名字往右推
+    if (role.avatar) {
+        const avatar = document.createElement("img");
+        avatar.className = "role-picker-avatar";
+        avatar.src = role.avatar;
+        avatar.alt = "";
+        btn.appendChild(avatar);
+    }
+
     const nameSpan = document.createElement("span");
+    nameSpan.className = "role-picker-name";
     nameSpan.textContent = role.name;
     btn.appendChild(nameSpan);
 

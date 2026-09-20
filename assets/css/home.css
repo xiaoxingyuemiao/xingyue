@@ -810,6 +810,28 @@ body {
     font-weight: bold;
 }
 
+/* 角色头像：排在名字左边，把名字往右推（不加边框） */
+.role-picker-avatar {
+    display: block;
+
+    width: 22px;
+    height: 22px;
+
+    margin-right: 8px;
+
+    border: none;
+    border-radius: 50%;
+
+    object-fit: cover;
+
+    flex-shrink: 0;
+}
+
+/* 名字之后自动填充空白：「✓」等标记因此始终靠右 */
+.role-picker-name {
+    margin-right: auto;
+}
+
 /* ==============================
    邮箱登录面板
    ============================== */
