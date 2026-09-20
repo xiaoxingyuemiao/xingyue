@@ -193,15 +193,27 @@ function renderAuthPanel() {
 // 更新侧边栏底部的用户区域
 function renderAuthState() {
     const user = window.Auth.current();
-    if (user) {
-        // 已登录：显示昵称（有的话）或邮箱前缀
-        const profile = window.Store.readJSON(window.Store.KEYS.user, null);
-        userStatusEl.textContent = (profile && profile.nickname) || shortEmail(user.email);
-        sidebarUser.title = user.email + "（点击打开用户设置）";
+    const profile = window.Store.readJSON(window.Store.KEYS.user, null);
+    const nickname = (profile && profile.nickname) || "";
+    const signature = (profile && profile.signature) || "";
+
+    // 名字下面一行：优先显示个性签名（用户设置里填的那个），
+    // 没写签名时才回退到邮箱前缀（已登录）/「点击登录」
+    if (signature) {
+        userStatusEl.textContent = signature;
+    } else if (user) {
+        userStatusEl.textContent = shortEmail(user.email);
     } else {
         userStatusEl.textContent = "点击登录";
-        sidebarUser.title = "邮箱登录";
     }
+
+    // 名字太长会被省略号截断，完整信息放进 title 悬停可见
+    if (user) {
+        sidebarUser.title = (nickname ? nickname + " · " : "") + user.email + "（点击打开用户设置）";
+    } else {
+        sidebarUser.title = (nickname ? nickname + " · " : "") + "邮箱登录";
+    }
+
     renderAuthPanel();
 }
 
