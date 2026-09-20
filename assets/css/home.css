@@ -306,20 +306,27 @@ body {
 
     cursor: pointer;
 
-    transition: background-color 0.2s ease;
+    transition: max-width 0.25s ease, background-color 0.2s ease, border-radius 0.2s ease;
 
-    /* 白底：名字/签名比侧边栏宽时，这块白底会跟着向右延伸（最宽到 78vw / 280px），
-       下沿始终贴着屏幕底部 —— 名字跑出侧边栏也不会糊在背景图上。
-       短名字时 min-width: 100% 保证白底仍然是整条侧边栏宽 */
+    /* 白底平时只有侧边栏那么宽（超出的名字/签名先裁掉），
+       鼠标移上来才向右延长成一张圆角蓝卡（见下面的 :hover）。
+       用 max-width 而不是 width 做延长，是因为 max-width 可以过渡，
+       延长过程才是平滑的；下沿始终贴着屏幕底部 */
     width: max-content;
-    min-width: 100%;
-    max-width: min(78vw, 280px);
+    max-width: 100%;
+
+    overflow: hidden;
 
     background-color: var(--surface-color);
 }
 
+/* 鼠标移上来：白底向右延长显示完整名字，四角变圆，选中状态用主色蓝 */
 .sidebar-user:hover {
-    background-color: rgba(102, 204, 255, 0.1);
+    max-width: min(78vw, 280px);
+
+    background-color: var(--main-color);
+
+    border-radius: 14px;
 }
 
 .user-avatar {
