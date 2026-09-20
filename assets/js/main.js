@@ -310,8 +310,19 @@ function passwordProblem(pwd) {
 
 // ---------- 密码框：小眼睛（显示 / 隐藏）+ 实时规则提示 ----------
 
-// 小眼睛：点击切换明文 / 密文（自己实现，不受浏览器原生按钮影响）
+// 线条风格的眼睛图标（和浏览器原生那个观感一致）
+const EYE_OPEN_SVG = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">' +
+    '<path d="M2.5 12S6 6.6 12 6.6 21.5 12 21.5 12 18 17.4 12 17.4 2.5 12 2.5 12z"/>' +
+    '<circle cx="12" cy="12" r="2.6"/></svg>';
+
+const EYE_CLOSED_SVG = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">' +
+    '<path d="M2.5 12S6 6.6 12 6.6 21.5 12 21.5 12 18 17.4 12 17.4 2.5 12 2.5 12z"/>' +
+    '<circle cx="12" cy="12" r="2.6"/>' +
+    '<line x1="4" y1="20" x2="20" y2="4"/></svg>';
+
+// 小眼睛：点击切换明文 / 密文
 for (const eye of document.querySelectorAll(".auth-eye")) {
+    eye.innerHTML = EYE_OPEN_SVG;
     eye.addEventListener("click", () => {
         const input = document.getElementById(eye.dataset.target);
         if (!input) {
@@ -319,52 +330,71 @@ for (const eye of document.querySelectorAll(".auth-eye")) {
         }
         const show = input.type === "password";
         input.type = show ? "text" : "password";
-        eye.textContent = show ? "🙈" : "👁";
+        eye.innerHTML = show ? EYE_CLOSED_SVG : EYE_OPEN_SVG;
         eye.setAttribute("aria-label", show ? "隐藏密码" : "显示密码");
         input.focus();
     });
 }
 
-// 实时校验：输入密码时立刻显示是否符合规则
+// 实时校验（规则 / 一致性）：
+//   不符合 → 下面出现一行 ✗ 提示，输入框描红
+//   符合   → 提示行隐藏、输入框描绿
+function applyPasswordCheck(input, hintEl, ok) {
+    if (ok) {
+        hintEl.hidden = true;
+        hintEl.textContent = "";
+        input.classList.add("auth-input-ok");
+        input.classList.remove("auth-input-bad");
+    } else {
+        hintEl.hidden = false;
+        input.classList.add("auth-input-bad");
+        input.classList.remove("auth-input-ok");
+    }
+}
+
+function clearPasswordCheck(input, hintEl) {
+    hintEl.hidden = true;
+    hintEl.textContent = "";
+    input.classList.remove("auth-input-ok", "auth-input-bad");
+}
+
+// 规则校验：至少 8 位、含字母和数字
 function watchPasswordRule(input, hintEl) {
     if (!input || !hintEl) {
         return;
     }
     input.addEventListener("input", () => {
-        const value = input.value;
-        if (!value) {
-            hintEl.textContent = "";
-            hintEl.className = "auth-hint";
+        if (!input.value) {
+            clearPasswordCheck(input, hintEl);
             return;
         }
-        const problem = passwordProblem(value);
+        const problem = passwordProblem(input.value);
         if (problem) {
-            hintEl.textContent = "✗ " + problem;
             hintEl.className = "auth-hint auth-hint-bad";
+            hintEl.textContent = "✗ " + problem;
+            applyPasswordCheck(input, hintEl, false);
         } else {
-            hintEl.textContent = "✓ 密码符合要求";
-            hintEl.className = "auth-hint auth-hint-ok";
+            applyPasswordCheck(input, hintEl, true);
         }
     });
 }
 
-// 实时校验：两次密码是否一致
+// 一致性校验：两次输入是否相同
 function watchPasswordMatch(input, otherInput, hintEl) {
     if (!input || !otherInput || !hintEl) {
         return;
     }
     const check = () => {
         if (!input.value) {
-            hintEl.textContent = "";
-            hintEl.className = "auth-hint";
+            clearPasswordCheck(input, hintEl);
             return;
         }
         if (input.value === otherInput.value) {
-            hintEl.textContent = "✓ 两次输入一致";
-            hintEl.className = "auth-hint auth-hint-ok";
+            applyPasswordCheck(input, hintEl, true);
         } else {
-            hintEl.textContent = "✗ 两次输入的密码不一样";
             hintEl.className = "auth-hint auth-hint-bad";
+            hintEl.textContent = "✗ 两次输入的密码不一样";
+            applyPasswordCheck(input, hintEl, false);
         }
     };
     input.addEventListener("input", check);

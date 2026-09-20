@@ -214,7 +214,7 @@ body {
     cursor: default;
 }
 
-/* 验证码 + 发送按钮：同一行 */
+/* 验证码 + 发送按钮：同一行、高度一致 */
 .auth-row {
     display: flex;
     align-items: stretch;
@@ -222,6 +222,13 @@ body {
     gap: 8px;
 
     margin-bottom: 12px;
+}
+
+.auth-row .auth-input,
+.auth-row .auth-btn-inline {
+    height: 40px;
+
+    box-sizing: border-box;
 }
 
 .auth-row .auth-input {
@@ -233,7 +240,7 @@ body {
 .auth-btn-inline {
     width: auto !important;
 
-    min-width: 62px;
+    min-width: 64px;
 
     margin: 0 !important;
     padding: 0 14px;
@@ -247,12 +254,14 @@ body {
 
 .auth-pwd {
     position: relative;
+
+    margin-bottom: 12px;
 }
 
 .auth-pwd .auth-input {
     padding-right: 44px;
 
-    margin-bottom: 4px;
+    margin-bottom: 0;
 }
 
 .auth-box .auth-eye {
@@ -272,8 +281,7 @@ body {
 
     background: transparent;
 
-    font-size: 14px;
-    line-height: 1;
+    line-height: 0;
 
     color: #9aa3ad;
 
@@ -284,33 +292,46 @@ body {
     transition: background-color 0.15s ease, color 0.15s ease;
 }
 
+.auth-box .auth-eye svg {
+    display: block;
+}
+
 .auth-box .auth-eye:hover {
     background-color: rgba(0, 0, 0, 0.05);
 
     color: var(--main-color);
 }
 
-/* ---------- 密码规则 / 一致性 的实时提示 ---------- */
+/* ---------- 密码实时提示：不符合才出现，符合时整行隐藏 ---------- */
 
 .auth-hint {
-    min-height: 17px;
-
-    margin: 0 0 8px;
+    margin: -6px 0 12px;
 
     font-size: 12px;
     line-height: 1.4;
 
     text-align: left;
 
-    color: #9aa3ad;
+    color: #e05b5b;
 }
 
-.auth-hint-ok {
-    color: #3aa76d;
+.auth-hint[hidden] {
+    display: none;
 }
 
 .auth-hint-bad {
     color: #e05b5b;
+}
+
+/* 输入框状态：符合 = 绿框，不符合 = 红框（覆盖聚焦时的蓝色） */
+.auth-box .auth-input-ok,
+.auth-box .auth-input-ok:focus {
+    border-color: #3aa76d;
+}
+
+.auth-box .auth-input-bad,
+.auth-box .auth-input-bad:focus {
+    border-color: #e05b5b;
 }
 
 /* ---------- 两个文字链接并排一行（改用验证码登录 ｜ 忘记密码？） ---------- */
@@ -320,7 +341,7 @@ body {
     align-items: center;
     justify-content: center;
 
-    gap: 16px;
+    gap: 10px;
 
     margin: 10px 0 4px;
 }
@@ -332,6 +353,15 @@ body {
 
     margin: 0;
     padding: 0;
+}
+
+/* 两个链接之间的竖线分隔 */
+.auth-links-row .auth-link + .auth-link::before {
+    content: "|";
+
+    margin-right: 10px;
+
+    color: #d8dde3;
 }
 
 /* 起始屏的输入框：之间留点空隙（登录 / 注册 / 找回密码三张卡通用） */
