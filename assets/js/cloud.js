@@ -154,6 +154,90 @@ window.Cloud = (function () {
         return true;
     }
 
+    // ---------- 设置整体同步（API 提供商 + 我的角色 + 秘钥勾选） ----------
+
+    function keysSynced() {
+        return !!window.Store.readJSON(window.Store.KEYS.syncKey, false);
+    }
+
+    // 本地设置 → 云端（秘钥按用户勾选决定是否加密上传）
+    async function pushSettings() {
+        if (!isReady()) {
+            return false;
+        }
+        const store = window.Store.readSettings();
+        const syncKeys = keysSynced();
+        const providers = [];
+
+        for (const p of store.providers) {
+            providers.push({
+                id: p.id,
+                name: p.name,
+                type: p.type,
+                baseUrl: p.baseUrl,
+                model: p.model,
+                // 勾选了才加密上传；没勾就留空，云端拿不到明文秘钥
+                apiKeyEnc: (syncKeys && p.apiKey) ? await encryptText(p.apiKey) : "",
+            });
+        }
+
+        await saveSettings({
+            providers: providers,
+            roles: store.roles,
+            syncKeys: syncKeys,
+        });
+        return true;
+    }
+
+    // 云端设置 → 本地（秘钥解密后填回 apiKey；云端没有的秘钥保留本地那份）
+    async function pullSettings() {
+        if (!isReady()) {
+            return false;
+        }
+        const data = await settings();
+        if (!data) {
+            return false;
+        }
+
+        const local = window.Store.readSettings();
+        const providers = [];
+
+        for (const p of (data.providers || [])) {
+            let apiKey = p.apiKeyEnc ? await decryptText(p.apiKeyEnc) : "";
+            if (!apiKey) {
+                const old = local.providers.find((x) => x.id === p.id);
+                apiKey = (old && old.apiKey) || "";
+            }
+            providers.push({
+                id: p.id,
+                name: p.name,
+                type: p.type,
+                baseUrl: p.baseUrl,
+                model: p.model,
+                apiKey: apiKey,
+            });
+        }
+
+        if (providers.length > 0) {
+            local.providers = providers;
+            if (!local.activeId || !providers.some((p) => p.id === local.activeId)) {
+                local.activeId = providers[0].id;
+            }
+        }
+        if (Array.isArray(data.roles) && data.roles.length > 0) {
+            local.roles = data.roles;
+            if (!local.activeRoleId || !local.roles.some((r) => r.id === local.activeRoleId)) {
+                local.activeRoleId = local.roles[0].id;
+            }
+        }
+        if (typeof data.syncKeys === "boolean") {
+            window.Store.writeJSON(window.Store.KEYS.syncKey, data.syncKeys);
+        }
+
+        window.Store.writeSettings(local);
+        return true;
+    }
+
     // ---------- 注销账号 ----------
     // 删除 Supabase 账号：数据库触发器会把 uid 还回池子，
     // 资料 / 设置 / 对话记录会被级联删除
@@ -253,6 +337,9 @@ window.Cloud = (function () {
         saveProfile: saveProfile,
         settings: settings,
         saveSettings: saveSettings,
+        pushSettings: pushSettings,
+        pullSettings: pullSettings,
+        keysSynced: keysSynced,
         sessions: sessions,
         saveSession: saveSession,
         deleteAccount: deleteAccount,

@@ -22,6 +22,12 @@ const uSignoutConfirm = document.querySelector("#u-signout-confirm");
 const uSignoutYes = document.querySelector("#u-signout-yes");
 const uSignoutNo = document.querySelector("#u-signout-no");
 
+// 注销账号（危险操作）
+const uDelete = document.querySelector("#u-delete");
+const uDeleteConfirm = document.querySelector("#u-delete-confirm");
+const uDeleteYes = document.querySelector("#u-delete-yes");
+const uDeleteNo = document.querySelector("#u-delete-no");
+
 const DEFAULT_AVATAR = "🐱"; // 默认头像：没上传过图片时用它
 const AVATAR_SIZE = 128; // 上传的图片会居中裁成正方形并缩到这个尺寸再保存
 
@@ -205,8 +211,8 @@ function loadUser() {
 }
 
 // 保存：昵称先规范到 12 个字符以内并写回输入框，签名不限制长度
-// 没填昵称时用默认名（小窝第 N 成员）
-uSave.addEventListener("click", () => {
+// 没填昵称时用默认名（小窝第 N 成员）；登录状态下同时同步到云端
+uSave.addEventListener("click", async () => {
     limitNicknameInput();
     const fallback = (window.Auth && window.Auth.defaultDisplayName)
         ? window.Auth.defaultDisplayName()
@@ -215,17 +221,68 @@ uSave.addEventListener("click", () => {
     uNickname.value = nickname;
 
     const avatar = pickedAvatar || savedAvatar || DEFAULT_AVATAR;
+    const signature = uSignature.value.trim() || "";
 
+    // 1. 先存本地（立刻生效）
     window.Store.writeJSON(USER_KEY, {
         avatar: avatar,
         nickname: nickname,
-        signature: uSignature.value.trim() || "",
+        signature: signature,
     });
 
     savedAvatar = avatar;
     pickedAvatar = "";
     renderAvatarPreview();
     uStatus.textContent = "已保存 ✓ 首页侧边栏会自动更新";
+
+    // 2. 已登录就同步到云端（失败不影响本地）
+    if (window.Cloud && window.Cloud.isReady()) {
+        uStatus.textContent = "已存到本地，正在同步云端……";
+        try {
+            await window.Cloud.saveProfile({
+                nickname: nickname,
+                avatar: avatar,
+                signature: signature,
+            });
+            uStatus.textContent = "已保存 ✓ 本地 + 云端都更新了（换设备登录也能看到）";
+        } catch (e) {
+            uStatus.textContent = "已存到本地 ✓（云端同步失败：" + (e.message || e) + "）";
+            console.warn("云端资料保存失败：", e);
+        }
+    }
+});
+
+// ---------- 注销账号（危险操作：删账号 → 释放 uid → 清本地） ----------
+
+uDelete.addEventListener("click", () => {
+    uDelete.hidden = true;
+    uDeleteConfirm.hidden = false;
+});
+
+uDeleteNo.addEventListener("click", () => {
+    uDeleteConfirm.hidden = true;
+    uDelete.hidden = false;
+});
+
+uDeleteYes.addEventListener("click", async () => {
+    uDeleteYes.disabled = true;
+    uDeleteYes.textContent = "注销中……";
+    try {
+        if (window.Cloud && window.Cloud.isReady()) {
+            await window.Cloud.deleteAccount();
+        }
+        // 清掉本地与这个账号有关的数据
+        localStorage.removeItem(USER_KEY);
+        localStorage.removeItem(window.Store.KEYS.uid);
+        localStorage.removeItem(window.Store.KEYS.memberNo);
+        localStorage.removeItem(window.Store.KEYS.auth);
+        localStorage.removeItem(window.Store.KEYS.visited);
+        window.location.href = "index.html";
+    } catch (e) {
+        uDeleteYes.disabled = false;
+        uDeleteYes.textContent = "确定注销";
+        uStatus.textContent = "注销失败：" + (e.message || e);
+    }
 });
 
 loadUser();

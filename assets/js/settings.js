@@ -1,4 +1,4 @@
-// ================================
+﻿// ================================
 // 星月小窝 —— 设置页面脚本
 // API 提供商管理（DeepSeek / 通义千问 / OpenAI 兼容，点击卡片切换）
 // 角色设定（多角色卡片管理，支持导入本地 Live2D 模型）
@@ -121,6 +121,55 @@ function loadPrefs() {
 }
 
 // ================================
+// 云端同步（设置 + 秘钥）
+//   具体读写逻辑在 assets/js/cloud.js（首页也会用到），这里只做界面提示
+// ================================
+
+const syncKeyRow = document.querySelector("#sync-key-row");
+const syncKeysBox = document.querySelector("#sync-keys");
+const syncKeyStatus = document.querySelector("#sync-key-status");
+
+function keysSynced() {
+    return !!window.Store.readJSON(window.Store.KEYS.syncKey, false);
+}
+
+// 勾选框：切换「秘钥是否上云」
+if (syncKeysBox) {
+    syncKeysBox.checked = keysSynced();
+
+    syncKeysBox.addEventListener("change", async () => {
+        window.Store.writeJSON(window.Store.KEYS.syncKey, syncKeysBox.checked);
+
+        if (!window.Cloud || !window.Cloud.isReady()) {
+            syncKeyStatus.textContent = syncKeysBox.checked
+                ? "已记住这个选择；登录后会自动同步到云端"
+                : "已关闭：秘钥只留在本机";
+            return;
+        }
+
+        syncKeyStatus.textContent = "正在同步……";
+        try {
+            await window.Cloud.pushSettings();
+            syncKeyStatus.textContent = syncKeysBox.checked
+                ? "已开启 ✓ 秘钥已加密上传到云端"
+                : "已关闭 ✓ 云端上的秘钥已清空";
+        } catch (e) {
+            syncKeyStatus.textContent = "同步失败：" + (e.message || e);
+        }
+    });
+}
+
+// 静默同步：改了提供商 / 角色之后后台推一次（失败不打扰用户）
+function syncSettingsQuietly() {
+    if (!window.Cloud || !window.Cloud.isReady()) {
+        return;
+    }
+    window.Cloud.pushSettings().catch((e) => {
+        console.warn("设置同步到云端失败：", e);
+    });
+}
+
+// ================================
 // 视图一：API 设置（提供商卡片，点击卡片切换当前使用）
 // ================================
 
@@ -153,6 +202,7 @@ function renderProviders() {
                 s.activeId = p.id;
                 saveStore(s);
                 renderProviders();
+                syncSettingsQuietly();
             }, 250);
         });
 
@@ -213,6 +263,7 @@ function renderProviders() {
             }
             saveStore(s);
             renderProviders();
+            syncSettingsQuietly();
         });
 
         card.appendChild(info);
@@ -245,6 +296,7 @@ function renderRoles() {
                 s.activeRoleId = role.id;
                 saveStore(s);
                 renderRoles();
+                syncSettingsQuietly();
             }, 250);
         });
 
@@ -297,6 +349,7 @@ function renderRoles() {
             }
             saveStore(s);
             renderRoles();
+            syncSettingsQuietly();
             // 清理该角色导入的本地模型缓存（如果有）
             if (window.L2D_CUSTOM) {
                 window.L2D_CUSTOM.clearRole(role.id).catch(() => {});
@@ -399,6 +452,7 @@ rSave.addEventListener("click", () => {
     }
     saveStore(store);
     renderRoles();
+    syncSettingsQuietly();
     closeRoleModal();
 });
 
@@ -833,6 +887,7 @@ mSave.addEventListener("click", () => {
     }
     saveStore(store);
     renderProviders();
+    syncSettingsQuietly();
     closeModal();
 });
 

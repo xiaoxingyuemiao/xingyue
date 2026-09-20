@@ -203,31 +203,64 @@ function renderUserInfo() {
     renderAvatar(userAvatarEl, u && u.avatar);
 }
 
-// 登录后从云端拉一次资料：uid（默认名字要用）+ 昵称 / 头像 / 签名
-// 云端是"跟着账号走"的那一份，本地只是缓存
+// 登录后从云端同步一次：资料（uid / 昵称 / 头像 / 签名）+ 设置 + 对话记录
+// 本地只是缓存，云端才是"跟着账号走"的那一份
 async function syncFromCloud() {
     if (!window.Cloud || !window.Cloud.isReady()) {
         return;
     }
+
+    // 1. 资料
     try {
         const p = await window.Cloud.profile();
-        if (!p) {
-            return;
+        if (p) {
+            if (p.uid) {
+                window.Store.writeJSON(window.Store.KEYS.uid, p.uid);
+            }
+            const local = window.Store.readJSON(window.Store.KEYS.user, null) || {};
+            window.Store.writeJSON(window.Store.KEYS.user, {
+                nickname: p.nickname || local.nickname || "",
+                avatar: p.avatar || local.avatar || "🐱",
+                signature: p.signature || local.signature || "",
+            });
+            renderUserInfo();
+            renderAuthState();
+            console.log("☁️ 云端资料已同步（uid: " + p.uid + "）");
         }
-        if (p.uid) {
-            window.Store.writeJSON(window.Store.KEYS.uid, p.uid);
-        }
-        const local = window.Store.readJSON(window.Store.KEYS.user, null) || {};
-        window.Store.writeJSON(window.Store.KEYS.user, {
-            nickname: p.nickname || local.nickname || "",
-            avatar: p.avatar || local.avatar || "🐱",
-            signature: p.signature || local.signature || "",
-        });
-        renderUserInfo();
-        renderAuthState();
-        console.log("☁️ 云端资料已同步（uid: " + p.uid + "）");
     } catch (e) {
         console.warn("云端资料同步失败（不影响本地使用）：", e);
+    }
+
+    // 2. 设置（API 提供商 + 我的角色 + 秘钥）
+    try {
+        await window.Cloud.pullSettings();
+        renderRolePickerSoon();
+    } catch (e) {
+        console.warn("云端设置同步失败：", e);
+    }
+
+    // 3. 对话记录：云端有、本地没有的角色直接拿过来（本地已有内容的以本地为准，避免覆盖新消息）
+    try {
+        const cloudSessions = await window.Cloud.sessions();
+        if (cloudSessions) {
+            const local = window.Store.readSessions();
+            let changed = false;
+            for (const roleId of Object.keys(cloudSessions)) {
+                const msgs = cloudSessions[roleId];
+                if (Array.isArray(msgs) && msgs.length > 0 && (!Array.isArray(local[roleId]) || local[roleId].length === 0)) {
+                    local[roleId] = msgs;
+                    changed = true;
+                }
+            }
+            if (changed) {
+                window.Store.writeSessions(local);
+                chatHistory = loadChat();
+                renderBubble();
+                console.log("☁️ 云端对话记录已同步");
+            }
+        }
+    } catch (e) {
+        console.warn("云端对话同步失败：", e);
     }
 }
 
@@ -1054,6 +1087,34 @@ function loadChat() {
 
 function saveChat() {
     window.Store.setSession(getActiveRoleId(), chatHistory);
+    scheduleChatSync();
+}
+
+// 对话记录同步到云端：防抖 3 秒，避免每打一句就请求一次
+let chatSyncTimer = null;
+
+function scheduleChatSync() {
+    if (!window.Cloud || !window.Cloud.isReady()) {
+        return;
+    }
+    if (chatSyncTimer) {
+        clearTimeout(chatSyncTimer);
+    }
+    const roleId = getActiveRoleId();
+    const snapshot = chatHistory.slice();
+    chatSyncTimer = setTimeout(() => {
+        chatSyncTimer = null;
+        window.Cloud.saveSession(roleId, snapshot).catch((e) => {
+            console.warn("对话同步到云端失败：", e);
+        });
+    }, 3000);
+}
+
+// 云端设置拉下来之后，角色面板要跟着刷新（如果面板开着）
+function renderRolePickerSoon() {
+    if (typeof renderRolePicker === "function" && rolePicker && !rolePicker.hidden) {
+        renderRolePicker();
+    }
 }
 
 // 追加一条消息气泡（不写入历史）

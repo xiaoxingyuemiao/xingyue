@@ -971,6 +971,137 @@
 }
 
 /* ==============================
+   秘钥是否同步到云端（勾选框）
+   ============================== */
+
+.settings-check {
+    display: flex;
+    align-items: flex-start;
+
+    gap: 10px;
+
+    margin-top: 22px;
+    padding: 12px 14px;
+
+    border: 1px solid #e8eef3;
+    border-radius: 12px;
+
+    background-color: #f8fbfd;
+
+    font-size: 13.5px;
+    line-height: 1.6;
+
+    color: #55606d;
+
+    cursor: pointer;
+}
+
+.settings-check input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+
+    margin: 1px 0 0;
+
+    flex-shrink: 0;
+
+    cursor: pointer;
+}
+
+/* ==============================
+   注销账号（危险操作）
+   ============================== */
+
+.user-danger {
+    margin-top: 26px;
+
+    padding-top: 18px;
+
+    border-top: 1px dashed #f0d7d7;
+
+    text-align: center;
+}
+
+.user-danger-btn {
+    padding: 7px 18px;
+
+    border: 1px solid #f0c9c9;
+    border-radius: 999px;
+
+    background-color: transparent;
+
+    color: #c94b4b;
+
+    font-size: 13px;
+
+    cursor: pointer;
+
+    transition: background-color 0.2s ease;
+}
+
+.user-danger-btn:hover {
+    background-color: #fdf1f1;
+}
+
+.user-danger-confirm {
+    font-size: 13px;
+    line-height: 1.7;
+
+    color: #8a8f99;
+}
+
+.user-danger-confirm p {
+    margin: 0 0 12px;
+
+    color: #c94b4b;
+}
+
+.user-danger-confirm[hidden] {
+    display: none;
+}
+
+.user-danger-yes,
+.user-danger-no {
+    padding: 6px 16px;
+
+    border: none;
+    border-radius: 999px;
+
+    font-size: 13px;
+
+    cursor: pointer;
+
+    transition: filter 0.2s ease, background-color 0.2s ease;
+}
+
+.user-danger-yes {
+    background-color: #d9534f;
+
+    color: #ffffff;
+}
+
+.user-danger-yes:hover {
+    filter: brightness(1.06);
+}
+
+.user-danger-yes:disabled {
+    opacity: 0.7;
+
+    cursor: default;
+}
+
+.user-danger-no {
+    background-color: #eef1f5;
+
+    color: #55606d;
+
+    margin-left: 8px;
+}
+
+.user-danger-no:hover {
+    background-color: #e3e8ee;
+}
+
+/* ==============================
    手机端适配（设置页 / 个人中心）
    ============================== */
 

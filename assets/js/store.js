@@ -19,6 +19,7 @@ window.Store = (function () {
         memberNo: "xingyue_member_no",  // 默认显示名里的编号（小窝第 N 成员）
         uid: "xingyue_uid",             // 云端分配的全局唯一编号
         syncKey: "xingyue_sync_key",    // 是否把 API 秘钥同步到云端（布尔）
+        auth: "xingyue_auth",           // 登录凭证（auth.js 用，注销时一并清理）
     };
 
     // ---------- 基础读写 ----------

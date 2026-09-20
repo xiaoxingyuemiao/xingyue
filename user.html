@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
     <head>
         <meta charset="UTF-8">
@@ -110,6 +110,21 @@
 
                 </div>
 
+                <!-- 注销账号（危险操作：账号和云端数据都会被删除，且无法恢复） -->
+                <div class="user-danger" id="u-danger-area">
+
+                    <button class="user-danger-btn" id="u-delete" type="button">
+                        注销账号
+                    </button>
+
+                    <div class="user-danger-confirm" id="u-delete-confirm" hidden>
+                        <p>注销后账号、云端资料、角色和对话记录都会被<strong>永久删除</strong>，且无法恢复。<br>确定要注销吗？</p>
+                        <button class="user-danger-yes" id="u-delete-yes" type="button">确定注销</button>
+                        <button class="user-danger-no" id="u-delete-no" type="button">取消</button>
+                    </div>
+
+                </div>
+
                 </div>
 
 <!-- ========== 视图：API 设置（提供商管理，点击卡片切换） ========== -->
@@ -121,8 +136,8 @@
                     </h2>
 
                     <p class="settings-tip">
-                        配置 api 接口，秘钥只保存在你自己的浏览器里。
-                        添加后点击对应的模型即可切换聊天使用的模型。
+                        配置 api 接口。秘钥默认只保存在你自己的浏览器里；
+                        登录后可以勾选下面的选项，把它<strong>加密</strong>同步到云端，换设备就不用重填了。
                     </p>
 
                     <div class="provider-list" id="provider-list"></div>
@@ -130,6 +145,14 @@
                     <button class="provider-add" id="provider-add" type="button">
                         ＋ 添加 API
                     </button>
+
+                    <!-- 秘钥是否同步到云端（默认不勾：只在本地） -->
+                    <label class="settings-check" id="sync-key-row">
+                        <input type="checkbox" id="sync-keys">
+                        <span>把 API 秘钥加密同步到云端（换设备自动带回来）</span>
+                    </label>
+
+                    <p class="modal-status" id="sync-key-status"></p>
 
                 </div>
 
