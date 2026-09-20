@@ -71,26 +71,27 @@ window.Cloud = (function () {
         return Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
     }
 
-    // 保存资料（本地已有的行会被覆盖）
+    // 保存资料：只更新自己那一行
+    // （行由数据库触发器在注册时创建；uid 只由数据库分配，前端不提供）
     async function saveProfile(data) {
         const user = window.Auth.current();
         if (!user) {
             throw new Error("未登录");
         }
-        const body = {
-            user_id: user.user_id,
-            nickname: data.nickname || "",
-            avatar: data.avatar || "",
-            signature: data.signature || "",
-            updated_at: new Date().toISOString(),
-        };
-        // upsert：有就更新，没有就插入
-        await request("profiles?on_conflict=user_id", {
-            method: "POST",
-            headers: authHeaders({ "Prefer": "resolution=merge-duplicates,return=minimal" }),
-            body: JSON.stringify(body),
+        const rows = await request("profiles?user_id=eq." + user.user_id, {
+            method: "PATCH",
+            headers: authHeaders({ "Prefer": "return=representation" }),
+            body: JSON.stringify({
+                nickname: data.nickname || "",
+                avatar: data.avatar || "",
+                signature: data.signature || "",
+                updated_at: new Date().toISOString(),
+            }),
         });
-        return true;
+        if (!Array.isArray(rows) || rows.length === 0) {
+            throw new Error("云端还没有你的资料行（请在 Supabase SQL Editor 里执行 tools/supabase-schema.sql 的「补齐历史用户」那段）");
+        }
+        return rows[0];
     }
 
     // ---------- 用户设置（API 提供商 + 我的角色） ----------

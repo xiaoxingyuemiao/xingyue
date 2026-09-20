@@ -209,7 +209,46 @@ grant select, insert, update, delete on public.chat_sessions to authenticated;
 
 
 -- ------------------------------------------------------------
--- ⑨ 自检：看看建好了没
+-- ⑨ 补齐历史用户（脚本执行前就注册过的账号）
+--   触发器只对"之后注册"的用户生效，之前的老账号没有 profiles 行，
+--   那段代码一次性给它们补上 uid + profiles（可重复执行，已补过的会跳过）
+-- ------------------------------------------------------------
+do $$
+declare
+    u record;
+    picked int;
+begin
+    for u in
+        select id from auth.users
+        where id not in (select user_id from public.profiles)
+    loop
+        select uid into picked
+        from public.uid_pool
+        where user_id is null
+        order by random()
+        limit 1;
+
+        if picked is null then
+            select coalesce(max(uid), 0) + 1 into picked from public.uid_pool;
+            insert into public.uid_pool (uid, user_id, assigned_at)
+            values (picked, u.id, now());
+        else
+            update public.uid_pool
+            set user_id = u.id, assigned_at = now()
+            where uid = picked;
+        end if;
+
+        insert into public.profiles (user_id, uid)
+        values (u.id, picked)
+        on conflict (user_id) do nothing;
+
+        raise notice '已补用户 % 的 uid：%', u.id, picked;
+    end loop;
+end $$;
+
+
+-- ------------------------------------------------------------
+-- ⑩ 自检：看看建好了没
 -- ------------------------------------------------------------
 -- 空闲编号数量（应该接近 2000）
 -- select count(*) as free_uids from public.uid_pool where user_id is null;
