@@ -895,6 +895,9 @@
     background-color: rgba(102, 204, 255, 0.15);
 
     font-size: 44px;
+
+    /* 头像（emoji）不参与拖选 */
+    user-select: none;
 }
 
 /* 登录状态提示（用户设置页顶部） */

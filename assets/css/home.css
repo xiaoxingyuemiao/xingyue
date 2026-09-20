@@ -306,6 +306,9 @@ body {
 
     cursor: pointer;
 
+    /* 名字、个性签名、头像都不参与拖选（与左侧菜单保持一致） */
+    user-select: none;
+
     transition: max-width 0.25s ease, background-color 0.2s ease, border-radius 0.2s ease;
 
     /* 平时（鼠标不在上面）：不显示白底 —— 名字就算超出侧边栏，
