@@ -215,7 +215,6 @@ function formatSignature(text) {
 function renderAuthState() {
     const user = window.Auth.current();
     const profile = window.Store.readJSON(window.Store.KEYS.user, null);
-    const nickname = (profile && profile.nickname) || "";
     const signature = (profile && profile.signature) || "";
 
     // 名字下面：优先显示个性签名（每行 6 个字符、最多两行），
@@ -230,12 +229,8 @@ function renderAuthState() {
         userStatusEl.textContent = user ? shortEmail(user.email) : "点击登录";
     }
 
-    // 名字太长会被省略号截断，完整信息放进 title 悬停可见
-    if (user) {
-        sidebarUser.title = (nickname ? nickname + " · " : "") + user.email + "（点击打开用户设置）";
-    } else {
-        sidebarUser.title = (nickname ? nickname + " · " : "") + "邮箱登录";
-    }
+    // 不设 title：鼠标移到左下角用户栏时不再弹出提示框（HTML 里可能写死的也一并清掉）
+    sidebarUser.removeAttribute("title");
 
     renderAuthPanel();
 }
