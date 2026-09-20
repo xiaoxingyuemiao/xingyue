@@ -14,6 +14,8 @@ const sidebarUser = document.querySelector("#sidebar-user");
 const userAvatarEl = document.querySelector("#user-avatar");
 const userNameEl = document.querySelector("#user-name");
 const guestButton = document.querySelector(".guest-button");
+const loginButton = document.querySelector("#auth-login");
+const registerButton = document.querySelector("#auth-register");
 
 const chatInput = document.querySelector(".chat-input input");
 const sendButton = document.querySelector(".chat-input button");
@@ -124,7 +126,7 @@ function shortEmail(email) {
 // 根据登录状态切换面板内容
 function renderAuthPanel() {
     const user = window.Auth.current();
-    authPanelTitle.textContent = user ? "已登录" : "邮箱登录";
+    authPanelTitle.textContent = user ? "已登录" : (authPanelMode === "register" ? "邮箱注册" : "邮箱登录");
     authStepDone.hidden = !user;
     if (user) {
         authStepEmail.hidden = true;
@@ -154,9 +156,16 @@ function renderAuthState() {
     renderAuthPanel();
 }
 
-function openAuthPanel() {
+// 面板模式：login（登录）/ register（注册）——两者都是邮箱验证码流程，
+// 区别只是标题与提示语（未注册的邮箱由 Supabase 自动创建账号）
+let authPanelMode = "login";
+
+function openAuthPanel(mode) {
+    authPanelMode = mode === "register" ? "register" : "login";
     authPanel.hidden = false;
-    setAuthMsg("");
+    setAuthMsg(authPanelMode === "register"
+        ? "输入邮箱获取验证码，第一次登录会自动创建账号"
+        : "");
     // 自动填入上次用过的邮箱
     if (!authEmail.value) {
         authEmail.value = window.Store.readJSON(window.Store.KEYS.lastEmail, "") || "";
@@ -312,16 +321,42 @@ function renderUserInfo() {
     }
 }
 
-// ---------- 游客进入 ----------
+// ---------- 起始屏：游客进入 / 登录 / 注册 ----------
 
-guestButton.addEventListener("click", () => {
+// 隐藏起始屏、显示首页（三个入口共用）
+function enterHomeScreen() {
     // 记录用户已经完成启动流程
     localStorage.setItem(window.Store.KEYS.visited, "true");
 
-    // 隐藏登录页面，显示首页
     authScreen.style.display = "none";
     homeScreen.style.display = "flex";
+}
+
+guestButton.addEventListener("click", () => {
+    enterHomeScreen();
 });
+
+// 「登录」「注册」：直接进入首页并打开左下角的邮箱验证码面板（与侧边栏用户区同一个面板）
+function startEmailAuth(mode) {
+    enterHomeScreen();
+    openAuthPanel(mode);
+    // 面板在首页左下角，等页面显示后自动聚焦邮箱输入框
+    setTimeout(() => {
+        authEmail.focus();
+    }, 50);
+}
+
+if (loginButton) {
+    loginButton.addEventListener("click", () => {
+        startEmailAuth("login");
+    });
+}
+
+if (registerButton) {
+    registerButton.addEventListener("click", () => {
+        startEmailAuth("register");
+    });
+}
 
 // ================================
 // 设置（与设置页面共用 localStorage，读写统一走 assets/js/store.js）
