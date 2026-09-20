@@ -29,7 +29,34 @@ function renderAccount() {
     }
 }
 
-// 载入已保存的信息
+// 昵称最多 6 个字（汉字算 1 个）；个性签名不限长度
+const NICKNAME_MAX = 6;
+
+// 按「字符」截断：用 Array.from 而不是 slice，免得把 emoji 这种字符切成两半
+function cutNickname(text) {
+    return Array.from(String(text || "")).slice(0, NICKNAME_MAX).join("");
+}
+
+// 中文输入法在拼字过程中会绕过 maxlength，所以输入结束后再强制截断一次，
+// 并把结果写回输入框（所见即所存）
+function limitNicknameInput() {
+    const cut = cutNickname(uNickname.value);
+    if (cut !== uNickname.value) {
+        uNickname.value = cut;
+        uStatus.textContent = "昵称最多 " + NICKNAME_MAX + " 个字，超出的部分已自动去掉";
+    }
+}
+
+uNickname.addEventListener("input", (event) => {
+    if (event.isComposing) {
+        return; // 输入法还在拼字，先别动它，等 compositionend
+    }
+    limitNicknameInput();
+});
+uNickname.addEventListener("compositionend", limitNicknameInput);
+uNickname.addEventListener("blur", limitNicknameInput);
+
+// 载入已保存的信息（以前存进去的超长昵称也顺手规范一下）
 function loadUser() {
     const u = window.Store.readJSON(USER_KEY, null);
     if (!u) {
@@ -40,7 +67,7 @@ function loadUser() {
         avatarPreview.textContent = u.avatar;
     }
     if (u.nickname) {
-        uNickname.value = u.nickname;
+        uNickname.value = cutNickname(u.nickname);
     }
     if (u.signature) {
         uSignature.value = u.signature;
@@ -52,12 +79,15 @@ uAvatar.addEventListener("input", () => {
     avatarPreview.textContent = uAvatar.value.trim() || "🐱";
 });
 
-// 保存（昵称最多 6 个汉字：输入框已用 maxlength 限制，这里再兜一层防止粘贴绕过；
-// 个性签名不限制长度）
+// 保存：昵称先规范到 6 个字以内并写回输入框，签名不限制长度
 uSave.addEventListener("click", () => {
+    limitNicknameInput();
+    const nickname = uNickname.value.trim() || "小喵";
+    uNickname.value = nickname;
+
     window.Store.writeJSON(USER_KEY, {
         avatar: uAvatar.value.trim() || "🐱",
-        nickname: (uNickname.value.trim() || "小喵").slice(0, 6),
+        nickname: nickname,
         signature: uSignature.value.trim() || "",
     });
     uStatus.textContent = "已保存 ✓ 首页侧边栏会自动更新";
