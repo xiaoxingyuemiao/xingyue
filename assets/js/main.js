@@ -203,11 +203,40 @@ function renderUserInfo() {
     renderAvatar(userAvatarEl, u && u.avatar);
 }
 
+// 换账号时，先清掉上一个账号留在本机的数据（否则会"串台"）
+// 只在「上一个账号 != 当前账号」时清；首次登录不动本地（游客时期的数据可以带进账号）
+function clearPreviousAccountData() {
+    const keys = window.Store.KEYS;
+    for (const k of [keys.user, keys.uid, keys.chat, keys.chatRole, keys.settings, keys.memberNo]) {
+        try {
+            localStorage.removeItem(k);
+        } catch (e) {
+            // 忽略
+        }
+    }
+    chatHistory = loadChat();
+    renderBubble();
+    renderUserInfo();
+    renderAuthState();
+}
+
 // 登录后从云端同步一次：资料（uid / 昵称 / 头像 / 签名）+ 设置 + 对话记录
 // 本地只是缓存，云端才是"跟着账号走"的那一份
 async function syncFromCloud() {
     if (!window.Cloud || !window.Cloud.isReady()) {
         return;
+    }
+
+    const user = window.Auth.current();
+    const lastUserId = window.Store.readJSON(window.Store.KEYS.lastUser, "");
+
+    // 0. 换账号了？先把上一个账号的本地残留清掉
+    if (user && user.user_id && lastUserId && lastUserId !== user.user_id) {
+        console.log("🔁 检测到换账号，已清掉上一个账号的本地数据");
+        clearPreviousAccountData();
+    }
+    if (user && user.user_id) {
+        window.Store.writeJSON(window.Store.KEYS.lastUser, user.user_id);
     }
 
     // 1. 资料
@@ -226,6 +255,8 @@ async function syncFromCloud() {
             renderUserInfo();
             renderAuthState();
             console.log("☁️ 云端资料已同步（uid: " + p.uid + "）");
+        } else {
+            console.warn("云端没有这个账号的资料行（可执行 tools/supabase-schema.sql 里的「补齐历史用户」）");
         }
     } catch (e) {
         console.warn("云端资料同步失败（不影响本地使用）：", e);

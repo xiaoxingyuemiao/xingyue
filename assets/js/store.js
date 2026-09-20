@@ -20,6 +20,7 @@ window.Store = (function () {
         uid: "xingyue_uid",             // 云端分配的全局唯一编号
         syncKey: "xingyue_sync_key",    // 是否把 API 秘钥同步到云端（布尔）
         auth: "xingyue_auth",           // 登录凭证（auth.js 用，注销时一并清理）
+        lastUser: "xingyue_last_user",  // 上次登录的账号 id（用来识别"换账号"，防止数据串台）
     };
 
     // ---------- 基础读写 ----------

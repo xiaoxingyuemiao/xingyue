@@ -244,7 +244,7 @@ uSave.addEventListener("click", async () => {
                 avatar: avatar,
                 signature: signature,
             });
-            uStatus.textContent = "已保存 ✓ 本地 + 云端都更新了（换设备登录也能看到）";
+            uStatus.textContent = "已保存 ✓ 本地 + 云端都更新了";
         } catch (e) {
             uStatus.textContent = "已存到本地 ✓（云端同步失败：" + (e.message || e) + "）";
             console.warn("云端资料保存失败：", e);
