@@ -196,7 +196,20 @@ create policy "own chat delete" on public.chat_sessions
 
 
 -- ------------------------------------------------------------
--- ⑧ 自检：看看建好了没
+-- ⑧ 表级权限（GRANT）—— ⚠️ 少了这步会报 permission denied (42501)
+--   RLS 策略管的是"行"，这一步管的是"表"：新版 Supabase 不会自动授予，
+--   所以必须显式给已登录用户（authenticated）授权。
+--   anon（未登录）不给任何权限；uid_pool 也不给。
+-- ------------------------------------------------------------
+grant usage on schema public to authenticated;
+
+grant select, insert, update on public.profiles to authenticated;
+grant select, insert, update on public.user_settings to authenticated;
+grant select, insert, update, delete on public.chat_sessions to authenticated;
+
+
+-- ------------------------------------------------------------
+-- ⑨ 自检：看看建好了没
 -- ------------------------------------------------------------
 -- 空闲编号数量（应该接近 2000）
 -- select count(*) as free_uids from public.uid_pool where user_id is null;
