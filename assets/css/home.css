@@ -145,34 +145,27 @@ body {
 }
 
 .auth-box h1 {
-    margin: 0 0 12px;
+    margin: 0 0 22px;
 
-    font-size: 26px;
+    font-size: 24px;
     letter-spacing: 2px;
 
     color: var(--main-color);
 }
 
-.auth-box p {
-    margin: 0 0 34px;
-
-    font-size: 14px;
-
-    color: #8a8f99;
-}
-
+/* 卡片里的按钮：整体收小一圈 */
 .auth-box button {
     display: block;
 
     width: 100%;
 
-    margin: 0 0 14px;
-    padding: 15px;
+    margin: 0 0 10px;
+    padding: 10px;
 
     border: none;
-    border-radius: 10px;
+    border-radius: 9px;
 
-    font-size: 16px;
+    font-size: 14px;
 
     cursor: pointer;
 
@@ -183,7 +176,7 @@ body {
     margin-bottom: 0;
 }
 
-/* 主按钮：登录 */
+/* 主按钮：登录 / 注册 / 重置密码 */
 .auth-btn-primary {
     background-color: var(--main-color);
 
@@ -196,7 +189,13 @@ body {
     filter: brightness(1.06);
 }
 
-/* 次按钮：注册（浅蓝底 + 主色字） */
+.auth-btn-primary:disabled {
+    opacity: 0.65;
+
+    cursor: default;
+}
+
+/* 次按钮：发送验证码（小圆角，和输入框同一行） */
 .auth-btn-soft {
     background-color: rgba(102, 204, 255, 0.16);
 
@@ -209,15 +208,39 @@ body {
     background-color: rgba(102, 204, 255, 0.26);
 }
 
-/* 弱按钮：游客进入 */
-.auth-btn-ghost {
-    background-color: #eef1f5;
+.auth-btn-soft:disabled {
+    opacity: 0.65;
 
-    color: #55606d;
+    cursor: default;
 }
 
-.auth-btn-ghost:hover {
-    background-color: #e3e8ee;
+/* 验证码 + 发送按钮：同一行 */
+.auth-row {
+    display: flex;
+    align-items: stretch;
+
+    gap: 8px;
+
+    margin-bottom: 12px;
+}
+
+.auth-row .auth-input {
+    flex: 1;
+
+    margin-bottom: 0;
+}
+
+.auth-btn-inline {
+    width: auto !important;
+
+    min-width: 62px;
+
+    margin: 0 !important;
+    padding: 0 14px;
+
+    flex-shrink: 0;
+
+    font-size: 13px;
 }
 
 /* 起始屏的输入框：之间留点空隙（登录 / 注册 / 找回密码三张卡通用） */
@@ -226,22 +249,6 @@ body {
 
     /* 整屏是禁选的，但输入框必须能选中 / 编辑 */
     user-select: text;
-}
-
-/* 输入卡片的副标题离输入框近一点（第一张卡下面接的是按钮，需要更大留白） */
-#start-step-login p,
-#start-step-register p,
-#start-step-forgot p {
-    margin-bottom: 16px;
-}
-
-/* 返回上一步：比功能链接更小更淡，和它们区分开 */
-.auth-link-back {
-    margin-top: 16px;
-
-    font-size: 13px;
-
-    color: #aab2bd;
 }
 
 /* 密码 / 验证码两种模式的容器（本身不需要额外间距） */
