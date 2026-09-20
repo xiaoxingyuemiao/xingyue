@@ -1,18 +1,44 @@
 // ================================
 // 用户设置页（assets/js/user.js）
-// 昵称 / 头像 / 个性签名，保存在浏览器本地；首页侧边栏自动读取显示
-// 已登录时页面顶部显示邮箱账号
+// 头像（可上传图片，默认 🐱）/ 昵称 / 个性签名，保存在浏览器本地；
+// 首页侧边栏会自动读取显示；已登录时页面顶部显示邮箱账号
 // ================================
 
 const USER_KEY = window.Store.KEYS.user;
 
 const avatarPreview = document.querySelector("#avatar-preview");
-const uAvatar = document.querySelector("#u-avatar");
+const uAvatarPick = document.querySelector("#u-avatar-pick");
+const uAvatarFile = document.querySelector("#u-avatar-file");
 const uNickname = document.querySelector("#u-nickname");
 const uSignature = document.querySelector("#u-signature");
 const uSave = document.querySelector("#u-save");
 const uStatus = document.querySelector("#u-status");
 const uAccount = document.querySelector("#u-account");
+
+const DEFAULT_AVATAR = "🐱"; // 默认头像：用户没上传图片时用它
+const AVATAR_SIZE = 128; // 上传的图片会居中裁成正方形并缩到这个尺寸再保存
+
+// 已保存的头像 + 本次新选的头像（DataURL）
+let savedAvatar = DEFAULT_AVATAR;
+let pickedAvatar = "";
+
+// 头像可能是 emoji 文字，也可能是上传的图片（DataURL），这里统一渲染
+function renderAvatar(el, avatar) {
+    const value = avatar || DEFAULT_AVATAR;
+    if (value.indexOf("data:image") === 0) {
+        el.textContent = "";
+        el.style.backgroundImage = "url(" + value + ")";
+        el.style.backgroundSize = "cover";
+        el.style.backgroundPosition = "center";
+    } else {
+        el.style.backgroundImage = "";
+        el.textContent = value;
+    }
+}
+
+function renderAvatarPreview() {
+    renderAvatar(avatarPreview, pickedAvatar || savedAvatar);
+}
 
 // 顶部显示登录状态
 function renderAccount() {
@@ -56,28 +82,91 @@ uNickname.addEventListener("input", (event) => {
 uNickname.addEventListener("compositionend", limitNicknameInput);
 uNickname.addEventListener("blur", limitNicknameInput);
 
+// ---------- 上传头像 ----------
+
+// 把选中的图片居中裁成正方形并缩放，返回 DataURL
+// （缩到 128×128 是为了让 localStorage 放得下，原图可能好几 MB）
+function shrinkImage(file) {
+    return new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(file);
+        const img = new Image();
+
+        img.onload = () => {
+            try {
+                const side = Math.min(img.width, img.height);
+                const sx = (img.width - side) / 2;
+                const sy = (img.height - side) / 2;
+
+                const canvas = document.createElement("canvas");
+                canvas.width = AVATAR_SIZE;
+                canvas.height = AVATAR_SIZE;
+
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(img, sx, sy, side, side, 0, 0, AVATAR_SIZE, AVATAR_SIZE);
+
+                URL.revokeObjectURL(url);
+                resolve(canvas.toDataURL("image/png"));
+            } catch (e) {
+                URL.revokeObjectURL(url);
+                reject(e);
+            }
+        };
+
+        img.onerror = () => {
+            URL.revokeObjectURL(url);
+            reject(new Error("图片读取失败"));
+        };
+
+        img.src = url;
+    });
+}
+
+uAvatarPick.addEventListener("click", () => {
+    uAvatarFile.click();
+});
+
+uAvatarFile.addEventListener("change", () => {
+    const file = uAvatarFile.files && uAvatarFile.files[0];
+    if (!file) {
+        return;
+    }
+
+    if (!/^image\//.test(file.type)) {
+        uStatus.textContent = "请选择图片文件（png / jpg / gif 等）";
+        uAvatarFile.value = "";
+        return;
+    }
+
+    shrinkImage(file)
+        .then((dataUrl) => {
+            pickedAvatar = dataUrl;
+            renderAvatarPreview();
+            uStatus.textContent = "新头像已就绪，点最下面的「保存」生效 ✓";
+        })
+        .catch(() => {
+            uStatus.textContent = "这张图片读不出来，换一张试试";
+        })
+        .finally(() => {
+            uAvatarFile.value = ""; // 清空后，同一个文件再选一次也能触发 change
+        });
+});
+
 // 载入已保存的信息（以前存进去的超长昵称也顺手规范一下）
 function loadUser() {
     const u = window.Store.readJSON(USER_KEY, null);
-    if (!u) {
-        return;
+    if (u) {
+        if (u.avatar) {
+            savedAvatar = u.avatar;
+        }
+        if (u.nickname) {
+            uNickname.value = cutNickname(u.nickname);
+        }
+        if (u.signature) {
+            uSignature.value = u.signature;
+        }
     }
-    if (u.avatar) {
-        uAvatar.value = u.avatar;
-        avatarPreview.textContent = u.avatar;
-    }
-    if (u.nickname) {
-        uNickname.value = cutNickname(u.nickname);
-    }
-    if (u.signature) {
-        uSignature.value = u.signature;
-    }
+    renderAvatarPreview();
 }
-
-// 输入头像时实时预览
-uAvatar.addEventListener("input", () => {
-    avatarPreview.textContent = uAvatar.value.trim() || "🐱";
-});
 
 // 保存：昵称先规范到 6 个字以内并写回输入框，签名不限制长度
 uSave.addEventListener("click", () => {
@@ -85,11 +174,17 @@ uSave.addEventListener("click", () => {
     const nickname = uNickname.value.trim() || "小喵";
     uNickname.value = nickname;
 
+    const avatar = pickedAvatar || savedAvatar || DEFAULT_AVATAR;
+
     window.Store.writeJSON(USER_KEY, {
-        avatar: uAvatar.value.trim() || "🐱",
+        avatar: avatar,
         nickname: nickname,
         signature: uSignature.value.trim() || "",
     });
+
+    savedAvatar = avatar;
+    pickedAvatar = "";
+    renderAvatarPreview();
     uStatus.textContent = "已保存 ✓ 首页侧边栏会自动更新";
 });
 

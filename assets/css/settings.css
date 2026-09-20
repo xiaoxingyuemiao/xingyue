@@ -894,10 +894,30 @@
 
     background-color: rgba(102, 204, 255, 0.15);
 
+    /* 上传的图片头像用 background 铺满圆形 */
+    background-size: cover;
+    background-position: center;
+
     font-size: 44px;
 
-    /* 头像（emoji）不参与拖选 */
+    /* 头像（emoji 或上传的图片）不参与拖选 */
     user-select: none;
+}
+
+/* 「设置头像」按钮：居中放在头像预览下面 */
+.user-avatar-actions {
+    display: flex;
+    justify-content: center;
+
+    margin: -8px 0 22px;
+}
+
+.user-avatar-actions .settings-btn {
+    flex: none;
+
+    padding: 10px 26px;
+
+    font-size: 15px;
 }
 
 /* 登录状态提示（用户设置页顶部） */

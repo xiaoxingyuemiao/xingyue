@@ -389,15 +389,27 @@ authSignout.addEventListener("click", async () => {
 // 登录 / 退出时刷新界面
 window.Auth.onChange(renderAuthState);
 
+// 头像可能是 emoji 文字（默认 🐱），也可能是用户上传的图片（DataURL）
+function renderAvatar(el, avatar) {
+    const value = avatar || "🐱";
+    if (value.indexOf("data:image") === 0) {
+        el.textContent = "";
+        el.style.backgroundImage = "url(" + value + ")";
+        el.style.backgroundSize = "cover";
+        el.style.backgroundPosition = "center";
+    } else {
+        el.style.backgroundImage = "";
+        el.textContent = value;
+    }
+}
+
 // 从本地读取用户信息（昵称 / 头像），没有就保持默认
 function renderUserInfo() {
     const u = window.Store.readJSON(window.Store.KEYS.user, null);
     if (u && u.nickname) {
         userNameEl.textContent = u.nickname;
     }
-    if (u && u.avatar) {
-        userAvatarEl.textContent = u.avatar;
-    }
+    renderAvatar(userAvatarEl, u && u.avatar);
 }
 
 // ---------- 起始屏：游客进入 / 登录 / 注册 ----------
