@@ -1047,6 +1047,11 @@
     line-height: 1.7;
 
     color: #8a8f99;
+
+    /* 注销提示文案不参与鼠标拖选，防误拖；
+       下面的输入框会单独放开（见 .user-danger-confirm .settings-input），
+       否则密码和验证码就没法拖选复制了 */
+    user-select: none;
 }
 
 .user-danger-confirm p {
@@ -1068,6 +1073,9 @@
 /* 注销验证：密码 / 验证码输入框 */
 .user-danger-confirm .settings-input {
     margin-bottom: 10px;
+
+    /* 外面整块禁了拖选，这里放开：保证输入框里能正常拖选、复制粘贴 */
+    user-select: text;
 }
 
 .user-danger-row {
