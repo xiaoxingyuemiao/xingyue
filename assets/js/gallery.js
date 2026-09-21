@@ -10,7 +10,8 @@
 //   6. 每个画框按从左到右编号 1、2、3……但编号只写在 data-frame 上，不显示出来
 //   7. 底部是毛线球滚动条：拖动它、点轨道、滚轮、触屏滑动都能移动画廊
 //
-// 以后怎么挂画：把图片放进 images/，然后在下面的 ARTWORKS 里按编号填路径即可
+// 怎么挂画：把图片放进 images/，在下面 ARTWORKS 里加一行（写清宽高）——
+// 代码按「比例最接近」自动给它找画框，比例不合的部分按画框比例居中裁剪（cover）。
 // ================================
 
 (function () {
@@ -40,11 +41,27 @@
     const CELL_SKIP = 0.42; // 每个格子空着的概率（越大越稀疏）
     const DECO_PAD = 34; // 花草与画框之间至少留这么远
 
-    // 挂画配置：编号 → 图片路径。留空就用木色占位。
-    // 例：1: "images/gallery/01.jpg",
-    const ARTWORKS = {
-        // 1: "",
-    };
+    // ---------- 临时挂的画 ----------
+    // images/ 里的图先临时挂进画廊：代码会按「比例最接近」自动给每张图找画框，
+    // 不用手工指定编号。以后有正式插画了，直接改这个列表即可。
+    //
+    // 三个注意点：
+    //   1. 写清每张图的原始宽高（w/h），代码靠它算比例 —— 图换了记得一起改；
+    //   2. 每种比例的画框**有配额**（9:16 有 8 个，16:9 / 20:9 各 4 个）：
+    //      配额占满后，剩下的图**不挂**，画框保持木色占位（不硬塞比例差太多的图）；
+    //   3. 比例对不上的部分由 CSS 的 object-fit: cover 按画框比例居中裁掉。
+    //
+    // 没挂的几张是故意排除的：网站图标（wangzhanmeiye.png）、输入框角色按钮
+    // （shuruokuangrewu.png）、Live2D Param 图标（live2d-param.png）是界面素材；
+    // xingyao-avatar.jpg / yueci-avatar.jpg 与各自的 -bg.jpg 是同一张图（重复）。
+    const ARTWORKS = [
+        { src: "images/xingyao.png", w: 2067, h: 2067 }, // 星瑶立绘（正方形画布，裁成竖条）
+        { src: "images/yueci.png", w: 2067, h: 2067 }, // 月瓷立绘
+        { src: "images/supingbeijing.jpg", w: 690, h: 1200 }, // 手机背景（0.575 ≈ 9:16）
+        { src: "images/xingyao-bg.jpg", w: 732, h: 732 }, // 星瑶背景图
+        { src: "images/yueci-bg.jpg", w: 874, h: 874 }, // 月瓷背景图
+        { src: "images/zhushitu.jpg", w: 1200, h: 658 }, // 首页主视图（1.82 ≈ 16:9）
+    ];
 
     const PLANTS = ["🌿", "🍃", "🌱", "🌷", "🌻", "🌼", "🍀", "🌳", "🌲", "🪴", "🌾", "🍄", "🪷", "🌺"];
 
@@ -148,7 +165,55 @@
         return plan;
     }
 
-    // ---------- 2) 画框 ----------
+    // ---------- 2) 画作分配 ----------
+    // 每张图按「比例最接近」归到三种画框之一，再用该比例的画框配额去分。
+    // 匹配得越准的图越优先拿到画框；配额满了的图就不挂（返回结果里没有它）。
+    function assignArtworks(ratioPlan) {
+        // 每种比例画框的配额 + 它们的编号（从左到右）
+        const pools = new Map();
+        ratioPlan.forEach((ratio, i) => {
+            if (!pools.has(ratio)) {
+                pools.set(ratio, []);
+            }
+            pools.get(ratio).push(i + 1);
+        });
+
+        // 按「竖屏 → 横屏 → 宽横屏」固定顺序比较：
+        // 正方形图（1:1）离 9:16 和 16:9 一样远，严格小于保证它会归到竖屏（立绘竖着裁更合适）
+        const order = [RATIO_PHONE, RATIO_LANDSCAPE, RATIO_WIDE];
+
+        const ranked = ARTWORKS.map((art) => {
+            const r = art.w / art.h;
+            let best = null;
+
+            for (const ratio of order) {
+                if (!pools.has(ratio)) {
+                    continue; // 这次布局里没有这种比例的画框
+                }
+                const target = ratio[0] / ratio[1];
+                const error = Math.abs(Math.log(r) - Math.log(target));
+                if (!best || error < best.error) {
+                    best = { ratio, error };
+                }
+            }
+
+            return best ? { art, ratio: best.ratio, error: best.error } : null;
+        }).filter(Boolean).sort((a, b) => a.error - b.error);
+
+        const picked = new Map(); // 画框编号 → 图片路径
+
+        for (const item of ranked) {
+            const pool = pools.get(item.ratio);
+            if (!pool || pool.length === 0) {
+                continue; // 这种比例的画框已经挂满 → 这张图不挂
+            }
+            picked.set(pool.shift(), item.art.src);
+        }
+
+        return picked;
+    }
+
+    // ---------- 3) 画框 ----------
     function buildFrames() {
         frameLayer.textContent = "";
 
@@ -157,6 +222,7 @@
         const usableY = Math.max(0, canvasHeight - FRAME_HEIGHT - marginY * 2);
 
         const ratioPlan = buildRatioPlan();
+        const artOf = assignArtworks(ratioPlan);
 
         let x = EDGE;
         const frag = document.createDocumentFragment();
@@ -185,7 +251,7 @@
             const art = document.createElement("div");
             art.className = "frame-art";
 
-            const src = ARTWORKS[index];
+            const src = artOf.get(index);
             if (src) {
                 const img = document.createElement("img");
                 img.src = src;
@@ -206,7 +272,7 @@
         canvas.style.width = x + EDGE + "px";
     }
 
-    // ---------- 3) 「进入自动预览」按钮 ----------
+    // ---------- 4) 「进入自动预览」按钮 ----------
     // 按钮在 chahua.html 里写好，这里只负责把它摆到第 3 个画框的正上方：
     // 横向与画框居中对齐，纵向贴在画框顶边上面一点点。
     function placeAction() {
@@ -232,7 +298,7 @@
         frameAction.style.top = Math.max(ACTION_TOP, Math.round(frameTop - frameAction.offsetHeight - ACTION_GAP)) + "px";
     }
 
-    // ---------- 4) 背景花草 ----------
+    // ---------- 5) 背景花草 ----------
     function buildDeco() {
         decoLayer.textContent = "";
 
@@ -312,7 +378,7 @@
         decoLayer.appendChild(frag);
     }
 
-    // ---------- 5) 毛线球滚动条 ----------
+    // ---------- 6) 毛线球滚动条 ----------
     function maxScroll() {
         return Math.max(0, viewport.scrollWidth - viewport.clientWidth);
     }
@@ -442,7 +508,7 @@
         }
     });
 
-    // ---------- 6) 启动 ----------
+    // ---------- 7) 启动 ----------
     function layout() {
         // 每次都从同一个种子重新开始 —— 否则 resize 之后随机序列已经走远，布局会跟着变
         random = makeRandom(LAYOUT_SEED);
