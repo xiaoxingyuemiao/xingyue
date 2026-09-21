@@ -4,7 +4,7 @@
 // 做什么：
 //   1. 高度按顶栏/页脚实测值算，不会和它们叠在一起
 //   2. 背景撒花草树木（网格抖动分布，均匀不挤，且躲开所有画框和按钮）
-//   3. 画框沿 x 轴从左到右排开（x 轴互不重合）：9:16 占一半，16:9 和 20:9 各占四分之一
+//   3. 画框沿 x 轴从左到右排开（x 轴互不重合）：9:16 / 1:1 / 16:9 / 20:9 各 4 个（见 SLOTS）
 //   4. 第 3 个画框固定是 9:16（手机竖屏），「进入自动预览」按钮就挂在它正上方
 //   5. 整套布局是**固定**的：每次刷新完全一样（固定随机种子，想换一套改 LAYOUT_SEED）
 //   6. 每个画框按从左到右编号 1、2、3……但编号只写在 data-frame 上，不显示出来
@@ -17,13 +17,22 @@
 (function () {
 
     // ---------- 可调参数 ----------
-    const FRAME_COUNT = 16; // 画框数量（能被 4 整除：一半竖屏 + 两个四分之一）
     const FRAME_HEIGHT = 250; // 画框统一高度（宽度按比例算出来）
 
-    // 三种比例：手机竖屏占一半，另两种各占四分之一
+    // 四种画框比例
     const RATIO_PHONE = [9, 16]; // 手机竖屏（第 3 个画框固定是这个）
+    const RATIO_SQUARE = [1, 1]; // 正方形
     const RATIO_LANDSCAPE = [16, 9]; // 横屏
     const RATIO_WIDE = [20, 9]; // 宽横屏
+
+    // 每种比例各要几个画框 —— 合计就是画框总数（现在是 4×4 = 16 个）
+    const SLOTS = [
+        { ratio: RATIO_PHONE, n: 4 },
+        { ratio: RATIO_SQUARE, n: 4 },
+        { ratio: RATIO_LANDSCAPE, n: 4 },
+        { ratio: RATIO_WIDE, n: 4 },
+    ];
+    const FRAME_COUNT = SLOTS.reduce((sum, slot) => sum + slot.n, 0); // 16
 
     // 固定随机种子：同一个种子每次都生成同一套画廊（想整套换掉就改这个数字）
     const LAYOUT_SEED = 20260921;
@@ -47,7 +56,7 @@
     //
     // 三个注意点：
     //   1. 写清每张图的原始宽高（w/h），代码靠它算比例 —— 图换了记得一起改；
-    //   2. 每种比例的画框**有配额**（9:16 有 8 个，16:9 / 20:9 各 4 个）：
+    //   2. 每种比例的画框**有配额**（见上面的 SLOTS，现在四种各 4 个）：
     //      配额占满后，剩下的图**不挂**，画框保持木色占位（不硬塞比例差太多的图）；
     //   3. 比例对不上的部分由 CSS 的 object-fit: cover 按画框比例居中裁掉。
     //
@@ -124,22 +133,15 @@
     }
 
     // ---------- 1) 画框比例分配表 ----------
-    // 数量是**精确分配**的（不靠随机碰运气）：手机竖屏一半，另两种各四分之一。
-    // 排布顺序用固定随机源打乱 —— 看着自然，但每次刷新都一样。
+    // 数量按上面的 SLOTS 精确分配（不靠随机碰运气），顺序用固定随机源打乱 ——
+    // 看着自然，但每次刷新都一样。
     function buildRatioPlan() {
-        const phoneCount = Math.round(FRAME_COUNT / 2);
-        const landscapeCount = Math.round(FRAME_COUNT / 4);
-        const wideCount = Math.max(0, FRAME_COUNT - phoneCount - landscapeCount);
-
         const plan = [];
-        for (let i = 0; i < phoneCount; i++) {
-            plan.push(RATIO_PHONE);
-        }
-        for (let i = 0; i < landscapeCount; i++) {
-            plan.push(RATIO_LANDSCAPE);
-        }
-        for (let i = 0; i < wideCount; i++) {
-            plan.push(RATIO_WIDE);
+
+        for (const slot of SLOTS) {
+            for (let i = 0; i < slot.n; i++) {
+                plan.push(slot.ratio);
+            }
         }
 
         // Fisher-Yates 洗牌（用固定随机源 → 结果固定）
@@ -178,9 +180,9 @@
             pools.get(ratio).push(i + 1);
         });
 
-        // 按「竖屏 → 横屏 → 宽横屏」固定顺序比较：
-        // 正方形图（1:1）离 9:16 和 16:9 一样远，严格小于保证它会归到竖屏（立绘竖着裁更合适）
-        const order = [RATIO_PHONE, RATIO_LANDSCAPE, RATIO_WIDE];
+        // 按「正方形 → 竖屏 → 横屏 → 宽横屏」固定顺序比较：
+        // 误差完全相同时保留靠前的那个，保证归类结果稳定、可复现
+        const order = [RATIO_SQUARE, RATIO_PHONE, RATIO_LANDSCAPE, RATIO_WIDE];
 
         const ranked = ARTWORKS.map((art) => {
             const r = art.w / art.h;
