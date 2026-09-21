@@ -9,6 +9,8 @@
 // 注册代码在 assets/js/live2d-custom.js 的 registerSW()，两处要一起改。
 // ================================
 
+// ⚠️ CACHE_NAME 在 assets/js/live2d-custom.js 里也写了一份（SW 是独立上下文，读不到那边的常量）。
+//    两处必须一模一样，改一个就得改另一个 —— tools/check.js 会校验一致性，不一致直接报错。
 const CACHE_NAME = "xingyue-l2d-custom";
 
 self.addEventListener("install", () => {

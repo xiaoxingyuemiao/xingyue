@@ -7,7 +7,7 @@
 --   3. 看到 Success 就完成了（可以重复执行，不会报错）
 --
 -- 【建了什么】
---   uid_pool        uid 池（1~2000，记录每个 uid 被谁占用 / 是否空闲）
+--   uid_pool        uid 池（1000~3000 正常分配区，1~999 保留区；记录每个 uid 被谁占用 / 是否空闲）
 --   profiles        用户资料（uid、昵称、头像、签名）
 --   user_settings   用户设置（API 提供商、我的角色）
 --   chat_sessions   对话记录（按角色分组）

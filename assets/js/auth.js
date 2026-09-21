@@ -10,7 +10,11 @@
 
 window.Auth = (function () {
 
-    const LS_KEY = "xingyue_auth"; // 登录凭证（存在浏览器本地）
+    // 登录凭证的 localStorage 键。
+    // ⚠️ 必须走 store.js 的 KEYS.auth，**不要在这里另写一份字符串** ——
+    // 两处一旦不一致，注销 / 换账号时"清本地"就会漏掉登录凭证（见 docs/08 §4.2）。
+    // 两个页面（index.html / user.html）都是先加载 store.js 再加载本文件，所以这里必然拿得到。
+    const LS_KEY = window.Store.KEYS.auth;
 
     const listeners = [];
 

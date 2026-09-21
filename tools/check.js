@@ -214,6 +214,51 @@ function checkDuplicateIds(htmlFile) {
     }
 }
 
+// 7) 同一份常量在主线程和 Service Worker 里各写一份时，两处必须完全一致
+//    典型：CACHE_NAME（assets/js/live2d-custom.js 与 l2d-sw.js）——
+//    SW 跑在独立上下文里读不到主线程的常量，只能双写，所以在这里卡一道（见 docs/08 §4.2）
+function checkSharedConstants() {
+    const groups = [
+        {
+            name: "CACHE_NAME",
+            files: ["assets/js/live2d-custom.js", "l2d-sw.js"],
+            why: "两处不一致会让本地导入的模型缓存静默失效（写入用 A 名字、读取用 B 名字）",
+        },
+    ];
+
+    for (const g of groups) {
+        const found = g.files.map((f) => {
+            const full = path.join(ROOT, f);
+            if (!fs.existsSync(full)) {
+                return { file: f, value: null };
+            }
+            const m = fs
+                .readFileSync(full, "utf8")
+                .match(new RegExp("const\\s+" + g.name + "\\s*=\\s*[\"']([^\"']+)[\"']"));
+            return { file: f, value: m ? m[1] : null };
+        });
+
+        const notFound = found.filter((x) => x.value === null).map((x) => x.file);
+        if (notFound.length > 0) {
+            failed++;
+            console.error("✗ " + g.name + " 在这些文件里找不到定义: " + notFound.join(", "));
+            continue;
+        }
+
+        const values = [...new Set(found.map((x) => x.value))];
+        if (values.length > 1) {
+            failed++;
+            console.error(
+                "✗ " + g.name + " 多处定义不一致（" +
+                    found.map((x) => x.file + "=" + x.value).join(" / ") +
+                    "）：" + g.why
+            );
+        } else {
+            console.log("✓ " + g.name + " 多处定义一致：" + values[0]);
+        }
+    }
+}
+
 for (const name of fs.readdirSync(ROOT)) {
     if (name.endsWith(".html")) {
         checkLinks(path.join(ROOT, name));
@@ -221,6 +266,8 @@ for (const name of fs.readdirSync(ROOT)) {
         checkDuplicateIds(path.join(ROOT, name));
     }
 }
+
+checkSharedConstants();
 
 if (failed > 0) {
     console.error("\n有 " + failed + " 处未通过检查 ❌");

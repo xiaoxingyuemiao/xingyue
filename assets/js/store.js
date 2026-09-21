@@ -12,7 +12,6 @@ window.Store = (function () {
         prefs: "xingyue_prefs",         // 偏好（对话保留对数等）
         chat: "xingyue_chat",           // 对话历史（按角色会话分组）
         chatRole: "xingyue_chat_role",  // 当前聊天角色
-        panel: "xingyue_panel",         // 面板状态
         user: "xingyue_user",           // 用户昵称 / 头像
         visited: "xingyue_visited",     // 是否已进入过首页
         lastEmail: "xingyue_last_email",// 上次登录用的邮箱（下次自动填充）

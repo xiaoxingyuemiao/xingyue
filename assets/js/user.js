@@ -39,7 +39,10 @@ let pickedAvatar = "";
 // 头像可能是 emoji 文字，也可能是上传的图片（DataURL），这里统一渲染。
 // 遇到既不是图片、又长得不像 emoji 的异常值（例如被当文本渲染的一长串数据），
 // 一律回退默认头像，避免显示出乱码
-function renderAvatar(el, avatar) {
+//
+// ⚠️ 函数名带 User 前缀：main.js 里也有一个 renderAvatar（首页侧边栏用）。
+// 两个文件现在不同页加载，但顶层 function 声明是全局的，同页引入会互相覆盖（见 docs/08 §4.2）
+function renderUserAvatar(el, avatar) {
     const value = String(avatar || "");
 
     if (value.indexOf("data:image") === 0) {
@@ -55,7 +58,7 @@ function renderAvatar(el, avatar) {
 }
 
 function renderAvatarPreview() {
-    renderAvatar(avatarPreview, pickedAvatar || savedAvatar);
+    renderUserAvatar(avatarPreview, pickedAvatar || savedAvatar);
 }
 
 // 顶部不再显示登录状态；「退出登录」整块只在登录后出现，且每次都回到未确认状态
@@ -288,6 +291,14 @@ function startDeleteCountdown() {
         }
     }, 1000);
 }
+
+// 离开页面时收掉倒计时（不然它会一直空转到 60 秒）
+window.addEventListener("pagehide", (event) => {
+    if (!event.persisted && deleteTimer) {
+        clearInterval(deleteTimer);
+        deleteTimer = null;
+    }
+});
 
 uDelete.addEventListener("click", () => {
     uDelete.hidden = true;

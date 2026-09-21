@@ -7,6 +7,8 @@
 
 window.L2D_CUSTOM = (function () {
 
+    // ⚠️ 这个名字在 l2d-sw.js 里也写了一份（Service Worker 是独立上下文，读不到本文件的常量）。
+    //    两处必须一模一样，改一个就得改另一个 —— tools/check.js 会校验一致性，不一致直接报错。
     const CACHE_NAME = "xingyue-l2d-custom";
 
     // 站点基准（跟随当前页面路径，GitHub Pages 子路径也适用）

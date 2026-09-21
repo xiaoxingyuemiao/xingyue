@@ -1280,7 +1280,7 @@ async function askCharacter() {
 
     // 没配置秘钥时给个提示
     if (!provider || !provider.apiKey) {
-        addMessage(getChatRoleName(), "还没有配置 API 秘钥哦～去「设置」页面添加一个 API Key，就能和我聊天啦！", false);
+        addMessage(getChatRoleName(), "还没有配置 API 秘钥哦～去「个人中心」的 API 设置里添加一个 API Key，就能和我聊天啦！", false);
         return;
     }
 
@@ -1328,7 +1328,7 @@ async function askCharacter() {
             Live2D.playEmotion(parsed.emotion);
         }
     } catch (error) {
-        addMessage(getChatRoleName(), "呜……连接失败了（" + error.message + "）。去「设置」页面检查一下 API 配置吧～", false);
+        addMessage(getChatRoleName(), "呜……连接失败了（" + error.message + "）。去「个人中心」检查一下 API 配置吧～", false);
     }
 }
 
@@ -1355,11 +1355,21 @@ window.Auth.init().then(() => {
 });
 
 // 页面长时间挂着时，定期续期登录凭证（每 30 分钟）
-setInterval(() => {
-    if (window.Auth.current()) {
-        window.Auth.refresh();
+// 存下 id：① 离开页面时清掉，不留悬挂定时器；② 万一这段代码被执行两次也不会叠出两个
+if (!window.__xingyueAuthTimer) {
+    window.__xingyueAuthTimer = setInterval(() => {
+        if (window.Auth.current()) {
+            window.Auth.refresh();
+        }
+    }, 30 * 60 * 1000);
+}
+window.addEventListener("pagehide", (event) => {
+    // 进 bfcache（persisted）时页面只是被冻结，回来还要继续续期，所以不清
+    if (!event.persisted && window.__xingyueAuthTimer) {
+        clearInterval(window.__xingyueAuthTimer);
+        window.__xingyueAuthTimer = null;
     }
-}, 30 * 60 * 1000);
+});
 
 // 初始化 Live2D（异步加载默认模型，不影响页面进入）
 Live2D.init();

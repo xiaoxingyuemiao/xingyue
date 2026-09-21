@@ -1,4 +1,4 @@
-﻿// ================================
+// ================================
 // 星月小窝 —— 设置页面脚本
 // API 提供商管理（DeepSeek / 通义千问 / OpenAI 兼容，点击卡片切换）
 // 角色设定（多角色卡片管理，支持导入本地 Live2D 模型）
@@ -818,7 +818,13 @@ async function loadModelList() {
             modelPickerList.appendChild(item);
         }
     } catch (error) {
-        modelPickerList.innerHTML = "<div class='model-hint'>获取失败：" + error.message + "</div>";
+        // 用 textContent 而不是 innerHTML：error.message 里可能含用户自己填的 baseUrl，
+        // 拼进 innerHTML 等于给自己开了个注入口（见 docs/08 §4.2）
+        modelPickerList.innerHTML = "";
+        const hint = document.createElement("div");
+        hint.className = "model-hint";
+        hint.textContent = "获取失败：" + error.message;
+        modelPickerList.appendChild(hint);
     }
 }
 

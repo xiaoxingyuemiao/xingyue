@@ -1,15 +1,43 @@
 // ================================
 // 生成 Excalidraw 网站流程图（node tools/make-flow-excalidraw.js）
-// 产出：docs/网站流程图.excalidraw
+//
+// 产出：默认 docs/网站流程图-生成版.excalidraw
+//   · 想写别的路径：node tools/make-flow-excalidraw.js 目标路径.excalidraw
 // 用法：在 https://excalidraw.com 菜单 → Open → 选这个文件（或直接拖进画布）
 // 说明：节点坐标在下面 NODES 里，改完重跑本脚本即可重新生成
+//
+// ⚠️⚠️ 默认**故意不写** docs/网站流程图.excalidraw：
+//   那份是站长在 excalidraw.com 上手改过的成品，本脚本是整文件覆盖（writeFileSync），
+//   一跑就把手改内容全冲掉、且无法恢复。要用脚本覆盖它必须显式加 --force。
+//   （这条已登记在 docs/08 §4.2）
+//
+// ⚠️ 本脚本的节点表**可能滞后于代码**（它画的是某一次快照）。
+//   改完页面流程后要么同步更新 NODES，要么以 docs/05-网站流程图.md 的 Mermaid 图为准。
 // ================================
 
 const fs = require("fs");
 const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
-const OUT = path.join(ROOT, "docs", "网站流程图.excalidraw");
+
+// 站长手改过的那份：只读，不能被本脚本覆盖
+const HAND_EDITED = path.join(ROOT, "docs", "网站流程图.excalidraw");
+
+const args = process.argv.slice(2);
+const force = args.includes("--force");
+const outArg = args.find((a) => !a.startsWith("--"));
+
+const OUT = outArg
+    ? path.resolve(outArg)
+    : path.join(ROOT, "docs", "网站流程图-生成版.excalidraw");
+
+if (path.resolve(OUT) === path.resolve(HAND_EDITED) && fs.existsSync(HAND_EDITED) && !force) {
+    console.error("✗ 拒绝覆盖 docs/网站流程图.excalidraw");
+    console.error("  那份是站长手改过的流程图，本脚本会整文件覆盖、覆盖后无法恢复。");
+    console.error("  · 想生成：直接跑（默认写到 docs/网站流程图-生成版.excalidraw）");
+    console.error("  · 确实要覆盖手改版：再加 --force");
+    process.exit(1);
+}
 
 // ---------- 配色 ----------
 const C = {
@@ -26,7 +54,7 @@ const ZONES = [
     { id: "z1", x: 40, y: 60, w: 740, h: 600, title: "① 入口 · 登录流程" },
     { id: "z2", x: 820, y: 60, w: 760, h: 900, title: "② 首页 index.html" },
     { id: "z3", x: 1620, y: 60, w: 720, h: 830, title: "③ 子页面（共用顶部导航 + 页脚）" },
-    { id: "z4", x: 40, y: 700, w: 740, h: 460, title: "④ 设置页 / 用户设置页" },
+    { id: "z4", x: 40, y: 700, w: 740, h: 460, title: "④ 个人中心 user.html（settings.html 已删除）" },
     { id: "z5", x: 1620, y: 930, w: 720, h: 340, title: "⑤ 外部链接（点了会离开本站）" },
     { id: "z6", x: 820, y: 1000, w: 760, h: 270, title: "⑥ 数据存在哪" },
 ];
@@ -37,13 +65,14 @@ const NODES = [
     // ===== ① 入口 · 登录流程 =====
     { id: "start", x: 80, y: 150, w: 150, h: 56, kind: "start", text: "打开网站" },
     { id: "login", x: 300, y: 140, w: 210, h: 76, kind: "page", text: "index.html · 登录页\n（插画背景轮播：星瑶/月瓷 5 秒切换）" },
-    { id: "card1", x: 300, y: 250, w: 210, h: 86, kind: "ui", text: "第一张卡\n[登录] [注册] [游客进入]" },
-    { id: "card2", x: 300, y: 370, w: 210, h: 110, kind: "ui", text: "第二张卡\n邮箱 + 验证码\n[发送验证码] [登录] [← 返回]" },
-    { id: "guest", x: 80, y: 260, w: 170, h: 74, kind: "ui", text: "游客进入\n（不登录，只写 visited 标记）" },
-    { id: "supabase", x: 590, y: 360, w: 160, h: 60, kind: "ext", text: "Supabase Auth\n发验证码" },
-    { id: "mail", x: 590, y: 460, w: 160, h: 60, kind: "ext", text: "邮箱收到\n8 位验证码" },
-    { id: "cred", x: 590, y: 250, w: 160, h: 70, kind: "ext", text: "登录凭证\n存本地\nxingyue_auth" },
-    { id: "enterHome", x: 300, y: 530, w: 210, h: 60, kind: "page", text: "→ 进入首页\n（登录或游客都能进）" },
+    { id: "card1", x: 300, y: 235, w: 210, h: 90, kind: "ui", text: "登录卡（进站直接就是这张）\n邮箱 + 密码 → [登录]\n[改用验证码登录] ｜ [忘记密码？]\n[没有账号？去注册一个吧] ｜ [先随便逛逛]" },
+    { id: "cardReg", x: 300, y: 345, w: 210, h: 86, kind: "ui", text: "注册卡\n邮箱 + 密码 + 确认密码\n+ 验证码 [发送] → [注册]" },
+    { id: "cardForgot", x: 300, y: 451, w: 210, h: 72, kind: "ui", text: "找回密码卡\n邮箱 + 验证码 → 新密码\n[重置密码] → 回登录卡" },
+    { id: "guest", x: 80, y: 235, w: 170, h: 74, kind: "ui", text: "游客进入\n（不登录，只写 visited 标记）" },
+    { id: "supabase", x: 590, y: 340, w: 160, h: 60, kind: "ext", text: "Supabase Auth\n发验证码 / 验密码" },
+    { id: "mail", x: 590, y: 430, w: 160, h: 56, kind: "ext", text: "邮箱收到\n8 位验证码" },
+    { id: "cred", x: 590, y: 235, w: 160, h: 70, kind: "ext", text: "登录凭证\n存本地\nxingyue_auth" },
+    { id: "enterHome", x: 300, y: 545, w: 210, h: 56, kind: "page", text: "→ 进入首页\n（登录或游客都能进）" },
 
     // ===== ② 首页 =====
     { id: "sidebarZone", x: 850, y: 140, w: 320, h: 790, kind: "note", text: "左侧浮层侧边栏（可收起）" },
@@ -57,11 +86,10 @@ const NODES = [
     { id: "sbYc", x: 890, y: 548, w: 260, h: 38, kind: "ui", text: "↳ [月瓷] → yueci.html" },
     { id: "sbXm", x: 890, y: 590, w: 260, h: 38, kind: "ui", text: "↳ [小喵] → xiaomiao.html" },
     { id: "sbL2d", x: 870, y: 638, w: 280, h: 42, kind: "ui", text: "[Live2D] → live2d.html" },
-    { id: "sbSet", x: 870, y: 690, w: 280, h: 42, kind: "ui", text: "[设置] → settings.html" },
-    { id: "sbUser", x: 870, y: 742, w: 280, h: 44, kind: "ui", text: "[左下角用户区]（显示昵称/签名）" },
-    { id: "sbUserNo", x: 870, y: 796, w: 280, h: 38, kind: "ui", text: "未登录时点击 → 回登录页第一张卡" },
-    { id: "sbUserYes", x: 870, y: 838, w: 280, h: 38, kind: "ui", text: "已登录时点击 → user.html" },
-    { id: "sbZoneTip", x: 870, y: 886, w: 280, h: 36, kind: "note", text: "侧边栏是浮层，展开不推挤右侧" },
+    { id: "sbUser", x: 870, y: 690, w: 280, h: 44, kind: "ui", text: "[左下角用户区]（头像 + 名字）" },
+    { id: "sbUserNo", x: 870, y: 742, w: 280, h: 38, kind: "ui", text: "未登录时点击 → 回登录卡" },
+    { id: "sbUserYes", x: 870, y: 784, w: 280, h: 38, kind: "ui", text: "已登录时点击 → user.html 个人中心" },
+    { id: "sbZoneTip", x: 870, y: 832, w: 280, h: 48, kind: "note", text: "「设置」菜单项已删除\n设置只在个人中心里（入口＝左下角用户区）" },
 
     { id: "mainZone", x: 1195, y: 140, w: 365, h: 790, kind: "note", text: "主空间（app-space）" },
     { id: "mBg", x: 1215, y: 190, w: 325, h: 46, kind: "ui", text: "[背景图] 桌面 zhushitu / 手机 supingbeijing" },
@@ -71,14 +99,14 @@ const NODES = [
     { id: "mInput", x: 1215, y: 438, w: 325, h: 46, kind: "ui", text: "[输入框] 回车或点 ➤ 发送消息" },
     { id: "mPanel", x: 1215, y: 500, w: 325, h: 46, kind: "ui", text: "[角色选择面板（浮层）]" },
     { id: "mPanel1", x: 1235, y: 556, w: 305, h: 46, kind: "ui", text: "↳ 选择角色：同时切换 Live2D 模型 + 对话历史" },
-    { id: "mPanel2", x: 1235, y: 612, w: 305, h: 46, kind: "ui", text: "↳ [添加人物] → settings.html#role" },
+    { id: "mPanel2", x: 1235, y: 612, w: 305, h: 46, kind: "ui", text: "↳ [添加人物] → user.html#role" },
     { id: "mChatFlow", x: 1215, y: 674, w: 325, h: 100, kind: "note", text: "发消息后的流程：\n写入本地历史 → 组装(角色设定+情绪规则+最近N对) → 调 API\n→ 解析【情绪：X】→ 刷新气泡 + 播放 Live2D 表情动作" },
 
     // ===== ③ 子页面 =====
     { id: "pNav", x: 1650, y: 130, w: 660, h: 84, kind: "note", text: "所有子页面共用顶部导航（common.js 注入）：\n[星月 logo]→首页 ｜ 插画 ｜ 周边 ｜ 动态 ｜ Live2D ｜ 关于▾\n当前所在页面的入口会自动隐藏" },
     { id: "pFoot", x: 1650, y: 224, w: 660, h: 62, kind: "note", text: "所有子页面共用页脚：\n[联系站长]→bilibili ｜ [友情赞助] ｜ [不要点]→B站视频 ｜ 版权归属" },
-    { id: "pGallery", x: 1650, y: 300, w: 205, h: 70, kind: "page", text: "chahua.html\n插画（横向长画廊）" },
-    { id: "pMerch", x: 1878, y: 300, w: 205, h: 70, kind: "page", text: "zhoubian.html\n周边（占位）" },
+    { id: "pGallery", x: 1650, y: 300, w: 205, h: 70, kind: "page", text: "chahua.html\n插画（16 个画框 · 固定布局）" },
+    { id: "pMerch", x: 1878, y: 300, w: 205, h: 70, kind: "page", text: "zhoubian.html\n周边（深色 + 粒子背景）" },
     { id: "pNews", x: 2106, y: 300, w: 204, h: 70, kind: "page", text: "dongtai.html\n动态（占位）" },
     { id: "pXy", x: 1650, y: 390, w: 205, h: 70, kind: "page", text: "xingyao.html\n关于 · 星瑶" },
     { id: "pYc", x: 1878, y: 390, w: 205, h: 70, kind: "page", text: "yueci.html\n关于 · 月瓷" },
@@ -87,17 +115,18 @@ const NODES = [
     { id: "pL2dBody", x: 1660, y: 570, w: 640, h: 58, kind: "ui", text: "正文：[GitHub 按钮]→仓库外链 ｜ [下载（敬请期待）]灰色不可点\n邮箱 abcd_9866@qq.com（点击发邮件）" },
     { id: "pL2dFoot", x: 1660, y: 638, w: 640, h: 70, kind: "ui", text: "底栏三列：[关于 Live2d Param 使用说明] → guide ｜ [主页] → 首页\n[bilibili] ｜ [github] ｜ [赞助]（暂空）｜ [不要点] → B站视频" },
     { id: "pGuide", x: 1650, y: 720, w: 660, h: 66, kind: "page", text: "live2d-guide.html · 使用说明（占位）\n[← 返回 Live2D Param] → live2d.html" },
+    { id: "zdyPage", x: 1650, y: 800, w: 660, h: 66, kind: "page", text: "zidongyulan.html · 自动预览（临时幻灯片）\nimages/ 全部图片循环播放 ｜ 17 种翻折/平移切换效果" },
 
-    // ===== ④ 设置 / 用户 =====
-    { id: "setPage", x: 80, y: 770, w: 320, h: 62, kind: "page", text: "settings.html 设置页\n[← 返回] 圆形按钮 → 首页" },
-    { id: "setNav", x: 80, y: 842, w: 320, h: 48, kind: "ui", text: "左侧导航：API 设置 ｜ 角色设定 ｜ 对话" },
-    { id: "setApi", x: 80, y: 900, w: 320, h: 62, kind: "ui", text: "API 设置：提供商卡片\n点击切换 ｜ 双击编辑 ｜ 测试连接 ｜ 获取模型列表" },
-    { id: "setRole", x: 80, y: 972, w: 320, h: 74, kind: "ui", text: "角色设定：我的角色卡片\n添加 / 编辑 / 删除 ｜ 填模型（官方名 / 在线URL / 导入本地文件夹）" },
-    { id: "setChat", x: 80, y: 1056, w: 320, h: 62, kind: "ui", text: "对话：角色记忆对数 ｜ 清空历史\n全部对话列表（可展开、修改、删除）" },
-    { id: "userPage", x: 430, y: 770, w: 320, h: 62, kind: "page", text: "user.html 用户设置页\n[← 返回] 圆形按钮 → 首页" },
-    { id: "userTop", x: 430, y: 842, w: 320, h: 48, kind: "ui", text: "顶部：已登录邮箱 / 未登录提示" },
-    { id: "userInfo", x: 430, y: 900, w: 320, h: 62, kind: "ui", text: "头像（上传图片 / 恢复默认）\n昵称（最多 6 字）｜ 个性签名" },
-    { id: "userOut", x: 430, y: 972, w: 320, h: 58, kind: "ui", text: "[退出登录] → 清凭证 → 回登录页" },
+    // ===== ④ 个人中心（settings.html 已删除，四个分区都并进 user.html）=====
+    { id: "userPage", x: 80, y: 770, w: 320, h: 62, kind: "page", text: "user.html 个人中心\n[← 返回] 圆形按钮 → 首页" },
+    { id: "userNav", x: 80, y: 842, w: 320, h: 48, kind: "ui", text: "左侧分区导航：① 个人资料 ② API 设置 ③ 角色设定 ④ 对话记录" },
+    { id: "userInfo", x: 80, y: 900, w: 320, h: 74, kind: "ui", text: "① 个人资料：头像（上传 / 恢复默认）\n昵称（最多 12 字）· 个性签名 → 保存写本地 + 云端" },
+    { id: "userApi", x: 80, y: 984, w: 320, h: 74, kind: "ui", text: "② API 设置：提供商卡片 切换 / 编辑 / 测试 / 拉模型列表\n[√] 同步秘钥到云端（勾选才 AES-GCM 加密上传）" },
+    { id: "userRole", x: 80, y: 1068, w: 320, h: 74, kind: "ui", text: "③ 角色设定：我的角色增删改 · 模型配置\n填模型（官方名 / 在线URL / 导入本地文件夹）" },
+    { id: "userChat", x: 430, y: 770, w: 320, h: 62, kind: "ui", text: "④ 对话记录：角色记忆对数 ｜ 清空历史\n全部对话列表（可展开、修改、删除）" },
+    { id: "userOut", x: 430, y: 842, w: 320, h: 58, kind: "ui", text: "[退出登录] → 原地确认 → 清凭证 → 回登录卡" },
+    { id: "userDel", x: 430, y: 910, w: 320, h: 74, kind: "ui", text: "[注销账号] 需 密码 + 邮箱验证码\n→ 删账号 + 清本地 + 释放 uid（不可恢复）" },
+    { id: "userSync", x: 430, y: 994, w: 320, h: 74, kind: "note", text: "登录后自动拉云端：uid → 默认名「小窝第 N 成员」\n改资料 / 角色 / 对话 → 静默同步（对话防抖 3 秒）" },
 
     // ===== ⑤ 外部链接 =====
     { id: "eRepo", x: 1650, y: 1010, w: 320, h: 54, kind: "ext", text: "github.com/xiaoxingyuemiao/Live2D-Param" },
@@ -108,8 +137,8 @@ const NODES = [
     { id: "ePages", x: 1990, y: 1138, w: 320, h: 54, kind: "ext", text: "GitHub Pages（网站托管）" },
 
     // ===== ⑥ 数据存储 =====
-    { id: "dLocal", x: 850, y: 1050, w: 700, h: 84, kind: "note", text: "localStorage（浏览器本地，换设备就没了）\n设置 / 我的角色 ｜ 对话历史 ｜ 用户资料 ｜ 登录凭证 ｜ 上次邮箱 ｜ 是否来过" },
-    { id: "dCloud", x: 850, y: 1150, w: 340, h: 62, kind: "ext", text: "Supabase 云端\n目前只存登录账号（auth.users）" },
+    { id: "dLocal", x: 850, y: 1050, w: 700, h: 84, kind: "note", text: "localStorage（13 个键，浏览器本地）\n设置 / 偏好 / 对话历史 / 当前角色 / 用户资料 / 登录凭证 / 上次邮箱 / 编号 memberNo / uid / syncKey / lastUser / 是否来过" },
+    { id: "dCloud", x: 850, y: 1150, w: 340, h: 76, kind: "ext", text: "Supabase 云端\nprofiles 资料 ｜ user_settings 设置\nchat_sessions 对话 ｜ uid_pool 编号池" },
     { id: "dGitHub", x: 1210, y: 1150, w: 340, h: 62, kind: "ext", text: "GitHub 仓库\n代码 / Live2D 模型 / 图片" },
 ];
 
@@ -118,15 +147,19 @@ const NODES = [
 const ARROWS = [
     // 入口 → 登录页
     { from: "start", to: "login", label: "访问网址" },
-    { from: "login", to: "card1", label: "显示第一张卡" },
-    { from: "card1", to: "card2", label: "点[登录]/[注册]" },
-    { from: "card2", to: "card1", label: "点[← 返回]", dashed: true },
-    { from: "card1", to: "guest", label: "点[游客进入]" },
-    { from: "card2", to: "supabase", label: "点[发送验证码]" },
+    { from: "login", to: "card1", label: "显示登录卡" },
+    { from: "card1", to: "cardReg", label: "点[没有账号？去注册一个吧]" },
+    { from: "cardReg", to: "card1", label: "点[已经有账号了？去登录吧]", dashed: true },
+    { from: "card1", to: "cardForgot", label: "点[忘记密码？]" },
+    { from: "cardForgot", to: "card1", label: "重置成功 → 回登录卡", dashed: true },
+    { from: "card1", to: "guest", label: "点[先随便逛逛]" },
+    { from: "card1", to: "supabase", label: "密码登录 / 点[发送]" },
+    { from: "cardReg", to: "supabase", label: "点[发送]发验证码" },
+    { from: "cardForgot", to: "supabase", label: "点[发送]发验证码" },
     { from: "supabase", to: "mail", label: "邮件送达" },
-    { from: "card2", to: "cred", label: "填验证码 → 点[登录]" },
+    { from: "card1", to: "cred", label: "验证通过 → 存凭证" },
     { from: "guest", to: "enterHome", label: "进首页" },
-    { from: "cred", to: "enterHome", label: "进首页" },
+    { from: "cred", to: "enterHome", label: "拉云端资料 → 进首页" },
 
     // 首页内部
     { from: "sbToggle", to: "sbHome", label: "展开后的菜单项" },
@@ -141,9 +174,8 @@ const ARROWS = [
     { from: "sbYc", to: "pYc" },
     { from: "sbXm", to: "pXm" },
     { from: "sbL2d", to: "pL2d" },
-    { from: "sbSet", to: "setPage" },
     { from: "sbUserYes", to: "userPage" },
-    { from: "sbUserNo", to: "card1", label: "回登录页", dashed: true },
+    { from: "sbUserNo", to: "card1", label: "回登录卡", dashed: true },
 
     // 子页面互相跳转
     { from: "pNav", to: "pGallery", label: "顶栏菜单" },
@@ -151,6 +183,7 @@ const ARROWS = [
     { from: "pL2dBody", to: "pL2dFoot", label: "往下滚动" },
     { from: "pL2dFoot", to: "pGuide", label: "点[使用说明]" },
     { from: "pGuide", to: "pL2d", label: "点[← 返回]", dashed: true },
+    { from: "pGallery", to: "zdyPage", label: "点[进入自动预览]" },
     { from: "pNav", to: "login", label: "点[星月 logo] 回首页", dashed: true },
 
     // 外部链接
@@ -161,15 +194,20 @@ const ARROWS = [
     { from: "pFoot", to: "eBili", label: "点[联系站长]", dashed: true },
     { from: "supabase", to: "eSupabase", label: "登录服务", dashed: true },
 
-    // 设置 / 用户页内部
-    { from: "setPage", to: "setNav", label: "三个视图" },
-    { from: "userPage", to: "userInfo" },
+    // 个人中心内部（四个分区 + 退出 / 注销）
+    { from: "userPage", to: "userNav", label: "四个分区" },
+    { from: "userNav", to: "userInfo" },
+    { from: "userNav", to: "userApi" },
+    { from: "userNav", to: "userRole" },
+    { from: "userNav", to: "userChat" },
     { from: "userInfo", to: "userOut", label: "往下滚动" },
-    { from: "userOut", to: "card1", label: "清凭证 → 回登录页", dashed: true },
-    { from: "mPanel2", to: "setRole", label: "去添加角色" },
+    { from: "userOut", to: "userDel", label: "再往下" },
+    { from: "userOut", to: "card1", label: "清凭证 → 回登录卡", dashed: true },
+    { from: "userDel", to: "card1", label: "注销后回登录卡", dashed: true },
+    { from: "mPanel2", to: "userRole", label: "去添加角色" },
 
     // 数据
-    { from: "dLocal", to: "dCloud", label: "登录凭证", dashed: true },
+    { from: "dLocal", to: "dCloud", label: "登录后同步资料 / 设置 / 对话", dashed: true },
     { from: "dGitHub", to: "pGallery", label: "页面与资源来自仓库", dashed: true },
 ];
 
