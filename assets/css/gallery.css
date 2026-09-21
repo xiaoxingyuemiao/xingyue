@@ -161,6 +161,48 @@
     object-fit: cover;
 }
 
+/* ---------- 「进入自动预览」按钮 ----------
+   挂在第三个画框正上方（位置由 gallery.js 计算），点它去自动预览页 */
+
+.frame-action {
+    position: absolute;
+
+    z-index: 2; /* 压在画框层（1）之上 */
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 8px 18px;
+
+    border-radius: 999px;
+
+    font-size: 15px;
+    font-weight: bold;
+    line-height: 1;
+
+    white-space: nowrap;
+    text-decoration: none;
+
+    color: #ffffff;
+
+    background: linear-gradient(160deg, #8ad8ff 0%, #66ccff 58%, #4fb8ee 100%);
+
+    box-shadow:
+        0 8px 18px rgba(79, 158, 205, 0.32),
+        inset 0 0 0 2px rgba(255, 255, 255, 0.35);
+
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.frame-action:hover {
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 12px 22px rgba(79, 158, 205, 0.42),
+        inset 0 0 0 2px rgba(255, 255, 255, 0.5);
+}
+
 /* ---------- 毛线球滚动条 ---------- */
 
 .yarn-bar {
@@ -250,6 +292,12 @@
 
     .frame {
         padding: 9px;
+    }
+
+    .frame-action {
+        padding: 7px 14px;
+
+        font-size: 13px;
     }
 
     .yarn-bar {

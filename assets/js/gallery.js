@@ -6,7 +6,8 @@
 //   2. 背景随机撒花草树木（网格抖动分布，均匀不挤，且躲开所有画框）
 //   3. 画框沿 x 轴从左到右排开（x 轴互不重合），比例在 16:9 / 9:20 / 20:9 里随机
 //   4. 每个画框按从左到右编号 1、2、3……但编号只写在 data-frame 上，不显示出来
-//   5. 底部是毛线球滚动条：拖动它、点轨道、滚轮、触屏滑动都能移动画廊
+//   5. 第三个画框正上方挂一个「进入自动预览」按钮（位置算出来的，跟着画廊一起滚）
+//   6. 底部是毛线球滚动条：拖动它、点轨道、滚轮、触屏滑动都能移动画廊
 //
 // 以后怎么挂画：把图片放进 images/，然后在下面的 ARTWORKS 里按编号填路径即可
 // ================================
@@ -24,6 +25,11 @@
     const GAP_MIN = 90; // 画框之间的随机间距（最小）
     const GAP_MAX = 320; // 画框之间的随机间距（最大）
     const EDGE = 130; // 画布左右两端留白
+
+    const ACTION_FRAME = 3; // 「进入自动预览」按钮挂在第几个画框上方
+    const ACTION_SPACE = 62; // 这个画框上方要多留的高度（够放按钮 + 间距）
+    const ACTION_GAP = 14; // 按钮底边与画框顶边之间的距离
+    const ACTION_TOP = 8; // 画布太矮时按钮最多贴到这么高（不跑出画布）
 
     const CELL_W = 175; // 背景花草的分布网格（越小越密）
     const CELL_H = 125;
@@ -46,6 +52,7 @@
     const frameLayer = document.querySelector("#gallery-frames");
     const yarnBar = document.querySelector("#yarn-bar");
     const yarnBall = document.querySelector("#yarn-ball");
+    const frameAction = document.querySelector("#frame-action");
 
     if (!galleryEl || !viewport || !canvas || !decoLayer || !frameLayer || !yarnBar || !yarnBall) {
         return;
@@ -89,7 +96,11 @@
         for (let index = 1; index <= FRAME_COUNT; index++) {
             const ratio = pick(RATIOS);
             const width = Math.round((FRAME_HEIGHT * ratio[0]) / ratio[1]);
-            const y = Math.round(marginY + rand(0, usableY));
+
+            // 第 3 个画框上方要放按钮，所以它的可选范围整体往下挪一点
+            // （上限仍然是原来的最大值，底部留白不会变少）
+            const extraTop = index === ACTION_FRAME ? Math.min(ACTION_SPACE, usableY) : 0;
+            const y = Math.round(marginY + extraTop + rand(0, Math.max(0, usableY - extraTop)));
 
             const box = document.createElement("div");
             box.className = "frame";
@@ -127,6 +138,32 @@
         canvas.style.width = x + EDGE + "px";
     }
 
+    // ---------- 1.5) 「进入自动预览」按钮 ----------
+    // 按钮在 chahua.html 里写好，这里只负责把它摆到第 3 个画框的正上方：
+    // 横向与画框居中对齐，纵向贴在画框顶边上面一点点。
+    function placeAction() {
+        if (!frameAction) {
+            return;
+        }
+
+        const target = frameLayer.querySelector('[data-frame="' + ACTION_FRAME + '"]');
+        if (!target) {
+            // 画框数量被改到不足 3 个时，按钮没有可挂的位置，先收起来
+            frameAction.style.display = "none";
+            return;
+        }
+
+        frameAction.style.display = "";
+
+        const frameLeft = parseFloat(target.style.left) || 0;
+        const frameTop = parseFloat(target.style.top) || 0;
+
+        frameAction.style.left = Math.max(0, Math.round(frameLeft + (target.offsetWidth - frameAction.offsetWidth) / 2)) + "px";
+
+        // 画布太矮时上面放不下，就贴到画布顶部（至少不会跑出去被裁掉）
+        frameAction.style.top = Math.max(ACTION_TOP, Math.round(frameTop - frameAction.offsetHeight - ACTION_GAP)) + "px";
+    }
+
     // ---------- 2) 背景花草 ----------
     function buildDeco() {
         decoLayer.textContent = "";
@@ -145,6 +182,16 @@
                 y: parseFloat(el.style.top) || 0,
                 w: el.offsetWidth,
                 h: el.offsetHeight,
+            });
+        }
+
+        // 「进入自动预览」按钮也躲开，别让花草压在按钮上
+        if (frameAction && frameAction.offsetWidth > 0) {
+            boxes.push({
+                x: parseFloat(frameAction.style.left) || 0,
+                y: parseFloat(frameAction.style.top) || 0,
+                w: frameAction.offsetWidth,
+                h: frameAction.offsetHeight,
             });
         }
 
@@ -331,6 +378,7 @@
     function layout() {
         fitHeight();
         buildFrames();
+        placeAction(); // 要在花草之前算好位置，花草才知道该躲哪
         buildDeco();
         syncBall();
     }
