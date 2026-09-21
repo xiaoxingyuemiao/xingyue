@@ -4,8 +4,8 @@
   "private": true,
   "description": "星月小窝 —— 星瑶/月瓷 的个人网站（纯静态，GitHub Pages 部署，零构建）",
   "scripts": {
-    "start": "npx --yes serve .",
-    "preview": "npx --yes serve .",
+    "start": "node tools/serve.js",
+    "preview": "node tools/serve.js --no-open",
     "check": "node tools/check.js",
     "hooks": "git config core.hooksPath tools/hooks"
   },

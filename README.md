@@ -76,15 +76,22 @@
 
 零安装：浏览器 + 任意静态文件服务器即可。
 
-    # 方式一：Node（npx 自动拉取 serve，首次稍慢）
-    npm start
+⚠️ **不要双击 `index.html` 打开**（地址栏是 `file://`）：浏览器会拦掉 Live2D SDK 发出的 `fetch`，
+读不到 `model3.json` / `.moc3` / 贴图，**模型必然显示不出来**；`file://` 也不算安全上下文，
+本地导入模型用的 Service Worker 同样注册不了。这不是站点的 bug，是浏览器的安全策略，
+换成本机 http 打开就一切正常（与线上 GitHub Pages 行为一致）。
 
-    # 方式二：Python
-    python -m http.server 8080
+    # 方式一（推荐，零依赖、自动开浏览器、改完刷新即生效）
+    Windows：双击 tools\启动本地预览.bat
+    命令行：node tools/serve.js        # 默认 http://127.0.0.1:5173，端口被占用会自动往后试
+                                       # 加 --no-open 不自动开浏览器；--port 8080 指定端口
+
+    # 方式二
+    npm start                          # 等同于 node tools/serve.js
 
     # 方式三：VS Code 安装 Live Server 插件后点 Go Live
 
-语法检查（**改动后必须跑，全绿才算过**）：检查 `assets/js` 与 `assets/data` 下所有脚本的语法、Live2D 模型 JSON 及其引用、每个页面的本地链接与资源是否存在、`querySelector("#id")` 指向的元素是否存在、页面内是否有重复 id。
+语法检查（**改动后必须跑，全绿才算过**）：检查 `assets/js` 与 `assets/data` 下所有脚本的语法、Live2D 模型 JSON 及其引用、每个页面的本地链接与资源是否存在、`querySelector("#id")` 指向的元素是否存在、页面内是否有重复 id、多份同名常量是否一致。
 
     npm run check
 
