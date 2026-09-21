@@ -12,6 +12,9 @@
     </head>
     <body>
 
+        <!-- 背景：宇宙引力场（粒子画布，垫在最底层；代码在 assets/js/mesh-bg.js） -->
+        <canvas id="mesh"></canvas>
+
         <!-- 导航栏（由 assets/js/common.js 注入） -->
         <div id="site-header"></div>
 
@@ -34,5 +37,8 @@
 
         <script src="assets/js/common.js"></script>
         <script src="assets/js/auto-preview.js"></script>
+
+        <!-- 背景粒子（与「周边」页同一套代码，原样搬过来的） -->
+        <script src="assets/js/mesh-bg.js"></script>
     </body>
 </html>

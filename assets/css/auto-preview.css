@@ -1,9 +1,80 @@
 /* ==============================
    自动预览页（zidongyulan.html）
    —— 入口：插画画廊第三个画框上方的「进入自动预览」按钮
-   —— 现在放的是**临时**幻灯片：把 images/ 里的图按顺序循环播放
-      （播放清单在 assets/js/auto-preview.js 里，想改顺序改那个数组）
+   —— 背景挪用「周边」页的深色主题（全站只有那一页是深空的）：
+      底色 #06080d + 顶栏 / 页脚半透明深色毛玻璃。
+      ⚠️ 只要这套底色与配色，**不要**周边页的星空粒子画布和那页的文字。
+   —— 舞台上放的是临时幻灯片：images/ 里的图按顺序循环播放
+      （播放清单与切换效果在 assets/js/auto-preview.js）
    ============================== */
+
+/* ---------- 深色背景（配色与「周边」页一致） ---------- */
+
+html,
+body {
+    background-color: transparent;
+}
+
+body {
+    background-color: #06080d;
+    color: #dfe5ef;
+}
+
+nav {
+    background-color: rgba(6, 8, 13, 0.55);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+nav .logo,
+nav .nav-link {
+    color: #dfe5ef;
+}
+
+footer {
+    background-color: rgba(6, 8, 13, 0.55);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+
+    color: #9aa4b2;
+
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+footer .footer-link {
+    color: #9aa4b2;
+}
+
+footer .footer-link:hover {
+    color: #dfe5ef;
+}
+
+/* ---------- 背景粒子（垫在最底层） ----------
+   粒子照常运行，也允许被上面的幻灯片盖住 —— 所以画布 z-index:0，
+   顶栏 / 内容 / 页脚抬到 z-index:1。 */
+
+#mesh {
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 0;
+
+    /* 鼠标事件穿透到 window，整页都能触发粒子的引力效果 */
+    pointer-events: none;
+}
+
+#site-header,
+main,
+#site-footer {
+    position: relative;
+
+    z-index: 1;
+}
+
+/* ---------- 页面主体 ---------- */
 
 .auto-preview {
     /* 撑开顶栏与页脚之间的空间，页脚才会落在页面最下面 */
@@ -31,8 +102,11 @@
 
     border-radius: 16px;
 
-    /* 深色底：透明 PNG（立绘）和浅色插画都能看清楚 */
-    background: radial-gradient(circle at 50% 42%, #223041 0%, #131b24 68%, #0d1319 100%);
+    /* 整页已经是深色了，这里只留一点点「放映窗口」的轮廓 */
+    background-color: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+
+    box-sizing: border-box;
 
     /* 翻折效果需要景深，否则是平的 */
     perspective: 1400px;
