@@ -9,21 +9,65 @@ window.L2D_CUSTOM = (function () {
 
     const CACHE_NAME = "xingyue-l2d-custom";
 
-    // 虚拟路径前缀（跟随当前页面路径，GitHub Pages 子路径也适用）
-    function basePath() {
+    // 站点基准（跟随当前页面路径，GitHub Pages 子路径也适用）
+    function siteBase() {
         const pathname = location.pathname;
         const dir = pathname.endsWith("/") ? pathname : pathname.slice(0, pathname.lastIndexOf("/") + 1);
-        return location.origin + dir + "assets/live2d-custom/";
+        return location.origin + dir;
+    }
+
+    // 虚拟路径前缀
+    function basePath() {
+        return siteBase() + "assets/live2d-custom/";
+    }
+
+    // 等「这个注册」自己激活。
+    //
+    // ⚠️ 不能用 navigator.serviceWorker.ready：它等的是「作用域覆盖当前页面」的 SW，
+    // 语义对不上时会一直挂着不 resolve，导入流程就永远停在“正在导入模型文件……”。
+    // SW 里有 skipWaiting()，所以激活很快；万一失败也最多等 8 秒，不会把界面卡死。
+    function waitActivated(reg) {
+        if (reg.active) {
+            return Promise.resolve();
+        }
+
+        const sw = reg.installing || reg.waiting;
+        if (!sw) {
+            return Promise.resolve();
+        }
+
+        return new Promise((resolve) => {
+            const onState = () => {
+                if (sw.state === "activated") {
+                    sw.removeEventListener("statechange", onState);
+                    resolve();
+                }
+            };
+
+            sw.addEventListener("statechange", onState);
+            setTimeout(resolve, 8000);
+        });
     }
 
     // 注册 Service Worker 并等它激活（幂等）
+    //
+    // ⚠️ l2d-sw.js 必须放在站点根目录（和 index.html / user.html 同级），scope 也就是站点根。
+    // 两条浏览器限制叠在一起，只有这一种摆法能用：
+    //   1. SW 的作用域不能超出「脚本所在目录」→ 放 assets/js/ 或 assets/ 都盖不到站点根；
+    //   2. SW 只能拦截「它控制的页面」发出的请求 → 作用域不含 index.html / user.html 时，
+    //      页面加载模型的请求根本不经过 SW，虚拟路径就 404。
+    // （写 scope: "/" 同样不行：超出脚本目录会抛 SecurityError，而 GitHub Pages
+    //   没法发 Service-Worker-Allowed 响应头。）
     async function registerSW() {
         if (!("serviceWorker" in navigator)) {
             return;
         }
+
+        const base = siteBase();
+
         try {
-            await navigator.serviceWorker.register("assets/js/l2d-sw.js", { scope: "/" });
-            await navigator.serviceWorker.ready;
+            const reg = await navigator.serviceWorker.register(base + "l2d-sw.js", { scope: base });
+            await waitActivated(reg);
         } catch (e) {
             console.warn("Service Worker 注册失败（本地模型可能无法加载）：", e);
         }

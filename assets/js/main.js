@@ -16,7 +16,9 @@ const userNameEl = document.querySelector("#user-name");
 const guestButton = document.querySelector(".guest-button");
 
 const chatInput = document.querySelector(".chat-input input");
-const sendButton = document.querySelector(".chat-input button");
+// 发送按钮必须按 id 取：.chat-input 里第一个 button 是角色按钮（#chat-role-btn），
+// 用 querySelector(".chat-input button") 会拿到角色按钮，导致点 ➤ 不发送、点角色按钮反而发消息
+const sendButton = document.querySelector("#chat-send");
 const messageList = document.querySelector(".message-list");
 
 const chatRoleBtn = document.querySelector("#chat-role-btn");
