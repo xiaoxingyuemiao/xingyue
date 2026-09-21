@@ -164,23 +164,42 @@
     }
 
     function tick() {
-        show(SLIDES[index]);
+        const src = SLIDES[index];
+
+        // 还没加载完就先不切：否则翻折的会是一张空白图，看起来像「这张没有翻折」
+        if (!isReady(src)) {
+            timer = setTimeout(tick, 300);
+            return;
+        }
+
+        show(src);
         index = (index + 1) % SLIDES.length; // 循环播放
 
         timer = setTimeout(tick, rand(HOLD_MIN, HOLD_MAX));
     }
 
     // ---------- 启动 ----------
-    // 第一张加载完就立刻开播（不等全部）—— 一共约 3MB，全等完首屏会空白好几秒。
-    // 其余的图在后台继续预加载，后面切到它们时基本都已经就位。
-    const first = new Image();
-    first.onload = first.onerror = () => tick();
-    first.src = SLIDES[0];
+    // 先把图片都建成预加载对象：tick() 靠它们判断「下一张到底加载好了没有」。
+    const preloaded = new Map();
+    const failed = new Set();
 
-    SLIDES.slice(1).forEach((src) => {
+    SLIDES.forEach((src) => {
         const img = new Image();
+        img.onerror = () => failed.add(src);
         img.src = src;
+        preloaded.set(src, img);
     });
+
+    function isReady(src) {
+        if (failed.has(src)) {
+            return true; // 加载失败的图照常跳过去，别把播放卡死在这里
+        }
+        const img = preloaded.get(src);
+        return !!img && img.complete && img.naturalWidth > 0;
+    }
+
+    // 第一张就绪就开播（不等全部加载完，否则首屏要空等好几秒）
+    tick();
 
     window.addEventListener("pagehide", () => {
         if (timer) {
