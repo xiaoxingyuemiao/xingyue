@@ -3,11 +3,12 @@
 //
 // 做什么：
 //   1. 高度按顶栏/页脚实测值算，不会和它们叠在一起
-//   2. 背景随机撒花草树木（网格抖动分布，均匀不挤，且躲开所有画框）
-//   3. 画框沿 x 轴从左到右排开（x 轴互不重合），比例在 16:9 / 9:20 / 20:9 里随机
-//   4. 每个画框按从左到右编号 1、2、3……但编号只写在 data-frame 上，不显示出来
-//   5. 第三个画框正上方挂一个「进入自动预览」按钮（位置算出来的，跟着画廊一起滚）
-//   6. 底部是毛线球滚动条：拖动它、点轨道、滚轮、触屏滑动都能移动画廊
+//   2. 背景撒花草树木（网格抖动分布，均匀不挤，且躲开所有画框和按钮）
+//   3. 画框沿 x 轴从左到右排开（x 轴互不重合）：9:16 占一半，16:9 和 20:9 各占四分之一
+//   4. 第 3 个画框固定是 9:16（手机竖屏），「进入自动预览」按钮就挂在它正上方
+//   5. 整套布局是**固定**的：每次刷新完全一样（固定随机种子，想换一套改 LAYOUT_SEED）
+//   6. 每个画框按从左到右编号 1、2、3……但编号只写在 data-frame 上，不显示出来
+//   7. 底部是毛线球滚动条：拖动它、点轨道、滚轮、触屏滑动都能移动画廊
 //
 // 以后怎么挂画：把图片放进 images/，然后在下面的 ARTWORKS 里按编号填路径即可
 // ================================
@@ -15,13 +16,16 @@
 (function () {
 
     // ---------- 可调参数 ----------
-    const FRAME_COUNT = 14; // 画框数量
+    const FRAME_COUNT = 16; // 画框数量（能被 4 整除：一半竖屏 + 两个四分之一）
     const FRAME_HEIGHT = 250; // 画框统一高度（宽度按比例算出来）
-    const RATIOS = [ // 随机出现的三种比例
-        [16, 9],
-        [9, 20],
-        [20, 9],
-    ];
+
+    // 三种比例：手机竖屏占一半，另两种各占四分之一
+    const RATIO_PHONE = [9, 16]; // 手机竖屏（第 3 个画框固定是这个）
+    const RATIO_LANDSCAPE = [16, 9]; // 横屏
+    const RATIO_WIDE = [20, 9]; // 宽横屏
+
+    // 固定随机种子：同一个种子每次都生成同一套画廊（想整套换掉就改这个数字）
+    const LAYOUT_SEED = 20260921;
     const GAP_MIN = 90; // 画框之间的随机间距（最小）
     const GAP_MAX = 320; // 画框之间的随机间距（最大）
     const EDGE = 130; // 画布左右两端留白
@@ -58,9 +62,29 @@
         return;
     }
 
+    // ---------- 固定随机源 ----------
+    // 以前画廊每次刷新都变（直接用 Math.random），现在换成「固定种子的伪随机」：
+    // 种子不变 → 画框比例、位置、间距、花草分布每次刷新都完全一样。
+    // 想换一套布局：改上面的 LAYOUT_SEED，再打开页面看一眼好不好看。
+    function makeRandom(seed) {
+        let s = seed >>> 0 || 1;
+
+        return function () {
+            // xorshift32：轻量、确定性的伪随机
+            s ^= s << 13;
+            s >>>= 0;
+            s ^= s >>> 17;
+            s ^= s << 5;
+            s >>>= 0;
+            return s / 4294967296;
+        };
+    }
+
+    let random = makeRandom(LAYOUT_SEED);
+
     // ---------- 小工具 ----------
     function rand(min, max) {
-        return min + Math.random() * (max - min);
+        return min + random() * (max - min);
     }
 
     function randInt(min, max) {
@@ -82,7 +106,49 @@
         galleryEl.style.height = Math.max(360, window.innerHeight - used - 26) + "px";
     }
 
-    // ---------- 1) 画框 ----------
+    // ---------- 1) 画框比例分配表 ----------
+    // 数量是**精确分配**的（不靠随机碰运气）：手机竖屏一半，另两种各四分之一。
+    // 排布顺序用固定随机源打乱 —— 看着自然，但每次刷新都一样。
+    function buildRatioPlan() {
+        const phoneCount = Math.round(FRAME_COUNT / 2);
+        const landscapeCount = Math.round(FRAME_COUNT / 4);
+        const wideCount = Math.max(0, FRAME_COUNT - phoneCount - landscapeCount);
+
+        const plan = [];
+        for (let i = 0; i < phoneCount; i++) {
+            plan.push(RATIO_PHONE);
+        }
+        for (let i = 0; i < landscapeCount; i++) {
+            plan.push(RATIO_LANDSCAPE);
+        }
+        for (let i = 0; i < wideCount; i++) {
+            plan.push(RATIO_WIDE);
+        }
+
+        // Fisher-Yates 洗牌（用固定随机源 → 结果固定）
+        for (let i = plan.length - 1; i > 0; i--) {
+            const j = Math.floor(random() * (i + 1));
+            const tmp = plan[i];
+            plan[i] = plan[j];
+            plan[j] = tmp;
+        }
+
+        // 第 3 个画框必须是手机竖屏：和它后面某个竖屏画框换位置（三种数量都不变）
+        const idx = ACTION_FRAME - 1;
+        if (idx >= 0 && idx < plan.length && plan[idx] !== RATIO_PHONE) {
+            for (let i = idx + 1; i < plan.length; i++) {
+                if (plan[i] === RATIO_PHONE) {
+                    plan[i] = plan[idx];
+                    plan[idx] = RATIO_PHONE;
+                    break;
+                }
+            }
+        }
+
+        return plan;
+    }
+
+    // ---------- 2) 画框 ----------
     function buildFrames() {
         frameLayer.textContent = "";
 
@@ -90,11 +156,13 @@
         const marginY = 42;
         const usableY = Math.max(0, canvasHeight - FRAME_HEIGHT - marginY * 2);
 
+        const ratioPlan = buildRatioPlan();
+
         let x = EDGE;
         const frag = document.createDocumentFragment();
 
         for (let index = 1; index <= FRAME_COUNT; index++) {
-            const ratio = pick(RATIOS);
+            const ratio = ratioPlan[index - 1] || RATIO_PHONE;
             const width = Math.round((FRAME_HEIGHT * ratio[0]) / ratio[1]);
 
             // 第 3 个画框上方要放按钮，所以它的可选范围整体往下挪一点
@@ -138,7 +206,7 @@
         canvas.style.width = x + EDGE + "px";
     }
 
-    // ---------- 1.5) 「进入自动预览」按钮 ----------
+    // ---------- 3) 「进入自动预览」按钮 ----------
     // 按钮在 chahua.html 里写好，这里只负责把它摆到第 3 个画框的正上方：
     // 横向与画框居中对齐，纵向贴在画框顶边上面一点点。
     function placeAction() {
@@ -164,7 +232,7 @@
         frameAction.style.top = Math.max(ACTION_TOP, Math.round(frameTop - frameAction.offsetHeight - ACTION_GAP)) + "px";
     }
 
-    // ---------- 2) 背景花草 ----------
+    // ---------- 4) 背景花草 ----------
     function buildDeco() {
         decoLayer.textContent = "";
 
@@ -214,7 +282,7 @@
 
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols; c++) {
-                if (Math.random() < CELL_SKIP) {
+                if (random() < CELL_SKIP) {
                     continue; // 留些空位，显得自然
                 }
 
@@ -244,7 +312,7 @@
         decoLayer.appendChild(frag);
     }
 
-    // ---------- 3) 毛线球滚动条 ----------
+    // ---------- 5) 毛线球滚动条 ----------
     function maxScroll() {
         return Math.max(0, viewport.scrollWidth - viewport.clientWidth);
     }
@@ -374,8 +442,11 @@
         }
     });
 
-    // ---------- 4) 启动 ----------
+    // ---------- 6) 启动 ----------
     function layout() {
+        // 每次都从同一个种子重新开始 —— 否则 resize 之后随机序列已经走远，布局会跟着变
+        random = makeRandom(LAYOUT_SEED);
+
         fitHeight();
         buildFrames();
         placeAction(); // 要在花草之前算好位置，花草才知道该躲哪
