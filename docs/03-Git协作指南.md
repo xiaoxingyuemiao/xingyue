@@ -424,7 +424,7 @@ git rebase --abort
 
 - `index.html` 等页面文件：结构改动容易撞车（同一区块加东西）
 - `assets/`、`images/` 下的图片、Live2D 模型：**二进制，撞了就只能二选一**
-- `settings.html` / `user.html` 等：功能模块化程度高，撞车概率低
+- `user.html` / `zhoubian.html` 等：功能模块化程度高，撞车概率低
 
 所以**分工比技巧更重要**（见 §5）。
 
@@ -438,7 +438,7 @@ git rebase --abort
 
 | 约定 | 说明 |
 | --- | --- |
-| 认领文件 | 例如「A 管 `index.html` + `xiaomiao.html`，B 管 `user.html` + `settings.html`」 |
+| 认领文件 | 例如「A 管 `index.html` + `xiaomiao.html`，B 管 `user.html` + `zhoubian.html`」 |
 | 公共文件单独商量 | `README.md`、`docs/`、`package.json`、`tools/` 改动前先在群里说一声 |
 | 资源文件加前缀 | 各自新增图片时加自己前缀，如 `a-xxx.png` / `b-xxx.png`，避免同名 |
 | 大改动提前打招呼 | 要重构目录、改公共 CSS 之前先同步一句：「我接下来动 30 分钟 index.html」 |
