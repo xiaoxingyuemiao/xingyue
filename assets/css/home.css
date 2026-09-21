@@ -624,49 +624,31 @@ body {
 
 /* ---------- 用户区域（点击进入用户设置） ---------- */
 
+/* 只显示头像（名字已去掉）；头像位置在「收起 / 展开」两种状态下**完全不动**。
+   收起时侧边栏 44px、头像 34px 居中 ⇒ 左边距恰好 5px，所以这里固定
+   `padding: 14px 5px` + 左对齐：展开到 90px 时头像仍停在同一个 x，
+   不会像以前那样被 justify-content: center 一路推着往右走。
+   也不再需要 width: max-content / max-width / overflow —— 那一套是为了把名字
+   "露"到侧边栏外面（hover 时延长成蓝卡），现在没名字了，让它在纵向 flex 里
+   自然撑满即可（.sidebar 默认 align-items: stretch），两种状态都不用再覆盖。 */
 .sidebar-user {
     display: flex;
     align-items: center;
 
-    gap: 10px;
+    justify-content: flex-start;
 
     margin-top: auto;
 
-    padding: 14px;
+    padding: 14px 5px;
 
     box-sizing: border-box;
 
-    white-space: nowrap;
-
     cursor: pointer;
 
-    /* 名字、个性签名、头像都不参与拖选（与左侧菜单保持一致） */
+    /* 头像不参与拖选（与左侧菜单保持一致） */
     user-select: none;
 
-    transition: max-width 0.25s ease, background-color 0.2s ease, border-radius 0.2s ease;
-
-    /* 平时（鼠标不在上面）：不显示白底 —— 名字就算超出侧边栏，
-       也是直接露在背景上，不铺白底。
-       max-width 只比侧边栏宽 12px，正好让名字露出「前两个汉字」
-       （名字字号 15px，两个字 30px = 12px + 侧边栏 90px − 头像与内边距 72px），
-       再多的部分直接裁掉，不加省略号。
-       hover 时才延长成圆角蓝卡（见下面的 :hover）；
-       用 max-width 而不是 width 做延长，是因为 max-width 可以过渡，延长才是平滑的 */
-    width: max-content;
-    max-width: calc(100% + 12px);
-
-    overflow: hidden;
-
     background-color: transparent;
-}
-
-/* 鼠标移上来：白底向右延长显示完整名字，四角变圆，选中状态用主色蓝 */
-.sidebar-user:hover {
-    max-width: min(78vw, 280px);
-
-    background-color: var(--main-color);
-
-    border-radius: 14px;
 }
 
 .user-avatar {
@@ -686,21 +668,6 @@ body {
     font-size: 18px;
 }
 
-.user-info {
-    display: flex;
-    flex-direction: column;
-
-    min-width: 0; /* 允许被压缩，名字超长时才会走省略号 */
-    overflow: hidden;
-}
-
-.user-name {
-    font-size: 15px;
-    font-weight: bold;
-
-    overflow: hidden; /* 超出的部分直接裁掉，不加省略号 */
-}
-
 /* ---------- 收起状态（44px：图标两侧各留 5px） ---------- */
 
 .home-screen.sidebar-collapsed .sidebar {
@@ -713,8 +680,7 @@ body {
     padding: 0;
 }
 
-.home-screen.sidebar-collapsed .sidebar-text,
-.home-screen.sidebar-collapsed .user-info {
+.home-screen.sidebar-collapsed .sidebar-text {
     display: none;
 }
 
@@ -728,15 +694,8 @@ body {
     padding: 0;
 }
 
-.home-screen.sidebar-collapsed .sidebar-user {
-    justify-content: center;
-
-    padding: 14px 0;
-
-    /* 收起时只显示头像：宽度要撑满整条侧边栏，头像才会居中 ——
-       否则上面那条 width: max-content 只剩头像那么宽，会贴到左边去 */
-    width: 100%;
-}
+/* 收起状态不需要再给用户区单独定位：上面的基础样式已经让头像稳在同一个 x
+   （padding 左右 5px + 左对齐），侧边栏变宽变窄它都不动 */
 
 /* ==============================
    主空间
@@ -1351,11 +1310,8 @@ body {
     }
 
     .sidebar-user {
-        padding: 10px 8px;
-    }
-
-    .user-name {
-        font-size: 15px;
+        /* 横向仍是 5px：与收起时的居中位置一致，头像在两种状态下都不动 */
+        padding: 10px 5px;
     }
 
     /* ---------- 登录框（手机端回到居中：屏幕窄，靠右会挤） ---------- */

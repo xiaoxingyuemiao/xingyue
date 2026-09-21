@@ -12,7 +12,6 @@ const sidebarToggle = document.querySelector("#sidebar-toggle");
 const sidebarMenu = document.querySelector(".sidebar-menu");
 const sidebarUser = document.querySelector("#sidebar-user");
 const userAvatarEl = document.querySelector("#user-avatar");
-const userNameEl = document.querySelector("#user-name");
 const guestButton = document.querySelector(".guest-button");
 
 const chatInput = document.querySelector(".chat-input input");
@@ -141,22 +140,10 @@ sidebarMenu.addEventListener("click", (event) => {
 
 // ---------- 用户区域：登录状态 / 个人中心 ----------
 
-// 更新侧边栏底部的用户区域：只展示「头像 + 名字」
-// 名字优先用用户设的昵称，没设过就用默认名（小窝第 N 成员）；未登录显示「点击登录」
+// 侧边栏底部的用户区域：**只显示头像**（站长要求去掉名字），
+// 所以这里不再写任何文字；只保留「不设 title」——鼠标移到用户区不弹提示框。
+// 头像本身由 renderUserInfo() 负责渲染。
 function renderAuthState() {
-    const user = window.Auth.current();
-    const profile = window.Store.readJSON(window.Store.KEYS.user, null);
-    const nickname = (profile && profile.nickname) || "";
-
-    if (nickname) {
-        userNameEl.textContent = nickname;
-    } else if (user) {
-        userNameEl.textContent = window.Auth.defaultDisplayName();
-    } else {
-        userNameEl.textContent = "点击登录";
-    }
-
-    // 不设 title：鼠标移到左下角用户栏时不再弹出提示框
     sidebarUser.removeAttribute("title");
 }
 

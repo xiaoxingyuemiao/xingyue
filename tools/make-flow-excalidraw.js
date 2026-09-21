@@ -86,7 +86,7 @@ const NODES = [
     { id: "sbYc", x: 890, y: 548, w: 260, h: 38, kind: "ui", text: "↳ [月瓷] → yueci.html" },
     { id: "sbXm", x: 890, y: 590, w: 260, h: 38, kind: "ui", text: "↳ [小喵] → xiaomiao.html" },
     { id: "sbL2d", x: 870, y: 638, w: 280, h: 42, kind: "ui", text: "[Live2D] → live2d.html" },
-    { id: "sbUser", x: 870, y: 690, w: 280, h: 44, kind: "ui", text: "[左下角用户区]（头像 + 名字）" },
+    { id: "sbUser", x: 870, y: 690, w: 280, h: 44, kind: "ui", text: "[左下角用户区]（只显示头像）" },
     { id: "sbUserNo", x: 870, y: 742, w: 280, h: 38, kind: "ui", text: "未登录时点击 → 回登录卡" },
     { id: "sbUserYes", x: 870, y: 784, w: 280, h: 38, kind: "ui", text: "已登录时点击 → user.html 个人中心" },
     { id: "sbZoneTip", x: 870, y: 832, w: 280, h: 48, kind: "note", text: "「设置」菜单项已删除\n设置只在个人中心里（入口＝左下角用户区）" },
