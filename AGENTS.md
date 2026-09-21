@@ -78,6 +78,8 @@
 - **但站长在对话里说「不要提交」时以站长为准**：只改工作区，不 `git add`、不 `git commit`、不 `git push`，并在结束时列出改动文件清单。
 - 提交信息**不要带 BOM**（PowerShell 的 `Set-Content -Encoding UTF8` 会加），见踩坑记录 H08。
 - Git 在沙箱里推送需要提权（schannel 报 `SEC_E_NO_CREDENTIALS`），见踩坑记录 H10。
+- ⛔ **不要自动去核对线上**：推送完就收工，**不要**主动访问 GitHub Pages 站点、也不要拉线上文件来验证部署结果。
+  要看线上效果**站长会自己说**「核对线上」。判断推送成功与否，看 `git push` 的输出（`xxx..yyy  main -> main`）或远端 hash 就够了。
 
 ---
 
