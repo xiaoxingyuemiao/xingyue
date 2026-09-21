@@ -82,7 +82,7 @@
 换成本机 http 打开就一切正常（与线上 GitHub Pages 行为一致）。
 
     # 方式一（推荐，零依赖、自动开浏览器、改完刷新即生效）
-    Windows：双击 tools\启动本地预览.bat
+    Windows：双击仓库根目录的「启动本地预览.bat」
     命令行：node tools/serve.js        # 默认 http://127.0.0.1:5173，端口被占用会自动往后试
                                        # 加 --no-open 不自动开浏览器；--port 8080 指定端口
 

@@ -17,7 +17,12 @@ window.MODEL_CONFIGS = {
         path: "assets/live2d/default/ARGNori.model3.json",
         scale: 0.1,
         anchor: [0, 0],
-        position: null, // { x, y } 偏移，null = 不设置（保持锚点位置）
+        // 模型"框"的中心已经对齐窗口正中心（由 home.css 里 #oml2d-stage 的居中规则保证），
+        // 但本模型框底部有约 132px 的透明留白，角色实际像素中心会比框中心高约 55px，
+        // 所以这里往下压 55，让角色视觉上真正居中。
+        // 实测：压之前角色像素中心相对画布中心是 (0, -55.5)，12 次采样摆动仅 ±1.5px。
+        // 想让皮套再往下 / 往上一点，改这个 y 就行（正数 = 往下）。
+        position: { x: 0, y: 55 },
         expressions: {
             开心: "13_Happy",
             难过: "08_Tears",

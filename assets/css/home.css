@@ -809,6 +809,37 @@ body {
     height: 1500px;
 }
 
+/* ⚠️ SDK 初始化时会自己建一个舞台元素 #oml2d-stage，内联样式是
+   `position: fixed; left: 0; bottom: 0;` + 宽高等同模型尺寸 —— 它是本容器的子元素，
+   而本容器带 transform，**fixed 会改以这个容器为参照**，于是模型被摆到了容器的「左下角」，
+   看起来就偏左下、不在主页正中心（实测：容器矩形 262,-346.5 1050x1500，
+   画布却在 262,483.5，正好是容器左下角）。
+   这里把它拉回容器正中心 —— 桌面端容器本身就居中，所以模型也就落在主页正中心；
+   手机上容器按媒体查询上移，模型随之居中于容器，行为照旧。
+   ⚠️ 必须连 animation 一起覆盖：SDK 的滑入动画用的是 transform 且 fill-mode: forwards，
+      而动画在层叠里的优先级高于普通声明（连 !important 都压不住），
+      不覆盖的话我们写的位移会被动画整个吃掉。这里换成自己的滑入动画。 */
+#live2d-container #oml2d-stage {
+    left: 50% !important;
+    top: 50% !important;
+    right: auto !important;
+    bottom: auto !important;
+
+    animation: xingyue-live2d-in 700ms ease-out both !important;
+}
+
+@keyframes xingyue-live2d-in {
+    from {
+        transform: translate(-50%, -50%) translateY(130%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translate(-50%, -50%);
+        opacity: 1;
+    }
+}
+
 /* 画布铺满窗口（尺寸由 SDK 按容器计算，不变形） */
 .live2d-container canvas {
     width: 100% !important;
