@@ -46,6 +46,11 @@ window.Live2D = {
                 path: cfg.path,
                 scale: cfg.scale,
                 anchor: cfg.anchor,
+                // ⚠️ SDK 在屏幕 ≤768px 时读的是 mobileScale / mobilePosition（不是 scale / position）。
+                //    不给的话它会用自己的默认值（scale 0.1、位置 0,0），
+                //    结果就是「手机上皮套比电脑小、而且不居中」。这里跟桌面保持一致。
+                mobileScale: cfg.scale,
+                mobilePosition: cfg.position ? [cfg.position.x, cfg.position.y] : undefined,
             });
         }
         // 自定义模型（我的角色）
@@ -65,7 +70,7 @@ window.Live2D = {
                     // 本地导入：虚拟路径（Service Worker 从缓存返回）
                     path = window.L2D_CUSTOM.basePath() + r.id + "/" + m.slice(7);
                 }
-                list.push({ name: customName, path: path, scale: 0.1, anchor: [0, 0] });
+                list.push({ name: customName, path: path, scale: 0.1, anchor: [0, 0], mobileScale: 0.1 });
                 this.MODEL_NAMES.push(customName);
             }
         } catch (e) {
@@ -96,6 +101,12 @@ window.Live2D = {
                 el: container,
                 parentElement: container,
                 models: this.MODELS,
+                // ⚠️⚠️ 必须显式打开！SDK 的默认值是 mobileDisplay: false，
+                //    而它的 loadModel() 第一句就是 `if (this.mobileHidden) return;`
+                //    —— 也就是屏幕宽度 ≤768px（SDK 内部 matchMedia 断点）时**模型根本不加载**：
+                //    实测现象是模型对象都不存在、renderer 0×0、舞台塌成一行文字高（24px），
+                //    页面上就是「手机上完全看不见皮套」。见 docs/08 #08。
+                mobileDisplay: true,
                 // 关闭 SDK 自带 UI
                 statusBar: { disable: true },
                 menus: { disable: true },

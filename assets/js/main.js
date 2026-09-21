@@ -284,6 +284,23 @@ async function syncFromCloud() {
     }
 }
 
+// ---------- Live2D 的启动时机 ----------
+
+// ⚠️ Live2D 必须在「主页真正显示出来之后」才初始化：
+//    主页还 display:none 时，容器的尺寸是 0 —— SDK 会照着 0×0 建出渲染器，
+//    模型请求也不会正常完成，之后就算主页显示了也**再也看不到模型**。
+//    首次访问会先停在登录卡（主页是隐藏的），所以不能在脚本末尾直接 init()，
+//    要等进入主页那一刻再启动。见 docs/08 #08。
+let live2dStarted = false;
+
+function startLive2D() {
+    if (live2dStarted) {
+        return;
+    }
+    live2dStarted = true;
+    Live2D.init();
+}
+
 // ---------- 起始屏：游客进入 / 登录 / 注册 ----------
 
 // 隐藏起始屏、显示首页（三个入口共用）
@@ -293,6 +310,9 @@ function enterHomeScreen() {
 
     authScreen.style.display = "none";
     homeScreen.style.display = "flex";
+
+    // 主页这一刻才真正有尺寸 → 在这里（而不是脚本末尾）启动 Live2D
+    startLive2D();
 }
 
 // ================================
@@ -1358,18 +1378,18 @@ window.addEventListener("pagehide", (event) => {
     }
 });
 
-// 初始化 Live2D（异步加载默认模型，不影响页面进入）
-Live2D.init();
-
 // 检查用户是否第一次访问网站
 const isFirstVisit = localStorage.getItem(window.Store.KEYS.visited);
 
 if (isFirstVisit === null) {
     // 第一次访问：直接显示登录页
+    // ⚠️ 这里**不要**启动 Live2D —— 主页还是 display:none，模型会加载失败；
+    //    等用户点「先随便逛逛」或登录成功走 enterHomeScreen() 时再启动（见上方说明）
     console.log("🌙 第一次来到星月小窝");
     authScreen.style.display = "flex";
 } else {
-    // 老用户：直接进入首页
+    // 老用户：直接进入首页（主页此刻可见 → 启动 Live2D）
     console.log("🌙 欢迎回来");
     homeScreen.style.display = "flex";
+    startLive2D();
 }
