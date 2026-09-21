@@ -23,6 +23,7 @@ const uSignoutYes = document.querySelector("#u-signout-yes");
 const uSignoutNo = document.querySelector("#u-signout-no");
 
 // 注销账号（危险操作）
+const uDangerArea = document.querySelector("#u-danger-area");
 const uDelete = document.querySelector("#u-delete");
 const uDeleteConfirm = document.querySelector("#u-delete-confirm");
 const uDeleteYes = document.querySelector("#u-delete-yes");
@@ -65,6 +66,13 @@ function renderAccount() {
         uSignoutArea.hidden = !user;
         uSignout.hidden = false;
         uSignoutConfirm.hidden = true;
+    }
+
+    // 「注销账号」整块同理：未登录就不该出现（否则点了只会提示登录状态已失效）
+    if (uDangerArea) {
+        uDangerArea.hidden = !user;
+        uDelete.hidden = false;
+        uDeleteConfirm.hidden = true;
     }
 }
 
