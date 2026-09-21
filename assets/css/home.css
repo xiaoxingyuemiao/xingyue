@@ -444,6 +444,12 @@ body {
     padding: 0 10px;
 
     box-sizing: border-box;
+
+    /* 网站图标**跟着侧边栏一起平滑滑动**，不瞬移 ——
+       和左下角头像同一套做法：位置只靠 padding-left 控制（长度值能过渡），
+       时长与 .sidebar 那条 width 0.25s 对齐。
+       展开态 padding-left 10px ⇒ 图标 left = 10 + (40 − 34) / 2 = 13px。 */
+    transition: padding 0.25s ease;
 }
 
 .sidebar-toggle {
@@ -624,13 +630,15 @@ body {
 
 /* ---------- 用户区域（点击进入用户设置） ---------- */
 
-/* 只显示头像（名字已去掉）；头像位置在「收起 / 展开」两种状态下**完全不动**。
-   收起时侧边栏 44px、头像 34px 居中 ⇒ 左边距恰好 5px，所以这里固定
-   `padding: 14px 5px` + 左对齐：展开到 90px 时头像仍停在同一个 x，
-   不会像以前那样被 justify-content: center 一路推着往右走。
-   也不再需要 width: max-content / max-width / overflow —— 那一套是为了把名字
-   "露"到侧边栏外面（hover 时延长成蓝卡），现在没名字了，让它在纵向 flex 里
-   自然撑满即可（.sidebar 默认 align-items: stretch），两种状态都不用再覆盖。 */
+/* 只显示头像（名字已去掉）。头像位置**跟着侧边栏一起平滑滑动**：
+     · 展开（桌面 90px）：padding-left 14px —— 与上方网站图标的左边缘对齐（图标 left=13）
+     · 收起（桌面 44px）：在窄条里居中 ⇒ (44 − 34) / 2 = 5px
+   ⚠️ 关键是「怎么过渡」：**不能靠 justify-content: center ↔ flex-start 切换** ——
+      justify-content 是离散值、不参与过渡，切换瞬间会「瞬移」；
+      改成过渡 padding-left（长度值可以过渡），时长与侧边栏那条 width 0.25s 对齐，滑过去就是连贯的。
+   宽度也不再需要 max-content / max-width / overflow —— 那一套是为了把名字"露"到侧边栏外面
+   （hover 时延长成蓝卡），现在没名字了，让它在纵向 flex 里自然撑满即可
+   （.sidebar 默认 align-items: stretch）。 */
 .sidebar-user {
     display: flex;
     align-items: center;
@@ -639,7 +647,7 @@ body {
 
     margin-top: auto;
 
-    padding: 14px 5px;
+    padding: 14px;
 
     box-sizing: border-box;
 
@@ -649,6 +657,8 @@ body {
     user-select: none;
 
     background-color: transparent;
+
+    transition: padding 0.25s ease;
 }
 
 .user-avatar {
@@ -674,10 +684,24 @@ body {
     width: 44px;
 }
 
-.home-screen.sidebar-collapsed .sidebar-header {
-    justify-content: center;
+/* 收起时头像在窄条里居中：(44 − 34) / 2 = 5px。
+   展开时这条不生效 → padding-left 回到 14px，头像会**平滑地往右滑 9px**
+   （靠上面的 transition: padding 过渡，和侧边栏变宽同步）。 */
+.home-screen.sidebar-collapsed .sidebar-user {
+    padding-left: 5px;
+    padding-right: 5px;
+}
 
-    padding: 0;
+/* 收起时网站图标在窄条里居中：(44 − 40) / 2 = 2px ⇒ 图标 left = 2 + 3 = 5px，
+   和以前 justify-content: center 的位置**一模一样**。
+   展开时这条不生效 → padding-left 回到 10px，图标会**平滑地往右滑 8px**。
+   ⚠️ 不能用 justify-content: center ↔ flex-start 切换：那是离散值、不参与过渡，
+      切换瞬间会「瞬移」（头像那边踩过同一个坑）。 */
+.home-screen.sidebar-collapsed .sidebar-header {
+    justify-content: flex-start;
+
+    padding-left: 2px;
+    padding-right: 0;
 }
 
 .home-screen.sidebar-collapsed .sidebar-text {
@@ -1310,8 +1334,20 @@ body {
     }
 
     .sidebar-user {
-        /* 横向仍是 5px：与收起时的居中位置一致，头像在两种状态下都不动 */
-        padding: 10px 5px;
+        /* 只改纵向间距；横向与桌面一致（展开 14px、收起 5px），不需要再单独覆盖。
+           ⚠️ 别看上面那条 `.sidebar { width: 50px }` —— 收起时它会被
+              `.home-screen.sidebar-collapsed .sidebar { width: 44px }` 盖掉，
+              所以手机端收起同样是 44px（实测确认），居中位置一样是 5px */
+        padding: 10px 14px;
+    }
+
+    /* 收起状态不再覆盖（继承上面的 5px） */
+
+    .home-screen.sidebar-collapsed .sidebar-header {
+        /* 手机端收起是 50px 窄条、按钮 34px ⇒ 居中位置 (50 − 34) / 2 = 8px，
+           和展开态的 padding-left 8px 恰好相同 —— 手机上图标本来就不会动，
+           这里只是把桌面那条 2px 覆盖掉，别让它跟着桌面规则跑。 */
+        padding-left: 8px;
     }
 
     /* ---------- 登录框（手机端回到居中：屏幕窄，靠右会挤） ---------- */
