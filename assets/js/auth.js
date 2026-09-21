@@ -102,12 +102,25 @@ window.Auth = (function () {
         listeners.push(cb);
     }
 
+    // 把服务端的错误标识拼在正文后面，供 friendlyError 区分具体故障
+    function withCode(data) {
+        const code = data.error_code || data.code || "";
+        return code && String(code) !== "undefined" ? code : "";
+    }
+
     // 从错误响应里取出可读信息（英文 → 中文）
     async function errorText(res) {
         try {
             const data = await res.json();
             const raw = data.msg || data.error_description || data.error || data.message || ("HTTP " + res.status);
-            return friendlyError(raw);
+            const detail = data.detail || "";
+            const mark = withCode(data);
+            const combined = [raw, detail, mark].filter(Boolean).join(" | ");
+            if (!res.ok) {
+                // 保留 error_id：Supabase 后台 Logs → Auth 里能按它查到这次发信失败的确切原因
+                console.warn("Auth 接口返回错误：", res.status, combined, data.error_id || "");
+            }
+            return friendlyError(combined);
         } catch (e) {
             return "请求失败（HTTP " + res.status + "）";
         }
@@ -117,9 +130,18 @@ window.Auth = (function () {
     function friendlyError(raw) {
         const m = String(raw || "");
         const rules = [
-            // 发信相关
-            [/error sending confirmation email|error sending magic link|error sending email/i,
-                "验证码邮件发送失败：请检查邮箱 SMTP 配置（授权码是否正确、端口是否为 465、发件邮箱是否与登录邮箱一致）"],
+            // 发信相关：按服务端给的具体原因分开提示（都来自 Supabase SMTP 发信失败）
+            // 顺序要紧：先认「具体故障」，再兜底到笼统的发信失败，否则
+            // "Error sending email: 535 Authentication failed" 会被兜底规则吃掉。
+            // 注意端口写 587：Supabase 自定义 SMTP 走 STARTTLS，465（隐式 SSL）不支持
+            [/invalid (login|credentials).*(smtp|mail)|smtp.*(auth|login|credential|password).*(fail|invalid|incorrect)|535|authentication failed|username and password not accepted|bad credentials/i,
+                "验证码邮件发送失败：SMTP 授权码不正确（163 邮箱要填「授权码」，不是网页登录密码；过期了就重新生成）"],
+            [/could not connect|connection (timed out|refused|reset)|connect (timed out|refused)|network is unreachable|econnrefused|etimedout|starttls|handshake fail/i,
+                "验证码邮件发送失败：连不上 SMTP 服务器（端口应为 587 + STARTTLS；465 是隐式 SSL，Supabase 不支持）"],
+            [/sender.*(reject|not allowed|invalid|denied)|recipient.*(reject|not allowed|denied)|relay (access )?denied|mailbox unavailable|user unknown|domain.*(not (allowed|verified)|unverified)/i,
+                "验证码邮件发送失败：发件邮箱被 SMTP 服务器拒绝了（发件邮箱要和授权码所属账号完全一致）"],
+            [/error sending email|error sending confirmation email|error sending magic link/i,
+                "验证码邮件发送失败：请检查 Supabase 的 SMTP 配置（端口用 587，发件邮箱要和授权码所属账号完全一致）"],
             [/error sending recovery email/i,
                 "找回密码邮件发送失败，请检查邮箱配置"],
             // 密钥 / 配置
