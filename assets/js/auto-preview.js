@@ -36,16 +36,21 @@
     const FADE_MS = 1800; // 淡出淡入的用时（「慢慢」淡出、慢慢出现）
 
     // ---------- 八向翻折 ----------
-    // origin：从哪条边 / 哪个角折起；in：折进来的起始角度；out：折出去的角度
+    // 每个方向只写一个「向后倒」的角度（back）—— 旧图从 0 转到 back（向后翻走），
+    // 新图从 back 转到 0（从后面翻回来）：两边转向一致，所以看起来**都是向后翻**。
+    //
+    // origin：固定哪条边 / 哪个角（也就是「折线」的位置）
+    // 角度符号不是随便写的：CSS 里 Z 轴指向观众，要往 -Z（远离观众）倒才是「向后」。
+    // 左上/右上/左下/右下的旋转轴要垂直于对应那条对角线，否则会转不动 / 方向乱。
     const FOLD = {
-        top: { origin: "center top", in: "rotateX(-90deg)", out: "rotateX(90deg)" },
-        bottom: { origin: "center bottom", in: "rotateX(90deg)", out: "rotateX(-90deg)" },
-        left: { origin: "left center", in: "rotateY(-90deg)", out: "rotateY(90deg)" },
-        right: { origin: "right center", in: "rotateY(90deg)", out: "rotateY(-90deg)" },
-        "top-left": { origin: "left top", in: "rotate3d(1,-1,0,90deg)", out: "rotate3d(1,-1,0,-90deg)" },
-        "top-right": { origin: "right top", in: "rotate3d(1,1,0,-90deg)", out: "rotate3d(1,1,0,90deg)" },
-        "bottom-left": { origin: "left bottom", in: "rotate3d(1,1,0,90deg)", out: "rotate3d(1,1,0,-90deg)" },
-        "bottom-right": { origin: "right bottom", in: "rotate3d(1,-1,0,-90deg)", out: "rotate3d(1,-1,0,90deg)" },
+        top: { origin: "center top", back: "rotateX(-90deg)" },
+        bottom: { origin: "center bottom", back: "rotateX(90deg)" },
+        left: { origin: "left center", back: "rotateY(90deg)" },
+        right: { origin: "right center", back: "rotateY(-90deg)" },
+        "top-left": { origin: "left top", back: "rotate3d(1,-1,0,-90deg)" },
+        "top-right": { origin: "right top", back: "rotate3d(1,1,0,-90deg)" },
+        "bottom-left": { origin: "left bottom", back: "rotate3d(1,1,0,90deg)" },
+        "bottom-right": { origin: "right bottom", back: "rotate3d(1,-1,0,90deg)" },
     };
 
     // ---------- 八向平移 ----------
@@ -116,7 +121,8 @@
             const conf = FOLD[effect.dir];
             el.style.setProperty("--ap-dur", FOLD_MS + "ms");
             el.style.setProperty("--ap-origin", conf.origin);
-            el.style.setProperty("--ap-rot", incoming ? conf.in : conf.out);
+            // 进入 / 离开都用同一个「向后」角度，方向才统一
+            el.style.setProperty("--ap-rot", conf.back);
             el.classList.add(incoming ? "ap-fold-in" : "ap-fold-out");
             return FOLD_MS;
         }
@@ -138,12 +144,19 @@
 
         const incoming = makeSlide(src);
         const duration = applyEffect(incoming, effect, "in");
-        stage.appendChild(incoming);
+
+        // 新图插在旧图**前面**：这样旧图始终压在上面，翻走时露出来的是新图
+        // （如果新图放最上层，两边会一起叠着显示，看着像「重合」）
+        if (current) {
+            stage.insertBefore(incoming, current);
+        } else {
+            stage.appendChild(incoming);
+        }
 
         if (current) {
             const outgoing = current;
             applyEffect(outgoing, effect, "out");
-            // 等动画放完再移除旧层，免得叠在上面挡住新图
+            // 等动画放完再移除旧层
             setTimeout(() => outgoing.remove(), duration + 80);
         }
 
