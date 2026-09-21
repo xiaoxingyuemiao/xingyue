@@ -1,14 +1,194 @@
 /* ==============================
    自动预览页（zidongyulan.html）
    —— 入口：插画画廊第三个画框上方的「进入自动预览」按钮
-   —— 现在暂定空白，以后自动预览的样式都写在这里
+   —— 现在放的是**临时**幻灯片：把 images/ 里的图按顺序循环播放
+      （播放清单在 assets/js/auto-preview.js 里，想改顺序改那个数组）
    ============================== */
 
 .auto-preview {
-    /* 撑开顶栏与页脚之间的空白，页脚才会落在页面最下面 */
+    /* 撑开顶栏与页脚之间的空间，页脚才会落在页面最下面 */
     flex: 1;
 
     width: 100%;
 
     box-sizing: border-box;
+
+    display: flex;
+
+    padding: 12px;
+}
+
+/* ---------- 放映舞台 ---------- */
+
+.ap-stage {
+    position: relative;
+
+    flex: 1;
+
+    min-height: 320px;
+
+    overflow: hidden;
+
+    border-radius: 16px;
+
+    /* 深色底：透明 PNG（立绘）和浅色插画都能看清楚 */
+    background: radial-gradient(circle at 50% 42%, #223041 0%, #131b24 68%, #0d1319 100%);
+
+    /* 翻折效果需要景深，否则是平的 */
+    perspective: 1400px;
+}
+
+/* 一层 = 一屏一图 */
+.ap-slide {
+    position: absolute;
+
+    inset: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    backface-visibility: hidden;
+
+    will-change: transform, opacity;
+}
+
+.ap-slide img {
+    max-width: 100%;
+    max-height: 100%;
+
+    object-fit: contain;
+
+    /* 图片不参与拖选、也不能被拖走 */
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+/* ---------- 效果一：八向翻折 ---------- */
+
+.ap-fold-in,
+.ap-fold-out {
+    transform-origin: var(--ap-origin, center);
+
+    animation-duration: var(--ap-dur, 900ms);
+    animation-timing-function: ease-in-out;
+    animation-fill-mode: both;
+}
+
+.ap-fold-in {
+    animation-name: ap-fold-in;
+}
+
+.ap-fold-out {
+    animation-name: ap-fold-out;
+}
+
+@keyframes ap-fold-in {
+    from {
+        transform: var(--ap-rot, rotateX(-90deg));
+        opacity: 0.25;
+    }
+
+    to {
+        transform: none;
+        opacity: 1;
+    }
+}
+
+@keyframes ap-fold-out {
+    from {
+        transform: none;
+        opacity: 1;
+    }
+
+    to {
+        transform: var(--ap-rot, rotateX(90deg));
+        opacity: 0.25;
+    }
+}
+
+/* ---------- 效果二：八向平移 ---------- */
+
+.ap-pan-in,
+.ap-pan-out {
+    animation-duration: var(--ap-dur, 900ms);
+    animation-timing-function: ease-in-out;
+    animation-fill-mode: both;
+}
+
+.ap-pan-in {
+    animation-name: ap-pan-in;
+}
+
+.ap-pan-out {
+    animation-name: ap-pan-out;
+}
+
+@keyframes ap-pan-in {
+    from {
+        transform: var(--ap-from, translateX(-100%));
+    }
+
+    to {
+        transform: none;
+    }
+}
+
+@keyframes ap-pan-out {
+    from {
+        transform: none;
+    }
+
+    to {
+        transform: var(--ap-from, translateX(100%));
+    }
+}
+
+/* ---------- 效果三：慢慢淡出 + 慢慢出现 ---------- */
+
+.ap-fade-in,
+.ap-fade-out {
+    animation-duration: var(--ap-dur, 1800ms);
+    animation-timing-function: ease-in-out;
+    animation-fill-mode: both;
+}
+
+.ap-fade-in {
+    animation-name: ap-fade-in;
+}
+
+.ap-fade-out {
+    animation-name: ap-fade-out;
+}
+
+@keyframes ap-fade-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes ap-fade-out {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+    }
+}
+
+/* ---------- 手机端 ---------- */
+
+@media (max-width: 768px) {
+    .auto-preview {
+        padding: 8px;
+    }
+
+    .ap-stage {
+        border-radius: 12px;
+    }
 }
