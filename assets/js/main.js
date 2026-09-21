@@ -111,6 +111,32 @@ sidebarToggle.addEventListener("click", () => {
     }
 });
 
+// ---------- 手机端：点侧边栏以外的任何地方都收回去 ----------
+// 桌面端靠「鼠标移出侧边栏 0.1s 后自动收起」，手机上既没有 hover 也没有 mouseleave，
+// 原来只有再点一次 ☰ 才能收起 —— 这里补一条：只要点的不是侧边栏范围，一律收起。
+// ⚠️ 监听在**捕获阶段**：聊天角色按钮等地方调了 stopPropagation()，冒泡阶段会收不到这次点击。
+// 断点与 CSS 媒体查询 / Live2D SDK 的内部判断保持一致：max-width 768px。
+const mobileQuery = window.matchMedia("(max-width: 768px)");
+
+document.addEventListener("click", (event) => {
+    if (!mobileQuery.matches) {
+        return; // 桌面端交给鼠标移出的逻辑，别插手
+    }
+    if (homeScreen.classList.contains("sidebar-collapsed")) {
+        return; // 本来就是收起的，没什么可做
+    }
+    if (sidebar.contains(event.target)) {
+        return; // 点在侧边栏范围内（含 ☰ 按钮、菜单项、左下角头像）→ 不收起
+    }
+
+    manualExpanded = false;
+    if (collapseTimer) {
+        clearTimeout(collapseTimer);
+        collapseTimer = null;
+    }
+    homeScreen.classList.add("sidebar-collapsed");
+}, true);
+
 // ---------- 侧边栏菜单 ----------
 
 sidebarMenu.addEventListener("click", (event) => {
