@@ -45,6 +45,20 @@ html:not(:has(.home-screen)) body::-webkit-scrollbar {
 
 /* ==============================
    顶部导航栏（主页风格：圆角、hover 主色）
+
+   ⚠️ 这里用的是**裸元素选择器 `nav`**，它会漏到全站所有 `<nav>`：
+     · `common.js` 给子页面注入的 `#site-header > nav`（本来只想管它）
+     · `index.html` 左栏菜单 `<nav class="sidebar-menu">`
+     · `user.html` 个人中心左栏 `<nav class="settings-nav">`
+   后两个只声明了 display / flex-direction / gap，没声明 height、padding、align-items、border，
+   于是把这里的 `height:44px`、`padding`、`align-items:center`、`border-bottom` 整套继承了。
+
+   👉 其中那条 `border-bottom` 就是「左栏第二个按钮下面莫名多一条横线」的来源 ——
+      已在紧跟着的规则里单独取消。**其余继承效果（居中、内边距）是刻意保留的**：
+      它们决定了左栏按钮的实际观感（内容宽度 + 居中），一旦一起撤掉按钮就会变成撑满整条的宽条。
+      ⛔ 所以别图省事把这条规则直接收窄成 `#site-header nav`（试过，按钮样子全变了）。
+      想彻底治本得同时给左栏补回等价的 align-items / padding，那属于改外观，等站长说了再做。
+      详见 docs/08 #09。
    ============================== */
 
 nav {
@@ -58,6 +72,12 @@ nav {
     background-color: var(--surface-color);
 
     border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* 左栏的两个 <nav> 不要那条分隔线（只取消这一个属性，其余保持原样） */
+.sidebar-menu,
+.settings-nav {
+    border-bottom: none;
 }
 
 .nav-menu {
