@@ -7,6 +7,7 @@
 
         <link rel="stylesheet" href="assets/css/style.css">
         <link rel="stylesheet" href="assets/css/live2d.css">
+        <link rel="stylesheet" href="assets/css/live2d-guide.css">
 
         <link rel="icon" href="images/wangzhanmeiye.png">
     </head>
@@ -27,22 +28,731 @@
         </header>
 
 
-        <!-- ==================== 正文 ==================== -->
-        <main class="lp-main">
+        <!-- ==================== 正文：左目录 + 右内容 ====================
+             ⚠️ 左侧用 <aside> 而不是 <nav>：style.css 里那条裸元素选择器
+                `nav { height:44px; … }` 会漏到所有 <nav>（踩坑记录 #09）。
+        ================================================================= -->
+        <main class="gd-layout">
 
-            <section class="lp-section">
+            <!-- ---------- 左：一层叠一层的文档目录 ---------- -->
+            <aside class="gd-side" id="gd-side">
 
-                <h2 class="lp-title">使用说明</h2>
+                <!-- 手机端用它开合目录（桌面端隐藏） -->
+                <button type="button" class="gd-side-toggle" id="gd-nav-toggle" aria-expanded="false" aria-controls="gd-nav">
+                    <span>文档目录</span>
+                    <span aria-hidden="true">☰</span>
+                </button>
 
-                <p>还在装修中，敬请期待～</p>
+                <p class="gd-side-label">文档目录</p>
 
-                <p class="lp-note">内容写好之后会放在这里。</p>
+                <div class="gd-nav" id="gd-nav">
 
-                <div class="lp-actions">
-                    <a class="lp-btn lp-btn-github" href="live2d.html">← 返回 Live2D Param</a>
+                    <!-- ========== 开始 ========== -->
+                    <details class="gd-group" open>
+                        <summary class="gd-group-title">开始</summary>
+
+                        <ul class="gd-list">
+                            <li class="gd-item"><a class="gd-link" href="#intro">这是个什么工具</a></li>
+                            <li class="gd-item"><a class="gd-link" href="#requirements">系统要求</a></li>
+                            <li class="gd-item"><a class="gd-link" href="#cubism-version">Cubism 版本限制</a></li>
+                        </ul>
+                    </details>
+
+                    <!-- ========== 安装与卸载 ========== -->
+                    <details class="gd-group" open>
+                        <summary class="gd-group-title">安装与卸载</summary>
+
+                        <ul class="gd-list">
+                            <li class="gd-item"><a class="gd-link" href="#install">安装</a></li>
+                            <li class="gd-item"><a class="gd-link" href="#uninstall">卸载</a></li>
+                            <li class="gd-item"><a class="gd-link" href="#cli">命令行参数</a></li>
+                        </ul>
+                    </details>
+
+                    <!-- ========== 使用方法 ========== -->
+                    <details class="gd-group" open>
+                        <summary class="gd-group-title">使用方法</summary>
+
+                        <ul class="gd-list">
+                            <li class="gd-item"><a class="gd-link" href="#step-editor">一、在 Editor 里准备</a></li>
+                            <li class="gd-item"><a class="gd-link" href="#step-connect">二、连接</a></li>
+                            <li class="gd-item"><a class="gd-link" href="#step-read">三、读取参数组</a></li>
+
+                            <li class="gd-item">
+                                <a class="gd-link" href="#step-edit">四、改颜色 / 改名</a>
+
+                                <ul class="gd-sublist">
+                                    <li><a class="gd-link gd-sublink" href="#edit-color">预设色与自定义取色</a></li>
+                                    <li><a class="gd-link gd-sublink" href="#edit-batch">批量改</a></li>
+                                    <li><a class="gd-link gd-sublink" href="#edit-name">改名字</a></li>
+                                    <li><a class="gd-link gd-sublink" href="#edit-undo">撤回与前进</a></li>
+                                </ul>
+                            </li>
+
+                            <li class="gd-item"><a class="gd-link" href="#step-apply">五、应用更改</a></li>
+                            <li class="gd-item"><a class="gd-link" href="#log">记录窗口</a></li>
+                            <li class="gd-item"><a class="gd-link" href="#deformer">变形器视图</a></li>
+                        </ul>
+                    </details>
+
+                    <!-- ========== 脚本 ========== -->
+                    <details class="gd-group" open>
+                        <summary class="gd-group-title">脚本</summary>
+
+                        <ul class="gd-list">
+                            <li class="gd-item"><a class="gd-link" href="#script-window">脚本窗口</a></li>
+                            <li class="gd-item"><a class="gd-link" href="#script-source">官方脚本与自己的脚本</a></li>
+
+                            <li class="gd-item">
+                                <a class="gd-link" href="#script-format">脚本怎么写</a>
+
+                                <ul class="gd-sublist">
+                                    <li><a class="gd-link gd-sublink" href="#script-match">匹配条件</a></li>
+                                    <li><a class="gd-link gd-sublink" href="#script-color">上色方式</a></li>
+                                </ul>
+                            </li>
+
+                            <li class="gd-item"><a class="gd-link" href="#script-run">运行脚本会发生什么</a></li>
+                        </ul>
+                    </details>
+
+                    <!-- ========== 配色方案 ========== -->
+                    <details class="gd-group" open>
+                        <summary class="gd-group-title">配色方案</summary>
+
+                        <ul class="gd-list">
+                            <li class="gd-item"><a class="gd-link" href="#scheme-save">保存与载入</a></li>
+                            <li class="gd-item"><a class="gd-link" href="#scheme-reuse">跨模型复用</a></li>
+                        </ul>
+                    </details>
+
+                    <!-- ========== 其它 ========== -->
+                    <details class="gd-group" open>
+                        <summary class="gd-group-title">其它</summary>
+
+                        <ul class="gd-list">
+                            <li class="gd-item"><a class="gd-link" href="#faq">常见问题</a></li>
+                            <li class="gd-item"><a class="gd-link" href="#limits">已知限制</a></li>
+                            <li class="gd-item"><a class="gd-link" href="#feedback">反馈与联系</a></li>
+                        </ul>
+                    </details>
+
                 </div>
 
-            </section>
+                <a class="gd-side-back" href="live2d.html">← 返回 Live2D Param</a>
+
+            </aside>
+
+
+            <!-- ---------- 右：正文 ---------- -->
+            <div class="gd-content">
+
+                <p class="gd-crumb"><a href="live2d.html">← 返回 Live2D Param</a></p>
+
+                <h1 class="gd-h1">使用说明</h1>
+
+                <p class="gd-hero-sub">
+                    适用于 Live2D Param <b>0.0.1 alpha.1</b> · 需要 Cubism Editor 5.4 alpha1 及以上
+                </p>
+
+                <!-- ==================== 开始 ==================== -->
+                <section class="gd-sec">
+
+                    <h2 id="intro">这是个什么工具</h2>
+
+                    <p>
+                        Live2D Param 是一个给 Live2D 建模打下手的小工具：
+                        把 Cubism Editor 里的<b>参数组</b>列表读进来，在工具里<b>批量</b>改颜色、改名字、跑配色脚本，
+                        确认没问题之后，再一次性写回 Editor。
+                    </p>
+
+                    <p>
+                        它解决的事情说白了就一件 —— Editor 里给参数组上色是<b>一个一个点</b>的重复劳动，
+                        这个工具让你<b>批量做完、一次性提交</b>。
+                    </p>
+
+                    <h3>现在能做到的</h3>
+
+                    <ul>
+                        <li>读取<b>参数组</b>（含嵌套组）和<b>变形器</b>结构 —— 纯读取，不动模型；</li>
+                        <li>参数组<b>批量改色</b>：预设色、自定义取色（三角调色盘 / 色相圆环 / 吸管）、精确填 RGB；</li>
+                        <li>参数组<b>改名</b>；</li>
+                        <li><b>撤回 / 前进</b>：改错了随时退回来；</li>
+                        <li><b>保存 / 载入配色方案</b>：存成 JSON，换个模型也能接着用；</li>
+                        <li><b>配色脚本</b>：用一份声明式 JSON 描述「什么样的参数组上什么颜色」，自带 3 个官方脚本；</li>
+                        <li><b>记录窗口</b>：所有操作都有记录，可以下载成只读 txt。</li>
+                    </ul>
+
+                    <div class="gd-warn">
+                        <b>还是 alpha 版本。</b>
+                        当前版本 <b>0.0.1 alpha.1</b>，非常早，站长自己都还不知道有什么 bug。
+                        用之前请先看一眼下面的<a href="#limits">「已知限制」</a>，用出问题后果自负 qwq
+                    </div>
+
+                    <h2 id="requirements">系统要求</h2>
+
+                    <div class="gd-tablewrap">
+                        <table class="lp-table">
+                            <tr>
+                                <th>项目</th>
+                                <th>要求</th>
+                            </tr>
+                            <tr>
+                                <td>操作系统</td>
+                                <td>Windows 10 / 11（64 位）</td>
+                            </tr>
+                            <tr>
+                                <td>运行环境</td>
+                                <td>.NET Framework 4.x —— Win10 / 11 系统自带 4.8，不用额外装任何东西</td>
+                            </tr>
+                            <tr>
+                                <td>Cubism Editor</td>
+                                <td>5.4 alpha1 及以上，且处于建模模式（见下）</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <h2 id="cubism-version">Cubism 版本限制</h2>
+
+                    <ul>
+                        <li><b>最低 Editor 5.4 alpha1</b>：这套「外部应用程序集成」的 API 是那时候才有的，更低的版本连不上；</li>
+                        <li><b>必须处于建模模式</b>：读取和写入用的都是编辑类 API，只在建模模式下有效
+                            （不然会出现「读取成功，但一个参数组都没有」）；</li>
+                        <li><b>集成开关要打开</b>：菜单 <b>[文件] → [外部应用程序的集成设置]</b> 里把连接开关打开。</li>
+                    </ul>
+
+                </section>
+
+                <!-- ==================== 安装与卸载 ==================== -->
+                <section class="gd-sec">
+
+                    <h2 id="install">安装</h2>
+
+                    <ol class="gd-steps">
+                        <li>到 <a class="lp-mail" href="https://github.com/xiaoxingyuemiao/Live2D-Param/releases" target="_blank" rel="noopener">Releases</a> 下载
+                            <code>Live2D-Param-v0.0.1-alpha.1-Setup.exe</code>（文件名里的版本号跟着版本走）；</li>
+                        <li>双击运行，点<b>「安装」</b>；</li>
+                        <li>完成 —— 桌面和开始菜单里会出现快捷方式。</li>
+                    </ol>
+
+                    <p class="gd-muted">
+                        安装包很小（不到 400 KB）：主程序和卸载程序都是用系统自带的 .NET 编译器编出来的原生小程序，
+                        安装时不会顺手给你装运行时、也不会塞一堆依赖。
+                    </p>
+
+                    <h2 id="uninstall">卸载</h2>
+
+                    <p>两种方式都行：</p>
+
+                    <ul>
+                        <li>「设置 → 应用 → 已安装的应用」里找到 <b>Live2D Param 0.0.1 alpha.1</b>，点卸载；</li>
+                        <li>或者双击<b>安装目录里的 <code>Uninstall.exe</code></b>。</li>
+                    </ul>
+
+                    <h3>卸载会保留什么、删掉什么</h3>
+
+                    <ul>
+                        <li><b>保留</b> <code>%APPDATA%\Live2D Param</code>：
+                            里面存着 Editor 给的访问令牌和你的偏好设置，所以<b>重装之后不用再去 Editor 里重新授权一遍</b>。
+                            想彻底清干净就手动删掉那个目录；</li>
+                        <li><b>删除</b>安装目录里的所有文件、子文件夹、快捷方式、卸载信息 —— 卸载就是<b>清空安装目录</b>；</li>
+                        <li><b>只有两个文件夹留着</b>：你自己放在那里的 <code>配色方案\</code> 和 <code>脚本\</code>。</li>
+                    </ul>
+
+                    <div class="gd-warn">
+                        因为卸载会清空整个安装目录，<b>重要的东西别扔在根目录或者别的文件夹里</b>，除非你不想要了。
+                        放在 <code>配色方案\</code> 和 <code>脚本\</code> 里的东西才会被留下来。
+                    </div>
+
+                    <h2 id="cli">命令行参数</h2>
+
+                    <p class="gd-muted">
+                        （安装包的文件名里带版本号，比如 <code>Live2D-Param-v0.0.1-alpha.1-Setup.exe</code>，下面简写成 Setup.exe）
+                    </p>
+
+                    <pre class="gd-code"><code>Setup.exe                          图形界面安装
+Setup.exe /S                       静默安装
+Setup.exe /S /NODESKTOP            静默安装，且不建桌面快捷方式
+Setup.exe /DIR="D:\somewhere"      指定安装目录
+Setup.exe /?                       显示帮助
+
+Uninstall.exe                      图形界面卸载
+Uninstall.exe /S                   静默卸载</code></pre>
+
+                    <p>
+                        静默模式没有界面，过程会写进 <code>%TEMP%\Live2DParam-Setup.log</code>，退出码 <code>0</code> 表示成功。
+                    </p>
+
+                </section>
+
+                <!-- ==================== 使用方法 ==================== -->
+                <section class="gd-sec">
+
+                    <h2 id="step-editor">一、在 Editor 里准备</h2>
+
+                    <ol class="gd-steps">
+                        <li>启动 <b>Cubism Editor 5.4</b>（或更高），打开一个模型，切到<b>建模模式</b>；</li>
+                        <li>打开菜单 <b>[文件] → [外部应用程序的集成设置]</b>；</li>
+                        <li>把<b>连接开关打开</b>，看一眼端口号 —— 默认 <code>22033</code>，一般不用改。</li>
+                    </ol>
+
+                    <h2 id="step-connect">二、连接</h2>
+
+                    <ol class="gd-steps">
+                        <li>在 Live2D Param <b>左下角的「Editor 端口」</b>框里填上刚才那个端口（默认 <code>22033</code>），点<b>「连接」</b>；</li>
+                        <li>这时 <b>Editor 会弹出一个链接许可对话框</b>，把里面的 <b>「权限」</b> 和 <b>「编辑」</b> 两个都勾上。</li>
+                    </ol>
+
+                    <div class="gd-warn">
+                        <b>两个都要勾。</b>只勾「权限」的话，连读取参数组都会失败。
+                    </div>
+
+                    <div class="gd-tip">
+                        <b>授权只要授一次。</b>令牌会存到 <code>%APPDATA%\Live2D Param\token.txt</code>，
+                        下次点「连接」就不用再勾了。（明文保存，公用电脑上请留意这一点。）
+                    </div>
+
+                    <h2 id="step-read">三、读取参数组</h2>
+
+                    <p>
+                        点工具条上的 <b>「读取参数组」</b>，列表里就会按层级列出所有参数组
+                        （嵌套组会递归展开），每行显示它<b>当前的颜色和名字</b>。
+                    </p>
+
+                    <p class="gd-muted">
+                        「读取」是纯读操作：不会改动模型，也不会往 Editor 的撤销历史里塞东西。
+                    </p>
+
+                    <h2 id="step-edit">四、改颜色 / 改名</h2>
+
+                    <p>
+                        先说清楚：这一步改的<b>只是工具里的列表</b>，还没写进 Editor。
+                        改过的行会变成<b>浅黄色底</b>，右边<b>「待应用」</b>列写明了这行改了什么。
+                    </p>
+
+                    <h3 id="edit-color">预设色与自定义取色</h3>
+
+                    <ul>
+                        <li>点 <b>「改色」列</b>的色块 → 弹出<b>预设色窗口</b>（3×3 色格）：点某个色格就直接选中；</li>
+                        <li>点这个窗口右下角的 <b>「自定义…」</b> → 打开<b>三角取色窗口</b>：
+                            <ul>
+                                <li>中间的<b>三角形调色盘</b>（固定不转），外面一圈是<b>色相圆环</b>，拖动就能换色；</li>
+                                <li>下面是<b>亮度条</b>（白 → 当前色 → 黑），拖它调明暗；</li>
+                                <li>下方还有 <b>RGB / HSV 数值框</b>，想精确填就填数字；</li>
+                                <li>以及<b>吸管</b>：点一下就能到屏幕上任意位置取色（<b>左键取色，右键取消</b>）。</li>
+                            </ul>
+                        </li>
+                    </ul>
+
+                    <h3 id="edit-batch">批量改</h3>
+
+                    <ul>
+                        <li>先在列表里<b>选中若干行</b>（<span class="gd-key">Ctrl</span> 点选、<span class="gd-key">Shift</span> 连选），再点 <b>「设为颜色…」</b>；</li>
+                        <li><b>一行都不选 = 作用于全部</b>；</li>
+                        <li>想一次刷完，也可以直接用<a href="#script-window">配色脚本</a>。</li>
+                    </ul>
+
+                    <h3 id="edit-name">改名字</h3>
+
+                    <p>双击 <b>「名称更改」</b>列，直接改。</p>
+
+                    <p class="gd-muted">
+                        这个版本不支持改参数组的 <b>ID</b>（<code>NewId</code>）：API 是支持的，但界面故意没做，
+                        避免误操作破坏模型。
+                    </p>
+
+                    <h3 id="edit-undo">撤回与前进</h3>
+
+                    <ul>
+                        <li><span class="gd-key">Ctrl</span> + <span class="gd-key">Z</span> 返回上一步，<span class="gd-key">Ctrl</span> + <span class="gd-key">Y</span> 前进一步；</li>
+                        <li><span class="gd-key">Ctrl</span> + <span class="gd-key">Shift</span> + <span class="gd-key">Z</span> 放弃全部更改；</li>
+                        <li>工具条上也有「返回上一步 / 前进一步」两个图标按钮。</li>
+                    </ul>
+
+                    <p class="gd-muted">
+                        一次「设为颜色…」、一次「载入方案」、跑一整个脚本，都各算<b>一步</b>。
+                    </p>
+
+                    <h2 id="step-apply">五、应用更改</h2>
+
+                    <p>
+                        点 <b>「应用更改」</b>，前面攒下的所有「待应用」改动才会真正写进 Editor。
+                    </p>
+
+                    <ul>
+                        <li>Editor 会弹出一个<b>编辑对话框并把界面临时锁定</b> —— 处理过程中<b>不要操作 Editor</b>；</li>
+                        <li>写完之后工具会把列表基线更新成新值，那些浅黄色底恢复正常；</li>
+                        <li><b>中途想放弃</b>：就在 <b>Editor 那个对话框里点「取消」</b>，所有改动会被<b>整体回滚</b> ——
+                            你选的颜色仍然留在列表里，可以直接重试；</li>
+                        <li>万一中途出错，工具会<b>自动发一次回滚请求</b>，同样不动你选好的颜色；
+                            连回滚都失败的话，记录窗口里会明确警告，请在 Editor 里按
+                            <span class="gd-key">Ctrl</span> + <span class="gd-key">Z</span> 检查。</li>
+                    </ul>
+
+                    <div class="gd-tip">
+                        <b>不会写错模型。</b>真正写回之前，工具会再确认一次 Editor 里的模型是不是读取的那个 ——
+                        不是同一个就直接停下，让你重新读取，而不是往错误的模型上写。
+                    </div>
+
+                    <h2 id="log">记录窗口</h2>
+
+                    <p>
+                        点工具条上的 <b>「记录」</b>打开独立窗口：连接、读取、应用、出错都记在里面。
+                        窗口可以<b>复制</b>、<b>清空</b>，也可以<b>下载为 txt</b> ——
+                        下载出来的文件会被设成<b>只读</b>，省得手抖把现场改掉。
+                    </p>
+
+                    <p class="gd-muted">反馈 bug 的时候，把这份记录一起发过来最有用。</p>
+
+                    <h2 id="deformer">变形器视图（只读）</h2>
+
+                    <p>
+                        左边有个<b>视图切换</b>（参数组 / 变形器），两块卡片占同一格，切一下就换过去。
+                    </p>
+
+                    <ul>
+                        <li>变形器按<b>树</b>展示（嵌套的能展开），选中一个，右边属性面板显示它的<b>名称 / ID / 类型 / 层级</b>；</li>
+                        <li>这个视图是<b>只读</b>的，而且<b>不需要 Editor 的「编辑」权限</b>，
+                            也不会弹那个会锁定 Editor 的编辑对话框；</li>
+                        <li>每个变形器只有这几个字段可用：<code>Name</code> / <code>Id</code> / <code>Type</code> / <code>Children</code>。
+                            倍率、角度、顶点、不透明度、标签颜色<b>都不在这个接口里</b>（要拿得另外调接口），
+                            所以属性面板里不会显示 —— 不是漏做了。</li>
+                    </ul>
+
+                </section>
+
+                <!-- ==================== 脚本 ==================== -->
+                <section class="gd-sec">
+
+                    <h2 id="script-window">脚本窗口</h2>
+
+                    <p>点工具条上的 <b>「脚本」</b>打开：</p>
+
+                    <ul>
+                        <li>左边是<b>脚本列表</b>，每行右边有一枚「<b>官方 / 我的</b>」小标签；</li>
+                        <li>右边是选中脚本的<b>说明</b>和<b>规则明细</b>：逐条列出「什么条件 → 什么颜色」，
+                            每条带一个小色块，有渐变的还会画一条渐变预览；</li>
+                        <li>选中一个，点 <b>「运行」</b>，它就按规则把颜色填进列表
+                            （同样只是「待应用」，不会直接写进 Editor）。</li>
+                    </ul>
+
+                    <h2 id="script-source">官方脚本与自己的脚本</h2>
+
+                    <p>
+                        脚本就是一份 JSON 文件，两类脚本<b>都放在同一个「脚本」文件夹里</b>
+                        （在软件安装目录下，跑过一次程序就会出现）。
+                    </p>
+
+                    <div class="gd-tablewrap">
+                        <table class="lp-table">
+                            <tr>
+                                <th>来源</th>
+                                <th>说明</th>
+                            </tr>
+                            <tr>
+                                <td><b>默认自带</b>（官方）</td>
+                                <td>
+                                    名字是默认的那 3 个：<code>按名字上色.json</code>、<code>层级循环上色.json</code>、<code>层级渐变.json</code>。
+                                    它们内嵌在 exe 里，<b>每次启动按当前版本覆盖写出</b>。
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><b>你自己的</b></td>
+                                <td>
+                                    名字不跟默认撞的 <code>*.json</code>，丢进「脚本」文件夹就会被列出来。
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="gd-tip">
+                        <b>想改官方脚本？</b>给它改个文件名（例如 <code>层级渐变-我的.json</code>）——
+                        它立刻变成「你自己的」脚本，程序再也不会覆盖它。
+                    </div>
+
+                    <h2 id="script-format">脚本怎么写</h2>
+
+                    <p>
+                        脚本是一份<b>声明式 JSON</b>，描述「什么样的参数组上什么颜色」。
+                        它特意<b>不是可执行代码</b>：本工具只用了系统自带的 .NET 编译器，跑不了 JS / Python 这类脚本语言。
+                        好处也很实在 —— 规则写错最多是「不生效」，不会在你电脑上执行别的东西。
+                    </p>
+
+                    <pre class="gd-code"><code>{
+  "version": 1,
+  "name": "按名字上色",
+  "description": "显示在窗口里的一句话说明",
+  "rules": [
+    { "name": "*眼*", "color": "blue" },
+    { "id": "ParamGroup*", "depth": 0, "cycle": ["red", "green", "blue"] },
+    { "minDepth": 1, "color": "#8AC1FF" },
+    { "name": "*", "gradient": "ask" }
+  ]
+}</code></pre>
+
+                    <p>一条规则 = <b>匹配条件</b> + <b>上色方式</b>。</p>
+
+                    <h3 id="script-match">匹配条件</h3>
+
+                    <div class="gd-tablewrap">
+                        <table class="lp-table">
+                            <tr>
+                                <th>字段</th>
+                                <th>含义</th>
+                            </tr>
+                            <tr>
+                                <td><code>name</code></td>
+                                <td>匹配参数组<b>名称</b>，支持 <code>*</code>（任意多个字符）和 <code>?</code>（一个字符）；不写 = 不限</td>
+                            </tr>
+                            <tr>
+                                <td><code>id</code></td>
+                                <td>匹配参数组 <b>ID</b>，写法同上</td>
+                            </tr>
+                            <tr>
+                                <td><code>depth</code></td>
+                                <td>只匹配<b>正好在第几层</b>的组（0 = 顶层）</td>
+                            </tr>
+                            <tr>
+                                <td><code>minDepth</code></td>
+                                <td>只匹配<b>第几层及更深</b>的组</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <p class="gd-muted">
+                        匹配不区分大小写；中文关键词直接写就行 —— <code>*手*</code> 能同时命中「手臂」和「手指」。
+                    </p>
+
+                    <h3 id="script-color">上色方式</h3>
+
+                    <div class="gd-tablewrap">
+                        <table class="lp-table">
+                            <tr>
+                                <th>字段</th>
+                                <th>含义</th>
+                            </tr>
+                            <tr>
+                                <td><code>color</code></td>
+                                <td>
+                                    上什么色：<code>red</code> / <code>orange</code> / <code>yellow</code> / <code>green</code> /
+                                    <code>blue</code> / <code>purple</code> / <code>gray</code> / <code>default</code>，
+                                    或者 <code>"#RRGGBB"</code> 自定义色
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><code>cycle</code></td>
+                                <td>命中多个组时<b>按顺序轮流</b>用这几个颜色（数组，元素写法同 <code>color</code>）</td>
+                            </tr>
+                            <tr>
+                                <td><code>gradient</code></td>
+                                <td>
+                                    命中多个组时<b>按顺序在这些色标之间平滑渐变</b>：写 <code>["#RRGGBB", …]</code> 就是固定色标；
+                                    写 <code>"ask"</code> 则<b>运行的时候弹个小窗口让你现选一个颜色</b>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <ul>
+                        <li><code>color</code> / <code>cycle</code> / <code>gradient</code> <b>三选一</b>；</li>
+                        <li>规则<b>从上往下匹配，第一条命中的说了算</b>；一条都没命中的组<b>保持原样</b>；</li>
+                        <li>脚本名字默认取文件名（不含扩展名），写了 <code>name</code> 就以 <code>name</code> 为准。</li>
+                    </ul>
+
+                    <h4>关于 <code>"gradient": "ask"</code></h4>
+
+                    <p>
+                        选完颜色，工具会从<b>白</b>一路铺到它，<b>最后一组正好是所选的颜色</b>；
+                        色带只截取「白 → 本色」这前半段，<b>不会往黑里走</b>。
+                        选色那个小窗口用完就关掉、不会留着，取消就等于这个脚本没跑。
+                    </p>
+
+                    <h2 id="script-run">运行脚本会发生什么</h2>
+
+                    <ul>
+                        <li>结果只是<b>填进列表当「待应用」改动</b>（和「载入方案」是同一条路子），
+                            <b>不会</b>直接写进 Editor —— 看过没问题再点「应用更改」；</li>
+                        <li><b>作用于全部参数组</b>：脚本是批量规则，不是「设为颜色…」那种只改选中行的行为；</li>
+                        <li><b>整个脚本算一步撤回</b>：<span class="gd-key">Ctrl</span> + <span class="gd-key">Z</span> 一次退掉；</li>
+                        <li><b>跑完脚本窗口会自己关掉</b>，这一点由窗口里「运行后关掉窗口」那个勾选框决定
+                            （默认勾上；取消勾选就能连着跑好几个脚本）。这个勾选<b>会记住</b>，下次打开还是上次的样子；</li>
+                        <li>脚本打不开（JSON 写错了）时，列表里会把它标成<b>红色</b>并显示具体错误，不影响其它脚本；</li>
+                        <li>没能跑起来时（还没读参数组、一条都没命中、或者取消了选色）窗口<b>不会关</b>，会弹一句说明。</li>
+                    </ul>
+
+                </section>
+
+                <!-- ==================== 配色方案 ==================== -->
+                <section class="gd-sec">
+
+                    <h2 id="scheme-save">保存与载入</h2>
+
+                    <ul>
+                        <li>调好颜色之后点 <b>「保存方案」</b>，会把当前这套配色存成一份 JSON
+                            （默认就放在安装目录的 <code>配色方案\</code> 里）；</li>
+                        <li>下次、或者换一个模型，点 <b>「载入方案」</b>把它读回来：颜色会<b>填进列表当「待应用」</b>，
+                            确认后再点「应用更改」；</li>
+                        <li>一个方案里记的就是「参数组 → 颜色 / 名字」，所以它能当模板反复用。</li>
+                    </ul>
+
+                    <h2 id="scheme-reuse">跨模型复用</h2>
+
+                    <p>
+                        可以。载入时先按<b>参数组 ID</b> 匹配，ID 对不上时再按<b>名称</b>匹配。
+                    </p>
+
+                    <p>
+                        没匹配上的条目会被忽略 —— 界面上会告诉你有几条没匹配上，看了数字你就知道要不要手动补。
+                    </p>
+
+                </section>
+
+                <!-- ==================== 其它 ==================== -->
+                <section class="gd-sec">
+
+                    <h2 id="faq">常见问题</h2>
+
+                    <details class="gd-faq-item">
+                        <summary>点「连接」提示连接失败 / 超时？</summary>
+                        <div class="gd-faq-body">
+                            <p>按顺序检查这五件事：</p>
+                            <ul>
+                                <li>① Editor 是不是 <b>5.4 alpha1</b>（或更高）；</li>
+                                <li>② Editor 有没有<b>打开模型</b>；</li>
+                                <li>③ 菜单 <b>[文件] → [外部应用程序的集成设置]</b> 里的开关有没有打开；</li>
+                                <li>④ 两边端口号是不是一致（默认 <code>22033</code>）；</li>
+                                <li>⑤ 端口是不是被别的程序占了（见下一条）。</li>
+                            </ul>
+                        </div>
+                    </details>
+
+                    <details class="gd-faq-item">
+                        <summary>怎么知道 22033 是不是被别的程序占了？</summary>
+                        <div class="gd-faq-body">
+                            <p>在 PowerShell 里执行：</p>
+                            <pre class="gd-code"><code>netstat -ano | Select-String "LISTENING" | Select-String ":22033"</code></pre>
+                            <p>
+                                如果列出了进程，但它<b>不是</b> Cubism Editor（Editor 的进程名是 <code>java.exe</code>，
+                                路径在 <code>...Live2D Cubism 5.4 alpha\app\jre\bin\</code> 下），那就是被别的程序占了。这时：
+                            </p>
+                            <ul>
+                                <li>在 Editor 的集成设置对话框里把端口改成别的（例如 <code>22035</code>）；</li>
+                                <li>在本工具顶部的「Editor 端口」框里填同样的数字。</li>
+                            </ul>
+                            <p>
+                                也可以用它确认占用者到底是谁：
+                                <code>Get-Process -Id &lt;PID&gt; | Select-Object ProcessName, Path</code>
+                            </p>
+                        </div>
+                    </details>
+
+                    <details class="gd-faq-item">
+                        <summary>连上了，但一直停在「等待授权…」？</summary>
+                        <div class="gd-faq-body">
+                            <p>
+                                需要在 <b>Editor 的集成对话框</b>里勾选本程序。注意要勾<b>两个</b>：<b>「权限」</b>和<b>「编辑」</b>。
+                                只勾「权限」的话，读取参数组也会失败。
+                            </p>
+                        </div>
+                    </details>
+
+                    <details class="gd-faq-item">
+                        <summary>提示「无法开始编辑」？</summary>
+                        <div class="gd-faq-body">
+                            <p>
+                                最常见的就是上面那条 —— 没勾「编辑」权限。其次确认 Editor 处于<b>建模模式</b>，
+                                以及没有另一个编辑会话正在进行中（比如另一个程序也连上了）。
+                            </p>
+                        </div>
+                    </details>
+
+                    <details class="gd-faq-item">
+                        <summary>读取成功，但一个参数组都没有？</summary>
+                        <div class="gd-faq-body">
+                            <p>基本可以确定 Editor 不在<b>建模模式</b>。编辑类 API 只在建模模式下有效。</p>
+                        </div>
+                    </details>
+
+                    <details class="gd-faq-item">
+                        <summary>应用之后颜色没变？</summary>
+                        <div class="gd-faq-body">
+                            <p>
+                                看「记录」窗口。如果写着「已被用户在 Editor 中取消」，说明编辑对话框被点了取消、
+                                改动已经整体回滚 —— 你选的颜色还在列表里，重新点「应用更改」即可。
+                            </p>
+                        </div>
+                    </details>
+
+                    <details class="gd-faq-item">
+                        <summary>会不会误改我别的参数组？</summary>
+                        <div class="gd-faq-body">
+                            <p>
+                                不会。应用时只发送<b>你明确改过</b>的组；而且写回前会重新确认一次模型，
+                                发现 Editor 里的模型跟读取时不是同一个就<b>停下来</b>要求你重新读取，
+                                而不是往错误的模型上写。
+                            </p>
+                        </div>
+                    </details>
+
+                    <details class="gd-faq-item">
+                        <summary>能跨模型复用配色吗？</summary>
+                        <div class="gd-faq-body">
+                            <p>
+                                可以 —— 用「保存方案」存成 JSON，在另一个模型上「载入方案」。
+                                先按参数组 ID 匹配，ID 对不上时按名称匹配，详见<a href="#scheme-reuse">「配色方案 → 跨模型复用」</a>。
+                            </p>
+                        </div>
+                    </details>
+
+                    <details class="gd-faq-item">
+                        <summary>杀毒软件会报毒吗？</summary>
+                        <div class="gd-faq-body">
+                            <p>
+                                不应该。这是一个用系统自带编译器编译的原生小程序（主程序约 200 KB），
+                                没有加壳、没有自解压、没有 PyInstaller 之类的打包器 —— 那类特征才是杀软误报的常见来源。
+                                要是真报了，欢迎把截图发来。
+                            </p>
+                        </div>
+                    </details>
+
+                    <h2 id="limits">已知限制</h2>
+
+                    <ol>
+                        <li><b>只支持 Cubism Editor 5.4 alpha1 及以上</b>，且必须处于建模模式。</li>
+                        <li><b>只有 Windows 版</b>。核心逻辑和界面没有强绑定，但界面用的是 WinForms。</li>
+                        <li><b>预设色的色块是按 Editor 取色界面的截图采样画的</b>：预设色的实际 RGB 由 Editor 内部决定，
+                            API 不返回。写回时只发送预设的<b>名字</b>，最终颜色仍以 Editor 为准；
+                            只有 <code>LabelColorType = "Custom"</code> 时，颜色才由 <code>#RRGGBB</code> 精确决定。</li>
+                        <li><b>应用期间 Editor 会被锁定</b>，这是 Editor 侧的设计（弹出模态编辑对话框），不是本工具造成的。</li>
+                        <li>本版本<b>不支持修改参数组的 ID</b>（<code>NewId</code>）。</li>
+                        <li>模型特别大时，<b>第一次读取会稍慢</b>（<code>GetParameterStructure</code> 的响应本来就大）。</li>
+                        <li>令牌以<b>明文</b>存在 <code>%APPDATA%\Live2D Param\token.txt</code>
+                            （和官方 Python 样例的做法一致）。它只能用来连本机的 Editor，但共享电脑上请留意。</li>
+                        <li><b>端口可能被别的程序占用</b>：Editor 默认用 <code>22033</code>，被占了 Editor 就监听不了，
+                            工具也就连不上 —— 两边都改成同一个新端口即可。</li>
+                    </ol>
+
+                    <h2 id="feedback">反馈与联系</h2>
+
+                    <ul>
+                        <li>遇到 bug、或者有任何想法和建议，欢迎到
+                            <a class="lp-mail" href="https://github.com/xiaoxingyuemiao/Live2D-Param" target="_blank" rel="noopener">GitHub 仓库</a>
+                            提 issue，或者发邮件到
+                            <a class="lp-mail" href="mailto:abcd_9866@qq.com">abcd_9866@qq.com</a>；</li>
+                        <li><b>带上图片</b>（尤其是出错时「记录」窗口里的内容）会好排查很多；</li>
+                        <li>这个工具目前还是站长自用为主写着玩的，脑子里还有一堆功能没写。
+                            <b>如果你会 UI 设计</b>，非常欢迎来帮忙 qwq；</li>
+                        <li>想装来试试的话，安装包在
+                            <a class="lp-mail" href="https://github.com/xiaoxingyuemiao/Live2D-Param/releases" target="_blank" rel="noopener">Releases</a> 里。</li>
+                    </ul>
+
+                    <div class="gd-actions">
+                        <a class="lp-btn lp-btn-github" href="live2d.html">← 返回 Live2D Param</a>
+                    </div>
+
+                </section>
+
+            </div>
 
         </main>
 
@@ -99,6 +809,8 @@
             </div>
 
         </footer>
+
+        <script src="assets/js/live2d-guide.js"></script>
 
     </body>
 </html>
