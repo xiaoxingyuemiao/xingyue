@@ -682,7 +682,7 @@ html {
     margin: 8px 0 10px;
 }
 
-/* ---------- 正文里的页内跳转链接（胶囊样式，带一个右箭头） ---------- */
+/* ---------- 正文里的页内跳转链接（胶囊样式） ---------- */
 
 .gd-ref {
     display: inline-block;
@@ -706,30 +706,12 @@ html {
     transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
 }
 
-.gd-ref::after {
-    content: "→";
-
-    display: inline-block;
-
-    margin-left: 5px;
-
-    font-size: 0.9em;
-
-    opacity: 0.75;
-
-    transition: transform 0.18s ease;
-}
-
 .gd-ref:hover {
     border-color: rgba(102, 204, 255, 0.7);
 
     background-color: rgba(102, 204, 255, 0.24);
 
     color: #1f88b9;
-}
-
-.gd-ref:hover::after {
-    transform: translateX(2px);
 }
 
 /* ---------- 正文里的外链（GitHub 图标 + 文字） ---------- */
