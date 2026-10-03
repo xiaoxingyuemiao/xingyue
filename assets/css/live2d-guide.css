@@ -293,24 +293,45 @@ html {
     display: none;
 }
 
-/* 目录最下面的「返回介绍页」 */
-.gd-side-back {
-    display: block;
+/* ---------- 左上角圆形返回按钮（与个人中心那一枚同款） ---------- */
 
-    margin: 12px 0 0;
-    padding: 9px 12px;
+.gd-head-left {
+    display: flex;
+    align-items: center;
 
-    border-top: 1px solid #f0f0f0;
-
-    font-size: 13.5px;
-
-    color: #999999;
-
-    text-decoration: none;
+    gap: 12px;
 }
 
-.gd-side-back:hover {
+.gd-back {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex-shrink: 0;
+
+    width: 36px;
+    height: 36px;
+
+    border-radius: 50%;
+
+    text-decoration: none;
+
+    font-size: 17px;
+    line-height: 1;
+
     color: var(--main-color);
+
+    background-color: #ffffff;
+
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.gd-back:hover {
+    transform: translateX(-2px);
+
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.14);
 }
 
 /* ==============================
@@ -322,22 +343,6 @@ html {
 
     min-width: 0;
     max-width: 760px;
-}
-
-.gd-crumb {
-    margin: 0 0 18px;
-
-    font-size: 13.5px;
-}
-
-.gd-crumb a {
-    color: #999999;
-
-    text-decoration: none;
-}
-
-.gd-crumb a:hover {
-    color: var(--main-color);
 }
 
 .gd-h1 {
@@ -677,15 +682,31 @@ html {
     margin: 8px 0 10px;
 }
 
-/* ---------- 结尾按钮 ---------- */
+/* ---------- 正文里的外链（GitHub 图标 + 文字） ---------- */
 
-.gd-actions {
-    display: flex;
+.gd-gh {
+    display: inline-flex;
     align-items: center;
 
-    gap: 12px;
+    gap: 5px;
 
-    margin-top: 30px;
+    color: var(--main-color);
+
+    text-decoration: none;
+
+    vertical-align: baseline;
+}
+
+.gd-gh svg {
+    flex-shrink: 0;
+
+    /* 图标跟着文字基线走，别把行高顶起来 */
+    position: relative;
+    top: 1px;
+}
+
+.gd-gh:hover {
+    text-decoration: underline;
 }
 
 /* ==============================
@@ -724,6 +745,18 @@ html {
         display: flex;
     }
 
+    /* 顶栏那枚返回按钮在手机端收小一点 */
+    .gd-head-left {
+        gap: 8px;
+    }
+
+    .gd-back {
+        width: 32px;
+        height: 32px;
+
+        font-size: 15px;
+    }
+
     /* 默认收起，点「文档目录」才展开 */
     .gd-nav {
         display: none;
@@ -734,10 +767,6 @@ html {
     }
 
     .gd-side-label {
-        display: none;
-    }
-
-    .gd-side-back {
         display: none;
     }
 
