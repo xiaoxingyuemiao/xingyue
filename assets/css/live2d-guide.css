@@ -230,6 +230,69 @@ html {
     color: #777777;
 }
 
+/* ---------- 二级条目的折叠按钮（带子目录的条目才有，按钮由 JS 生成） ---------- */
+
+.gd-item.gd-has-sub {
+    position: relative;
+}
+
+.gd-fold {
+    position: absolute;
+    left: 0;
+    top: 4px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 18px;
+    height: 18px;
+
+    padding: 0;
+
+    border: 0;
+
+    background: none;
+
+    color: #b8b8b8;
+
+    cursor: pointer;
+}
+
+/* 收起时箭头朝右，展开时朝下（与分组标题同一种画法） */
+.gd-fold::before {
+    content: "";
+
+    width: 0;
+    height: 0;
+
+    border-left: 5px solid currentColor;
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+
+    transform: rotate(90deg);
+
+    transition: transform 0.18s ease;
+}
+
+.gd-item.gd-collapsed > .gd-fold::before {
+    transform: rotate(0deg);
+}
+
+.gd-fold:hover {
+    color: var(--main-color);
+}
+
+/* 给折叠按钮腾出位置 */
+.gd-item.gd-has-sub > .gd-link {
+    padding-left: 20px;
+}
+
+/* 收起时隐藏子目录 */
+.gd-item.gd-collapsed > .gd-sublist {
+    display: none;
+}
+
 /* 目录最下面的「返回介绍页」 */
 .gd-side-back {
     display: block;

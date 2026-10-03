@@ -3,11 +3,13 @@
 //
 // 做什么：
 //   1. 右边正文滚到哪，左边对应的目录条目就高亮到哪（滚动监听，rAF 节流）
-//   2. 高亮条目所在的分组如果是收起的，自动展开
-//   3. 手机端点「文档目录」开合侧栏，点完条目自动收起
-//   4. 点条目立刻高亮（配合 css 里的 scroll-behavior: smooth 平滑滚过去）
+//   2. 高亮条目所在的折叠层自动展开（一级是 <details> 分组，二级是带子目录的条目）
+//   3. 给「带子目录的二级条目」生成折叠按钮（按钮由本脚本创建，见下面的 foldParents）
+//   4. 手机端点「文档目录」开合侧栏，点完条目自动收起
+//   5. 点条目立刻高亮（配合 css 里的 scroll-behavior: smooth 平滑滚过去）
 //
-// 没有 JS 也能用：目录条目本来就是锚点链接，分组折叠是 <details> 的原生行为。
+// 没有 JS 也能用：目录条目本身就是锚点链接，一级分组的折叠是 <details> 的原生行为；
+// 二级条目在没有折叠按钮时子目录全部展开，不影响阅读与跳转。
 //
 // ⚠️ 这里按 id 取的两个元素（gd-side / gd-nav-toggle）必须在 live2d-guide.html 里存在 ——
 //    tools/check.js 会把脚本里按 id 取的元素跟该页面的 id 逐个比对，少一个就报错。
@@ -41,6 +43,35 @@
 
     const MOBILE = "(max-width: 900px)";
 
+    // ---------- 带子目录的二级条目：生成折叠按钮 ----------
+    // HTML 里不写这些按钮：没有 JS 时子目录照常全部显示，只是不能折叠。
+    // 按钮的点击不会走到下面的「点条目」逻辑 —— 那里只认 a.gd-link。
+    const foldParents = Array.from(side.querySelectorAll(".gd-item")).filter((li) => {
+        const sub = li.querySelector(".gd-sublist");
+        return sub && sub.parentElement === li;
+    });
+
+    for (const li of foldParents) {
+        const link = li.querySelector("a.gd-link");
+        const fold = document.createElement("button");
+
+        fold.type = "button";
+        fold.className = "gd-fold";
+        fold.setAttribute("aria-expanded", "true");
+        fold.setAttribute(
+            "aria-label",
+            "展开或收起" + (link ? "「" + link.textContent.trim() + "」" : "") + "的子目录"
+        );
+
+        fold.addEventListener("click", () => {
+            const collapsed = li.classList.toggle("gd-collapsed");
+            setFoldState(li, !collapsed);
+        });
+
+        li.classList.add("gd-has-sub");
+        li.insertBefore(fold, li.firstChild);
+    }
+
     // 点了目录之后，平滑滚动期间不要再让「按滚动位置高亮」抢走高亮，
     // 否则高亮会在途经的小节之间闪一下（实测：点完立刻读到的可能是中间那节）。
     const CLICK_LOCK_MS = 700;
@@ -51,6 +82,30 @@
     let lockTimer = 0;
 
     // ---------- 高亮 ----------
+
+    // 把某个条目所在的折叠层全部展开：
+    //   一级分组 = <details>；二级条目 = 带 .gd-collapsed 的 <li>
+    function expandFolded(link) {
+        for (let node = link.parentElement; node && node !== side; node = node.parentElement) {
+            if (node.tagName === "DETAILS" && !node.open) {
+                node.open = true;
+            }
+
+            if (node.classList && node.classList.contains("gd-collapsed")) {
+                node.classList.remove("gd-collapsed");
+                setFoldState(node, true);
+            }
+        }
+    }
+
+    // 同步二级条目折叠按钮的展开状态
+    function setFoldState(li, expanded) {
+        const fold = li.querySelector(".gd-fold");
+
+        if (fold) {
+            fold.setAttribute("aria-expanded", expanded ? "true" : "false");
+        }
+    }
 
     function markActive(item) {
         if (current === item) {
@@ -69,12 +124,8 @@
 
         current.link.classList.add("active");
 
-        // 高亮的那条在收起的分组里 → 把分组展开（<details> 的祖先链）
-        for (let node = current.link.parentElement; node && node !== side; node = node.parentElement) {
-            if (node.tagName === "DETAILS" && !node.open) {
-                node.open = true;
-            }
-        }
+        // 高亮的那条藏在收起的折叠层里 → 逐层展开
+        expandFolded(current.link);
 
         keepVisible(current.link);
     }
@@ -155,6 +206,14 @@
         if (hit) {
             lockUntil = Date.now() + CLICK_LOCK_MS;
             markActive(hit);
+        }
+
+        // 点的是带子目录的条目 → 把它自己的子目录展开，方便接着往下点
+        const parentItem = link.parentElement;
+
+        if (parentItem && parentItem.classList.contains("gd-collapsed")) {
+            parentItem.classList.remove("gd-collapsed");
+            setFoldState(parentItem, true);
         }
 
         // 手机端点完就把目录收起来，好腾出屏幕看正文
