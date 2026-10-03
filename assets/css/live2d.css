@@ -206,6 +206,19 @@ body.lp-page {
     transform: translateY(-1px);
 }
 
+/* 主色按钮：站内跳转（例如「打开使用说明」）用这个 */
+.lp-btn-main {
+    background-color: #2b96c9;
+
+    color: #ffffff;
+}
+
+.lp-btn-main:hover {
+    opacity: 0.9;
+
+    transform: translateY(-1px);
+}
+
 /* 还没发布 → 灰色不可点 */
 .lp-btn-disabled {
     background-color: #e6e6e6;
