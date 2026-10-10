@@ -119,14 +119,19 @@ window.Auth = (function () {
             const raw = data.msg || data.error_description || data.error || data.message || ("HTTP " + res.status);
             const detail = data.detail || "";
             const mark = withCode(data);
-            const combined = [raw, detail, mark].filter(Boolean).join(" | ");
+            // 把状态码也拼进去：网关超时（504）这类响应体里往往没有可用字段，
+            // 光靠正文认不出来，得靠 "HTTP 504" 才能给出「服务暂时不可用」的提示
+            const combined = [raw, detail, mark, !res.ok ? "HTTP " + res.status : ""]
+                .filter(Boolean)
+                .join(" | ");
             if (!res.ok) {
                 // 保留 error_id：Supabase 后台 Logs → Auth 里能按它查到这次发信失败的确切原因
                 console.warn("Auth 接口返回错误：", res.status, combined, data.error_id || "");
             }
             return friendlyError(combined);
         } catch (e) {
-            return "请求失败（HTTP " + res.status + "）";
+            // 响应体不是 JSON（网关的 502/503/504 错误页通常是 HTML 或空的）→ 交给统一映射
+            return friendlyError("HTTP " + res.status);
         }
     }
 
@@ -183,6 +188,13 @@ window.Auth = (function () {
                 "密码强度太弱，换一个复杂点的吧"],
             [/auth session missing|session.*not found|invalid refresh token/i,
                 "登录状态已失效，请重新登录"],
+            // 项目被暂停（Supabase 免费版 7 天没有任何请求就会自动暂停）
+            [/project .{0,12}(paused|inactive)|paused project|项目.{0,6}暂停/i,
+                "Supabase 项目处于「已暂停」状态：去 Supabase 后台把项目恢复（Restore / Restart project）后再试"],
+            // 服务端暂时不可用：刚唤醒 / 正在恢复时，网关会返回 502 / 503 / 504
+            [/HTTP 50[0-9]|bad gateway|service (temporarily )?unavailable|gateway time-?out|upstream (connect )?(error|timeout)/i,
+                "登录服务暂时不可用（Supabase 项目可能刚被唤醒、还在恢复中）：请等 1~2 分钟再试；" +
+                "如果一直这样，去 Supabase 后台确认项目状态是 Active，必要时点一下 Restart project"],
             // 网络
             [/failed to fetch|networkerror|load failed|network request failed/i,
                 "网络连接失败，请检查网络后重试"],
