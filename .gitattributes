@@ -1,3 +1,7 @@
 # 钩子脚本必须保持 LF 换行：
 # Windows 上 core.autocrlf=true 会把它们转成 CRLF，sh 会报 "$'\r': command not found"
 tools/hooks/* text eol=lf
+
+# Windows 批处理必须用 CRLF 换行，否则 cmd 解析会错乱（见 docs/08 #14）
+*.bat text eol=crlf
+
