@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="robots" content="noindex, nofollow">
+        <title>建议网页 · 管理后台</title>
+
+        <link rel="stylesheet" href="assets/css/base.css">
+        <link rel="stylesheet" href="assets/css/admin.css">
+    </head>
+    <body class="admin-body">
+
+        <!-- 顶部提示条容器（toast） -->
+        <div class="toast-wrap" id="toast-wrap"></div>
+
+        <!-- ========== 登录 / 初始化入口 ========== -->
+        <div class="admin-gate" id="admin-gate">
+            <div class="admin-gate-inner">
+
+                <div class="admin-gate-brand">
+                    <span class="admin-logo" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"></path>
+                            <path d="M18 4.5 18.8 6.2 20.5 7 18.8 7.8 18 9.5 17.2 7.8 15.5 7 17.2 6.2Z"></path>
+                        </svg>
+                    </span>
+                    <span>星月小窝 · 建议网页</span>
+                </div>
+
+                <div class="admin-gate-card card">
+
+                    <div class="admin-gate-head">
+                        <h1 class="admin-gate-title" id="gate-title">管理后台</h1>
+                        <p class="admin-gate-sub" id="gate-sub">正在检查后台状态…</p>
+                    </div>
+
+                    <div class="admin-alert hidden" id="gate-error"></div>
+
+                    <!-- ---------- 首次使用：创建管理员 ---------- -->
+                    <form class="stack hidden" id="setup-form" novalidate>
+                        <label class="field">
+                            <span class="field-label">管理员邮箱</span>
+                            <input class="input" id="setup-email" type="email" autocomplete="email" placeholder="admin@example.com">
+                        </label>
+                        <label class="field">
+                            <span class="field-label">用户名</span>
+                            <input class="input" id="setup-username" type="text" autocomplete="username" placeholder="3~20 位字母 / 数字 / 下划线">
+                        </label>
+                        <label class="field">
+                            <span class="field-label">密码</span>
+                            <input class="input" id="setup-password" type="password" autocomplete="new-password" placeholder="至少 8 位，需同时包含字母和数字">
+                        </label>
+                        <label class="field">
+                            <span class="field-label">显示昵称</span>
+                            <input class="input" id="setup-display-name" type="text" autocomplete="nickname" placeholder="例如：站长">
+                        </label>
+                        <p class="field-hint" id="setup-status"></p>
+                        <button type="submit" class="btn btn-primary btn-block btn-lg" id="setup-submit">创建管理员</button>
+                        <p class="field-hint">该表单只在数据库里还没有管理员时出现，创建成功后会自动登录。</p>
+                    </form>
+
+                    <!-- ---------- 登录 ---------- -->
+                    <div class="hidden" id="login-panel">
+
+                        <div class="admin-login-tabs" role="tablist" aria-label="登录方式">
+                            <button type="button" class="admin-tab active" id="login-tab-password" role="tab" aria-selected="true">密码登录</button>
+                            <button type="button" class="admin-tab" id="login-tab-code" role="tab" aria-selected="false">邮箱验证码</button>
+                        </div>
+
+                        <!-- 密码登录（主推） -->
+                        <form class="stack" id="login-password-form" novalidate>
+                            <label class="field">
+                                <span class="field-label">邮箱或用户名</span>
+                                <input class="input" id="login-account" type="text" autocomplete="username" placeholder="admin@example.com">
+                            </label>
+                            <label class="field">
+                                <span class="field-label">密码</span>
+                                <input class="input" id="login-password" type="password" autocomplete="current-password" placeholder="至少 8 位，含字母和数字">
+                            </label>
+                            <p class="field-hint" id="login-password-status"></p>
+                            <button type="submit" class="btn btn-primary btn-block btn-lg" id="login-password-submit">登录</button>
+                        </form>
+
+                        <!-- 邮箱验证码登录 -->
+                        <form class="stack hidden" id="login-code-form" novalidate>
+                            <label class="field">
+                                <span class="field-label">管理员邮箱</span>
+                                <input class="input" id="login-code-email" type="email" autocomplete="email" placeholder="admin@example.com">
+                            </label>
+                            <div class="field">
+                                <span class="field-label">邮箱验证码</span>
+                                <div class="admin-code-row">
+                                    <input class="input" id="login-code-input" type="text" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="6 位验证码">
+                                    <button type="button" class="btn btn-soft" id="login-code-send">发送验证码</button>
+                                </div>
+                                <p class="field-hint admin-devcode" id="login-devcode"></p>
+                            </div>
+                            <p class="field-hint" id="login-code-status"></p>
+                            <button type="submit" class="btn btn-primary btn-block btn-lg" id="login-code-submit">验证码登录</button>
+                            <p class="field-hint">开发模式下验证码会直接显示在上面的提示里，同时打印在启动窗口。</p>
+                        </form>
+
+                    </div>
+
+                    <button type="button" class="btn btn-ghost btn-sm admin-retry hidden" id="gate-retry">重新检查后台状态</button>
+
+                    <a class="admin-gate-back" href="/">← 返回建议网页前台</a>
+                </div>
+
+                <p class="admin-gate-foot">建议网页 · 站长管理后台（仅站长本人使用）</p>
+            </div>
+        </div>
+
+        <!-- ========== 后台主体 ========== -->
+        <div class="admin-app hidden" id="admin-app">
+
+            <!-- 左侧分区导航（手机端收成顶部横向滚动条） -->
+            <aside class="admin-sidebar">
+                <div class="admin-brand">
+                    <span class="admin-logo" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"></path>
+                            <path d="M18 4.5 18.8 6.2 20.5 7 18.8 7.8 18 9.5 17.2 7.8 15.5 7 17.2 6.2Z"></path>
+                        </svg>
+                    </span>
+                    <span class="admin-brand-text">
+                        <span class="admin-brand-title">建议网页</span>
+                        <span class="admin-brand-sub">站长管理后台</span>
+                    </span>
+                </div>
+
+                <nav class="admin-nav" aria-label="后台分区导航">
+                    <button type="button" class="admin-nav-item active" id="nav-overview" data-view="overview">
+                        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+                            <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+                            <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+                            <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+                        </svg>
+                        概览
+                    </button>
+                    <button type="button" class="admin-nav-item" id="nav-submissions" data-view="submissions">
+                        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2Z"></path>
+                            <path d="m9 10 2 2 4-4"></path>
+                        </svg>
+                        建议审核
+                    </button>
+                    <button type="button" class="admin-nav-item" id="nav-prizes" data-view="prizes">
+                        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <rect x="3" y="8" width="18" height="4" rx="1"></rect>
+                            <path d="M12 8v13"></path>
+                            <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M12 8H7.5a2.5 2.5 0 1 1 0-5C10 3 12 8 12 8Z"></path>
+                            <path d="M12 8h4.5a2.5 2.5 0 1 0 0-5C14 3 12 8 12 8Z"></path>
+                        </svg>
+                        奖品管理
+                    </button>
+                    <button type="button" class="admin-nav-item" id="nav-orders" data-view="orders">
+                        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M6 3h12v18l-3-2-3 2-3-2-3 2Z"></path>
+                            <path d="M9 8h6"></path>
+                            <path d="M9 12h6"></path>
+                        </svg>
+                        兑换订单
+                    </button>
+                    <button type="button" class="admin-nav-item" id="nav-users" data-view="users">
+                        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13A4 4 0 0 1 16 11"></path>
+                        </svg>
+                        用户与积分
+                    </button>
+                    <button type="button" class="admin-nav-item" id="nav-settings" data-view="settings">
+                        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M4 21v-7"></path>
+                            <path d="M4 10V3"></path>
+                            <path d="M12 21v-9"></path>
+                            <path d="M12 8V3"></path>
+                            <path d="M20 21v-5"></path>
+                            <path d="M20 12V3"></path>
+                            <circle cx="4" cy="12" r="2"></circle>
+                            <circle cx="12" cy="10" r="2"></circle>
+                            <circle cx="20" cy="14" r="2"></circle>
+                        </svg>
+                        网站内容
+                    </button>
+                </nav>
+
+                <div class="admin-sidebar-foot">
+                    <span class="admin-sidebar-hint">数据保存在本机<br>jiangyiwangye/shujuku-1</span>
+                </div>
+            </aside>
+
+            <!-- 右侧内容区 -->
+            <div class="admin-main">
+
+                <header class="admin-topbar">
+                    <div class="admin-topbar-title">
+                        <h1>建议网页 · 管理后台</h1>
+                        <span class="admin-topbar-section" id="current-section">概览</span>
+                    </div>
+                    <div class="admin-topbar-right">
+                        <span class="admin-name-badge">
+                            <span class="admin-avatar" id="admin-avatar" aria-hidden="true">管</span>
+                            <span id="admin-name">管理员</span>
+                        </span>
+                        <button type="button" class="btn btn-ghost btn-sm" id="logout-btn">退出</button>
+                    </div>
+                </header>
+
+                <main class="admin-content">
+
+                    <!-- ========== 概览 ========== -->
+                    <section class="admin-view" id="view-overview">
+                        <div class="admin-view-head">
+                            <div>
+                                <h2 class="admin-view-title">概览</h2>
+                                <p class="admin-view-desc">一眼看完用户、建议审核进度与兑换订单情况。</p>
+                            </div>
+                            <button type="button" class="btn btn-ghost btn-sm" id="overview-refresh">刷新</button>
+                        </div>
+
+                        <div class="admin-stats" id="overview-stats"></div>
+
+                        <div class="admin-two-col">
+                            <section class="card card-pad admin-panel">
+                                <div class="admin-panel-head">
+                                    <h3 class="card-title">最近待审建议</h3>
+                                    <button type="button" class="btn btn-ghost btn-sm" id="overview-review-link">去审核</button>
+                                </div>
+                                <div class="admin-list" id="overview-submissions"></div>
+                            </section>
+                            <section class="card card-pad admin-panel">
+                                <div class="admin-panel-head">
+                                    <h3 class="card-title">最近订单</h3>
+                                    <button type="button" class="btn btn-ghost btn-sm" id="overview-orders-link">去订单</button>
+                                </div>
+                                <div class="admin-list" id="overview-orders"></div>
+                            </section>
+                        </div>
+                    </section>
+
+                    <!-- ========== 建议审核 ========== -->
+                    <section class="admin-view hidden" id="view-submissions">
+                        <div class="admin-view-head">
+                            <div>
+                                <h2 class="admin-view-title">建议审核</h2>
+                                <p class="admin-view-desc">通过后会加采纳奖励分；不通过可写原因；删除会扣回该建议发过的基础分。</p>
+                            </div>
+                        </div>
+
+                        <div class="admin-toolbar">
+                            <select class="select admin-toolbar-select" id="submission-status">
+                                <option value="">全部状态</option>
+                                <option value="pending">待审核</option>
+                                <option value="approved">已采纳</option>
+                                <option value="rejected">未采纳</option>
+                            </select>
+                            <input class="input admin-toolbar-input" id="submission-search" type="search" placeholder="搜索标题 / 正文 / 用户">
+                            <button type="button" class="btn btn-primary" id="submission-search-btn">搜索</button>
+                            <button type="button" class="btn btn-ghost" id="submission-reset-btn">重置</button>
+                            <span class="admin-toolbar-count" id="submission-count"></span>
+                        </div>
+
+                        <div class="admin-list" id="submission-list"></div>
+
+                        <div class="admin-more hidden" id="submission-more-wrap">
+                            <button type="button" class="btn btn-ghost" id="submission-more">加载更多</button>
+                        </div>
+                    </section>
+
+                    <!-- ========== 奖品管理 ========== -->
+                    <section class="admin-view hidden" id="view-prizes">
+                        <div class="admin-view-head">
+                            <div>
+                                <h2 class="admin-view-title">奖品管理</h2>
+                                <p class="admin-view-desc">实物奖品需要用户填收货地址；虚拟奖品可上传文件，兑换后用户直接下载。</p>
+                            </div>
+                            <div class="row">
+                                <button type="button" class="btn btn-ghost btn-sm" id="prize-refresh-btn">刷新</button>
+                                <button type="button" class="btn btn-primary" id="prize-add-btn">+ 新增奖品</button>
+                            </div>
+                        </div>
+
+                        <div id="prize-list"></div>
+                    </section>
+
+                    <!-- ========== 兑换订单 ========== -->
+                    <section class="admin-view hidden" id="view-orders">
+                        <div class="admin-view-head">
+                            <div>
+                                <h2 class="admin-view-title">兑换订单</h2>
+                                <p class="admin-view-desc">实物订单发货后标记完成；取消订单会自动退回积分并恢复库存。</p>
+                            </div>
+                            <button type="button" class="btn btn-ghost btn-sm" id="order-refresh-btn">刷新</button>
+                        </div>
+
+                        <div class="admin-toolbar">
+                            <select class="select admin-toolbar-select" id="order-status">
+                                <option value="">全部状态</option>
+                                <option value="pending">待处理</option>
+                                <option value="fulfilled">已完成</option>
+                                <option value="cancelled">已取消</option>
+                            </select>
+                            <span class="admin-toolbar-count" id="order-count"></span>
+                        </div>
+
+                        <div class="admin-list" id="order-list"></div>
+
+                        <div class="admin-more hidden" id="order-more-wrap">
+                            <button type="button" class="btn btn-ghost" id="order-more">加载更多</button>
+                        </div>
+                    </section>
+
+                    <!-- ========== 用户与积分 ========== -->
+                    <section class="admin-view hidden" id="view-users">
+                        <div class="admin-view-head">
+                            <div>
+                                <h2 class="admin-view-title">用户与积分</h2>
+                                <p class="admin-view-desc">搜用户、看余额、手动加 / 扣积分、重置密码。</p>
+                            </div>
+                        </div>
+
+                        <div class="admin-toolbar">
+                            <input class="input admin-toolbar-input" id="user-search" type="search" placeholder="搜索邮箱 / 用户名 / 昵称">
+                            <button type="button" class="btn btn-primary" id="user-search-btn">搜索</button>
+                            <button type="button" class="btn btn-ghost" id="user-reset-btn">重置</button>
+                            <span class="admin-toolbar-count" id="user-count"></span>
+                        </div>
+
+                        <div id="user-list"></div>
+
+                        <div class="admin-more hidden" id="user-more-wrap">
+                            <button type="button" class="btn btn-ghost" id="user-more">加载更多</button>
+                        </div>
+                    </section>
+
+                    <!-- ========== 网站内容 ========== -->
+                    <section class="admin-view hidden" id="view-settings">
+                        <div class="admin-view-head">
+                            <div>
+                                <h2 class="admin-view-title">网站内容</h2>
+                                <p class="admin-view-desc">修改前台显示的站点信息、歌曲信息、公告与积分规则。</p>
+                            </div>
+                            <button type="button" class="btn btn-ghost" id="export-btn">导出全部数据</button>
+                        </div>
+
+                        <form class="card card-pad admin-settings-form" id="settings-form" novalidate>
+
+                            <p class="admin-form-section">站点信息</p>
+                            <div class="admin-form-grid">
+                                <label class="field">
+                                    <span class="field-label">站点标题（site_title）</span>
+                                    <input class="input" id="settings-site-title" type="text">
+                                </label>
+                                <label class="field">
+                                    <span class="field-label">站点副标题（site_subtitle）</span>
+                                    <input class="input" id="settings-site-subtitle" type="text">
+                                </label>
+                            </div>
+
+                            <p class="admin-form-section">歌曲信息</p>
+                            <div class="admin-form-grid">
+                                <label class="field">
+                                    <span class="field-label">歌名（song_title）</span>
+                                    <input class="input" id="settings-song-title" type="text">
+                                </label>
+                                <label class="field">
+                                    <span class="field-label">歌手（song_artist）</span>
+                                    <input class="input" id="settings-song-artist" type="text">
+                                </label>
+                                <label class="field full">
+                                    <span class="field-label">网易云链接（song_url）</span>
+                                    <input class="input" id="settings-song-url" type="url" placeholder="https://music.163.com/song?id=...">
+                                </label>
+                                <label class="field full">
+                                    <span class="field-label">歌曲介绍 / 创作想法（song_intro）</span>
+                                    <textarea class="textarea" id="settings-song-intro"></textarea>
+                                </label>
+                                <div class="field full">
+                                    <span class="field-label">封面图（song_cover）</span>
+                                    <div class="admin-cover-row">
+                                        <div class="admin-cover-preview" id="settings-cover-preview"></div>
+                                        <div class="admin-cover-actions">
+                                            <input class="input" id="settings-song-cover" type="text" placeholder="上传后自动填写图片地址，也可手动填 /uploads/...">
+                                            <div class="row">
+                                                <label class="btn btn-soft btn-sm" for="settings-cover-file">上传封面</label>
+                                                <input class="admin-hidden-file" id="settings-cover-file" type="file" accept="image/jpeg,image/png,image/webp,image/gif">
+                                                <button type="button" class="btn btn-ghost btn-sm" id="settings-cover-clear">清除封面</button>
+                                            </div>
+                                            <p class="field-hint" id="settings-cover-status">支持 jpg / png / webp / gif，不超过 8MB。</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <p class="admin-form-section">文案与积分规则</p>
+                            <div class="stack">
+                                <label class="field">
+                                    <span class="field-label">公告（announcement，可空）</span>
+                                    <textarea class="textarea admin-textarea-sm" id="settings-announcement" placeholder="留空表示前台不显示公告"></textarea>
+                                </label>
+                                <label class="field">
+                                    <span class="field-label">积分规则说明（rules_text）</span>
+                                    <textarea class="textarea admin-textarea-sm" id="settings-rules-text"></textarea>
+                                </label>
+                                <label class="field">
+                                    <span class="field-label">奖品区说明（shop_intro，可空）</span>
+                                    <textarea class="textarea admin-textarea-sm" id="settings-shop-intro"></textarea>
+                                </label>
+                            </div>
+
+                            <p class="admin-form-section">积分数字</p>
+                            <div class="admin-form-grid">
+                                <label class="field">
+                                    <span class="field-label">提交基础分（points_base）</span>
+                                    <input class="input" id="settings-points-base" type="number" min="0" step="1">
+                                </label>
+                                <label class="field">
+                                    <span class="field-label">采纳奖励分（points_bonus）</span>
+                                    <input class="input" id="settings-points-bonus" type="number" min="0" step="1">
+                                </label>
+                                <label class="field">
+                                    <span class="field-label">每人每日提交上限（submit_daily_limit）</span>
+                                    <input class="input" id="settings-daily-limit" type="number" min="0" step="1">
+                                </label>
+                            </div>
+
+                            <div class="admin-form-foot">
+                                <span class="field-hint" id="settings-status"></span>
+                                <button type="submit" class="btn btn-primary" id="settings-save-btn">保存设置</button>
+                            </div>
+                        </form>
+                    </section>
+
+                </main>
+            </div>
+        </div>
+
+        <!-- ========== 通用确认弹窗 ========== -->
+        <div class="modal-mask" id="confirm-modal">
+            <div class="modal admin-modal">
+                <div class="admin-modal-head">
+                    <h2 class="modal-title" id="confirm-title">确认操作</h2>
+                    <button type="button" class="admin-modal-close" id="confirm-close" aria-label="关闭">×</button>
+                </div>
+                <p class="modal-sub" id="confirm-message"></p>
+                <div class="admin-modal-actions">
+                    <button type="button" class="btn btn-ghost" id="confirm-cancel">取消</button>
+                    <button type="button" class="btn btn-primary" id="confirm-ok">确定</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== 审核弹窗（通过 / 不通过） ========== -->
+        <div class="modal-mask" id="review-modal">
+            <div class="modal admin-modal">
+                <div class="admin-modal-head">
+                    <h2 class="modal-title" id="review-modal-title">审核建议</h2>
+                    <button type="button" class="admin-modal-close" id="review-close" aria-label="关闭">×</button>
+                </div>
+                <p class="modal-sub" id="review-modal-sub"></p>
+                <div class="stack">
+                    <div class="field" id="review-bonus-field">
+                        <label class="field-label" for="review-bonus">奖励分（默认取设置里的采纳奖励分）</label>
+                        <input class="input" id="review-bonus" type="number" min="0" step="1">
+                    </div>
+                    <div class="field">
+                        <label class="field-label" id="review-note-label" for="review-note">管理员备注（可选）</label>
+                        <textarea class="textarea admin-textarea-sm" id="review-note"></textarea>
+                    </div>
+                    <p class="field-hint" id="review-modal-hint"></p>
+                </div>
+                <div class="admin-modal-actions">
+                    <button type="button" class="btn btn-ghost" id="review-cancel">取消</button>
+                    <button type="button" class="btn btn-primary" id="review-submit">确认通过</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== 新增 / 编辑奖品弹窗 ========== -->
+        <div class="modal-mask" id="prize-modal">
+            <div class="modal admin-modal admin-modal-lg">
+                <div class="admin-modal-head">
+                    <h2 class="modal-title" id="prize-modal-title">新增奖品</h2>
+                    <button type="button" class="admin-modal-close" id="prize-close" aria-label="关闭">×</button>
+                </div>
+                <p class="modal-sub">实物奖品需要用户填收货地址；虚拟奖品可上传文件，用户兑换后直接下载。</p>
+                <div class="admin-form-grid">
+                    <label class="field full">
+                        <span class="field-label">奖品名称</span>
+                        <input class="input" id="prize-name" type="text" maxlength="60" placeholder="例如：定制亚克力钥匙扣">
+                    </label>
+                    <label class="field full">
+                        <span class="field-label">奖品说明（可空）</span>
+                        <textarea class="textarea admin-textarea-sm" id="prize-description" placeholder="例如：兑换后私信站长填地址"></textarea>
+                    </label>
+                    <label class="field">
+                        <span class="field-label">类型</span>
+                        <select class="select" id="prize-kind">
+                            <option value="physical">实物（需要收货地址）</option>
+                            <option value="digital">虚拟（兑换后直接下载）</option>
+                        </select>
+                    </label>
+                    <label class="field">
+                        <span class="field-label">积分价格</span>
+                        <input class="input" id="prize-cost" type="number" min="0" step="1" value="100">
+                    </label>
+                    <label class="field">
+                        <span class="field-label">库存</span>
+                        <input class="input" id="prize-stock" type="number" min="0" step="1" value="1">
+                    </label>
+                    <label class="field">
+                        <span class="field-label">排序（数字越小越靠前）</span>
+                        <input class="input" id="prize-sort" type="number" step="1" value="0">
+                    </label>
+                    <div class="field full">
+                        <span class="field-label">奖品图片</span>
+                        <div class="admin-cover-row">
+                            <div class="admin-cover-preview admin-cover-preview-sm" id="prize-image-preview"></div>
+                            <div class="admin-cover-actions">
+                                <div class="row">
+                                    <label class="btn btn-soft btn-sm" for="prize-image-file">选择图片</label>
+                                    <input class="admin-hidden-file" id="prize-image-file" type="file" accept="image/jpeg,image/png,image/webp,image/gif">
+                                    <button type="button" class="btn btn-ghost btn-sm" id="prize-image-clear">移除图片</button>
+                                </div>
+                                <p class="field-hint" id="prize-image-status">支持 jpg / png / webp / gif，不超过 8MB。</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="field full hidden" id="prize-file-field">
+                        <span class="field-label">虚拟奖品文件</span>
+                        <div class="row admin-file-row">
+                            <label class="btn btn-soft btn-sm" for="prize-file-input">选择文件</label>
+                            <input class="admin-hidden-file" id="prize-file-input" type="file">
+                            <span class="field-hint" id="prize-file-status"></span>
+                        </div>
+                        <p class="field-hint">支持 zip / pdf / mp3 / m4a / wav / mp4 等常见文件，不超过 30MB；只有兑换成功的用户能下载。</p>
+                    </div>
+                    <label class="field field-check full">
+                        <input type="checkbox" id="prize-active" checked>
+                        <span>上架（前台显示并允许兑换）</span>
+                    </label>
+                    <p class="field-hint full" id="prize-modal-status"></p>
+                </div>
+                <div class="admin-modal-actions">
+                    <button type="button" class="btn btn-ghost" id="prize-cancel">取消</button>
+                    <button type="button" class="btn btn-primary" id="prize-save">保存奖品</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== 调整积分弹窗 ========== -->
+        <div class="modal-mask" id="points-modal">
+            <div class="modal admin-modal">
+                <div class="admin-modal-head">
+                    <h2 class="modal-title">调整积分</h2>
+                    <button type="button" class="admin-modal-close" id="points-close" aria-label="关闭">×</button>
+                </div>
+                <p class="modal-sub" id="points-user-name"></p>
+                <div class="stack">
+                    <label class="field">
+                        <span class="field-label">调整数量（正数加分，负数扣分）</span>
+                        <input class="input" id="points-delta" type="number" step="1" placeholder="例如 50 或 -20">
+                    </label>
+                    <label class="field">
+                        <span class="field-label">备注（会写进积分流水）</span>
+                        <input class="input" id="points-note" type="text" maxlength="100" placeholder="例如：活动补偿">
+                    </label>
+                    <p class="field-hint" id="points-modal-status"></p>
+                </div>
+                <div class="admin-modal-actions">
+                    <button type="button" class="btn btn-ghost" id="points-cancel">取消</button>
+                    <button type="button" class="btn btn-primary" id="points-submit">确认调整</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== 重置密码弹窗 ========== -->
+        <div class="modal-mask" id="password-modal">
+            <div class="modal admin-modal">
+                <div class="admin-modal-head">
+                    <h2 class="modal-title">重置密码</h2>
+                    <button type="button" class="admin-modal-close" id="password-close" aria-label="关闭">×</button>
+                </div>
+                <p class="modal-sub" id="password-user-name"></p>
+                <div class="stack">
+                    <label class="field">
+                        <span class="field-label">新密码</span>
+                        <input class="input" id="password-new" type="password" autocomplete="new-password" placeholder="至少 8 位，需同时包含字母和数字">
+                    </label>
+                    <label class="field">
+                        <span class="field-label">再次输入新密码</span>
+                        <input class="input" id="password-confirm" type="password" autocomplete="new-password">
+                    </label>
+                    <p class="field-hint" id="password-modal-status"></p>
+                </div>
+                <div class="admin-modal-actions">
+                    <button type="button" class="btn btn-ghost" id="password-cancel">取消</button>
+                    <button type="button" class="btn btn-primary" id="password-submit">确认重置</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== 标记发货弹窗 ========== -->
+        <div class="modal-mask" id="ship-modal">
+            <div class="modal admin-modal">
+                <div class="admin-modal-head">
+                    <h2 class="modal-title">标记发货</h2>
+                    <button type="button" class="admin-modal-close" id="ship-close" aria-label="关闭">×</button>
+                </div>
+                <p class="modal-sub" id="ship-order-sub"></p>
+                <div class="stack">
+                    <label class="field">
+                        <span class="field-label">快递单号（可空）</span>
+                        <input class="input" id="ship-tracking" type="text" maxlength="60" placeholder="例如：SF1234567890">
+                    </label>
+                    <p class="field-hint" id="ship-modal-status"></p>
+                </div>
+                <div class="admin-modal-actions">
+                    <button type="button" class="btn btn-ghost" id="ship-cancel">取消</button>
+                    <button type="button" class="btn btn-primary" id="ship-submit">确认发货</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 页面逻辑：先 api.js，再 admin.js -->
+        <script src="assets/js/api.js"></script>
+        <script src="assets/js/admin.js"></script>
+    </body>
+</html>

@@ -1,0 +1,17 @@
+{
+    "port": 8787,
+    "host": "0.0.0.0",
+    "devMode": true,
+    "openBrowser": true,
+    "allowRemoteSetup": false,
+    "sessionSecret": "",
+    "corsOrigins": [],
+    "smtp": {
+        "host": "smtp.qq.com",
+        "port": 465,
+        "secure": true,
+        "user": "",
+        "pass": "",
+        "from": ""
+    }
+}

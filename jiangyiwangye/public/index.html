@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="给星月小窝的这首歌提建议，赚积分换奖品。">
+    <title>星月小窝 · 听歌说</title>
+    <!-- 本地样式，零外链：base.css 放设计变量与通用组件，app.css 放本页专属样式 -->
+    <link rel="stylesheet" href="assets/css/base.css">
+    <link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+    <!-- 背景星点装饰：纯 CSS，不参与交互 -->
+    <div class="sky" aria-hidden="true"></div>
+
+    <!-- ========== 顶部栏 ========== -->
+    <header class="site-head">
+        <div class="container head-inner">
+            <div class="brand">
+                <span class="brand-logo" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M20.6 13.4A8.6 8.6 0 1 1 10.6 3.4a6.8 6.8 0 0 0 10 10Z" fill="currentColor" opacity=".92"/>
+                        <path d="M18.4 4.4l.7 1.7 1.7.7-1.7.7-.7 1.7-.7-1.7-1.7-.7 1.7-.7Z" fill="currentColor"/>
+                    </svg>
+                </span>
+                <div class="brand-text">
+                    <h1 id="site-title" class="brand-title">星月小窝 · 听歌说</h1>
+                    <p id="site-subtitle" class="brand-sub">给这首歌提建议，赚积分换奖品</p>
+                </div>
+            </div>
+            <div class="head-actions">
+                <!-- 未登录 -->
+                <div id="auth-guest" class="row">
+                    <button id="btn-open-login" class="btn btn-ghost btn-sm" type="button">登录</button>
+                    <button id="btn-open-register" class="btn btn-primary btn-sm" type="button">注册</button>
+                </div>
+                <!-- 已登录 -->
+                <div id="auth-user" class="user-box hidden">
+                    <button id="user-menu-btn" class="user-chip" type="button" aria-haspopup="menu" aria-expanded="false">
+                        <span id="user-name" class="user-name">星友</span>
+                        <span class="user-points">✦ <span id="user-points">0</span></span>
+                        <svg class="chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                    <div id="user-menu" class="user-menu" role="menu">
+                        <button id="menu-my" class="menu-item" type="button" role="menuitem">我的记录</button>
+                        <button id="menu-settings" class="menu-item" type="button" role="menuitem">账号设置</button>
+                        <button id="menu-logout" class="menu-item menu-item-danger" type="button" role="menuitem">退出登录</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container main">
+        <!-- ========== 歌曲区 ========== -->
+        <section class="hero card" id="song-card">
+            <div class="hero-cover">
+                <div class="cover-wrap">
+                    <div id="song-cover-placeholder" class="cover-placeholder">
+                        <svg viewBox="0 0 120 120" fill="none" aria-hidden="true">
+                            <path d="M88 26a25 25 0 1 1-30 31 20 20 0 0 0 30-31Z" fill="rgba(255,255,255,.92)"/>
+                            <circle cx="36" cy="34" r="2.4" fill="rgba(255,255,255,.85)"/>
+                            <circle cx="30" cy="72" r="1.8" fill="rgba(255,255,255,.7)"/>
+                            <circle cx="60" cy="88" r="2" fill="rgba(255,255,255,.75)"/>
+                            <path d="M84 66l1.6 4.2 4.2 1.6-4.2 1.6-1.6 4.2-1.6-4.2-4.2-1.6 4.2-1.6Z" fill="rgba(255,255,255,.8)"/>
+                        </svg>
+                        <span class="cover-ph-text">封面待上传</span>
+                    </div>
+                    <img id="song-cover" class="cover-img hidden" alt="歌曲封面">
+                </div>
+            </div>
+            <div class="hero-body">
+                <p class="hero-kicker">正在听 · 这首歌</p>
+                <h2 id="song-title" class="hero-title">歌曲名待填写</h2>
+                <p id="song-artist" class="hero-artist hidden"></p>
+                <p id="song-intro" class="hero-intro hidden"></p>
+                <div class="hero-foot">
+                    <a id="song-link" class="btn btn-soft btn-sm hidden" href="#" target="_blank" rel="noopener">去网易云听 →</a>
+                    <span class="hero-hint">每一句认真听过的话，都值得被听见 ✨</span>
+                </div>
+                <div id="announcement" class="announce hidden">
+                    <span class="announce-tag">公告</span>
+                    <p id="announcement-text" class="announce-text"></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== 统计条 ========== -->
+        <section class="stats card" aria-label="站点统计">
+            <div class="stat">
+                <span id="stat-suggestions" class="stat-num">0</span>
+                <span class="stat-label">已收到建议</span>
+            </div>
+            <div class="stat">
+                <span id="stat-adopted" class="stat-num">0</span>
+                <span class="stat-label">被采纳</span>
+            </div>
+            <div class="stat">
+                <span id="stat-points" class="stat-num">0</span>
+                <span class="stat-label">已发放积分</span>
+            </div>
+        </section>
+
+        <!-- ========== 提交建议 + 积分规则 ========== -->
+        <div class="layout-2">
+            <section class="card card-pad suggest-card" id="suggest-card">
+                <div class="section-head">
+                    <h2 class="card-title">写下你的建议</h2>
+                    <span class="section-tip">不用客套，说真心话就好</span>
+                </div>
+                <div class="stack suggest-form">
+                    <div class="field">
+                        <label class="field-label" for="sug-title">标题</label>
+                        <input id="sug-title" class="input" type="text" maxlength="60" placeholder="一句话说清你的想法，比如「副歌可以再亮一点」">
+                        <span class="field-hint">2~60 字；具体到某一句、某一段更好。</span>
+                    </div>
+                    <div class="field">
+                        <label class="field-label" for="sug-category">分类</label>
+                        <select id="sug-category" class="select">
+                            <option value="旋律">旋律</option>
+                            <option value="歌词">歌词</option>
+                            <option value="编曲">编曲</option>
+                            <option value="演唱">演唱</option>
+                            <option value="整体感受">整体感受</option>
+                            <option value="其他">其他</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <div class="row-between">
+                            <label class="field-label" for="sug-content">正文</label>
+                            <span id="content-count" class="text-xs muted">0 / 20~2000 字</span>
+                        </div>
+                        <textarea id="sug-content" class="textarea" maxlength="2000" placeholder="具体说说哪里好、哪里可以改，或者你听的时候想到了什么（20~2000 字）"></textarea>
+                        <span id="content-hint" class="field-hint">至少 20 字，最多 2000 字。</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-label">配图（可选）</span>
+                        <div class="upload-row">
+                            <input id="sug-image" class="hidden" type="file" accept="image/jpeg,image/png,image/webp,image/gif">
+                            <button id="btn-pick-image" class="btn btn-ghost btn-sm" type="button">选择图片</button>
+                            <span class="text-xs muted">jpg / png / webp / gif，不超过 8MB</span>
+                        </div>
+                        <div id="image-preview-wrap" class="image-preview-wrap hidden">
+                            <img id="image-preview" class="image-preview" alt="配图预览">
+                            <div class="image-preview-info">
+                                <span id="image-name" class="text-xs"></span>
+                                <button id="btn-remove-image" class="btn btn-ghost btn-sm" type="button">移除</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="submit-row">
+                        <span class="text-xs muted">提交后进入审核，被采纳会再额外加分</span>
+                        <button id="btn-submit-suggestion" class="btn btn-primary btn-lg" type="button">提交建议</button>
+                    </div>
+                </div>
+            </section>
+
+            <aside class="side-col">
+                <section class="card card-pad rules-card" id="rules-card">
+                    <h2 class="card-title">积分规则</h2>
+                    <ul class="rules-list">
+                        <li><span>认真提交一条建议</span><strong id="rule-base">+5 积分</strong></li>
+                        <li><span>建议被采纳</span><strong id="rule-bonus">再 +50 积分</strong></li>
+                        <li><span>每天最多提交</span><strong id="rule-limit">3 条</strong></li>
+                    </ul>
+                    <p id="rules-text" class="rules-text hidden"></p>
+                    <div id="my-points-box" class="my-points hidden">
+                        <div class="my-points-info">
+                            <span class="text-xs muted">我的积分</span>
+                            <strong id="my-points">0</strong>
+                        </div>
+                        <button id="btn-go-my" class="btn btn-soft btn-sm" type="button">查看记录</button>
+                    </div>
+                </section>
+                <section class="card card-pad tip-card">
+                    <h2 class="card-title">怎么写更容易被采纳？</h2>
+                    <ul class="tips-list">
+                        <li>具体到某一段、某个乐器或某句歌词</li>
+                        <li>说清「现在的感觉」和「希望变成什么样」</li>
+                        <li>语气温柔一点，音乐的事慢慢聊</li>
+                    </ul>
+                </section>
+            </aside>
+        </div>
+
+        <!-- ========== 奖品商店 ========== -->
+        <section class="section" id="shop-section">
+            <div class="section-head-2">
+                <h2 class="section-title">奖品商店</h2>
+                <p id="shop-intro" class="section-desc hidden"></p>
+            </div>
+            <div id="prize-loading" class="loading">奖品正在准备中…</div>
+            <div id="prize-list" class="prize-grid"></div>
+            <div id="prize-empty" class="empty card hidden">
+                <span class="empty-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none"><path d="M12 2.6l2.3 6.9 6.9 2.3-6.9 2.3L12 21.4l-2.3-7.3-6.9-2.3 6.9-2.3Z" fill="currentColor"/></svg>
+                </span>
+                <p id="prize-empty-text">奖品还在路上，先去写条建议攒积分吧 ✨</p>
+            </div>
+        </section>
+
+        <!-- ========== 我的区域（登录后显示） ========== -->
+        <section class="section hidden" id="my-area" aria-label="我的记录">
+            <div class="section-head-2 my-head">
+                <div>
+                    <h2 class="section-title">我的记录</h2>
+                    <p class="section-desc"><span id="my-welcome">星友</span>，这里是你提交过的建议、积分流水和兑换记录</p>
+                </div>
+                <div class="my-head-side">
+                    <button id="btn-refresh-my" class="btn btn-ghost btn-sm" type="button">刷新</button>
+                    <div class="my-balance card">
+                        <span class="text-xs muted">当前积分</span>
+                        <strong id="my-balance">0</strong>
+                    </div>
+                </div>
+            </div>
+            <div class="card my-card">
+                <div class="tabs" role="tablist" aria-label="我的记录分类">
+                    <button id="tab-btn-points" class="tab active" type="button" role="tab" aria-selected="true">积分流水</button>
+                    <button id="tab-btn-submissions" class="tab" type="button" role="tab" aria-selected="false">我的建议</button>
+                    <button id="tab-btn-orders" class="tab" type="button" role="tab" aria-selected="false">我的兑换</button>
+                </div>
+                <!-- 积分流水 -->
+                <div id="tab-panel-points" class="tab-panel">
+                    <div id="points-loading" class="loading">正在加载积分流水…</div>
+                    <div id="points-list" class="list-wrap hidden"></div>
+                    <div id="points-empty" class="empty hidden">
+                        <span class="empty-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none"><path d="M12 2.6l2.3 6.9 6.9 2.3-6.9 2.3L12 21.4l-2.3-7.3-6.9-2.3 6.9-2.3Z" fill="currentColor"/></svg>
+                        </span>
+                        <p id="points-empty-text">还没有积分记录，提交第一条建议就会有了 ✨</p>
+                    </div>
+                </div>
+                <!-- 我的建议 -->
+                <div id="tab-panel-submissions" class="tab-panel hidden">
+                    <div id="submissions-loading" class="loading hidden">正在加载我的建议…</div>
+                    <div id="submissions-list" class="list-wrap hidden"></div>
+                    <div id="submissions-empty" class="empty hidden">
+                        <span class="empty-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none"><path d="M12 2.6l2.3 6.9 6.9 2.3-6.9 2.3L12 21.4l-2.3-7.3-6.9-2.3 6.9-2.3Z" fill="currentColor"/></svg>
+                        </span>
+                        <p id="submissions-empty-text">还没有提交过建议，写下第一条吧 ✨</p>
+                    </div>
+                </div>
+                <!-- 我的兑换 -->
+                <div id="tab-panel-orders" class="tab-panel hidden">
+                    <div id="orders-loading" class="loading hidden">正在加载兑换记录…</div>
+                    <div id="orders-list" class="list-wrap hidden"></div>
+                    <div id="orders-empty" class="empty hidden">
+                        <span class="empty-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none"><path d="M12 2.6l2.3 6.9 6.9 2.3-6.9 2.3L12 21.4l-2.3-7.3-6.9-2.3 6.9-2.3Z" fill="currentColor"/></svg>
+                        </span>
+                        <p id="orders-empty-text">还没有兑换过奖品，去奖品商店逛逛吧 ✨</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-foot">
+        <div class="container">
+            <p>星月小窝 · 听歌说 · 独立建议小站</p>
+            <p class="text-xs">数据保存在站长的电脑上 · 愿每一份认真都被听见 🌙</p>
+        </div>
+    </footer>
+
+    <!-- ========== 登录 / 注册弹窗 ========== -->
+    <div class="modal-mask" id="login-modal" role="dialog" aria-modal="true" aria-labelledby="login-modal-title">
+        <div class="modal login-box">
+            <button id="btn-login-close" class="icon-btn modal-close" type="button" aria-label="关闭登录弹窗">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <h3 id="login-modal-title" class="modal-title">欢迎回来</h3>
+            <p id="login-modal-sub" class="modal-sub">用邮箱验证码登录，也可以切换密码登录</p>
+            <div class="tabs modal-tabs" role="tablist" aria-label="登录方式">
+                <button id="login-tab-code" class="tab active" type="button" role="tab" aria-selected="true">邮箱验证码</button>
+                <button id="login-tab-password" class="tab" type="button" role="tab" aria-selected="false">密码登录</button>
+            </div>
+            <!-- 邮箱验证码 -->
+            <div id="login-panel-code" class="modal-panel">
+                <div class="mini-tabs" role="tablist" aria-label="验证码用途">
+                    <button id="code-mode-login" class="mini-tab active" type="button" role="tab" aria-selected="true">登录</button>
+                    <button id="code-mode-register" class="mini-tab" type="button" role="tab" aria-selected="false">注册</button>
+                </div>
+                <div class="stack">
+                    <div class="field">
+                        <label class="field-label" for="code-email">邮箱</label>
+                        <input id="code-email" class="input input-plain" type="email" autocomplete="email" maxlength="120" placeholder="you@example.com">
+                    </div>
+                    <div class="field">
+                        <label class="field-label" for="code-code">验证码</label>
+                        <div class="input-with-btn">
+                            <input id="code-code" class="input input-plain" type="text" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="6 位数字">
+                            <button id="btn-send-code" class="btn btn-soft btn-sm send-code-btn" type="button">发送验证码</button>
+                        </div>
+                    </div>
+                    <div id="dev-code-tip" class="dev-code-tip hidden" title="点击填入验证码">
+                        <span class="dev-code-label">开发模式验证码</span>
+                        <strong id="dev-code-value" class="dev-code-value"></strong>
+                        <span class="dev-code-hint">点这里填入 ↑</span>
+                    </div>
+                    <div id="wrap-display-name" class="field hidden">
+                        <label class="field-label" for="code-display-name">昵称</label>
+                        <input id="code-display-name" class="input input-plain" type="text" maxlength="20" placeholder="想让大家怎么称呼你（可空，默认用邮箱前缀）">
+                    </div>
+                    <div id="wrap-username" class="field hidden">
+                        <label class="field-label" for="code-username">用户名（可选）</label>
+                        <input id="code-username" class="input input-plain" type="text" maxlength="20" placeholder="3~20 位字母、数字或下划线，用来密码登录">
+                    </div>
+                    <button id="btn-code-submit" class="btn btn-primary btn-block" type="button">登录</button>
+                </div>
+            </div>
+            <!-- 密码登录 -->
+            <div id="login-panel-password" class="modal-panel hidden">
+                <div class="stack">
+                    <div class="field">
+                        <label class="field-label" for="pwd-account">邮箱或用户名</label>
+                        <input id="pwd-account" class="input input-plain" type="text" autocomplete="username" placeholder="you@example.com">
+                    </div>
+                    <div class="field">
+                        <label class="field-label" for="pwd-password">密码</label>
+                        <input id="pwd-password" class="input input-plain" type="password" autocomplete="current-password" maxlength="64" placeholder="至少 8 位，含字母和数字">
+                    </div>
+                    <button id="btn-pwd-submit" class="btn btn-primary btn-block" type="button">登录</button>
+                </div>
+            </div>
+            <div id="forgot-tip" class="info-tip hidden">暂时没有「邮箱找回密码」功能：可以改用「密码登录」、确认验证码有没有填对，或者直接联系站长帮你重置密码。</div>
+            <p class="login-foot">
+                <button id="btn-forgot" class="link-btn" type="button">忘记密码 / 没收到验证码？</button>
+            </p>
+        </div>
+    </div>
+
+    <!-- ========== 账号设置弹窗 ========== -->
+    <div class="modal-mask" id="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+        <div class="modal settings-box">
+            <button id="btn-settings-close" class="icon-btn modal-close" type="button" aria-label="关闭账号设置">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <h3 id="settings-title" class="modal-title">账号设置</h3>
+            <p class="modal-sub">改昵称、补用户名、设置密码，以后就能用密码登录了</p>
+            <div class="account-email">登录邮箱：<strong id="set-email">—</strong></div>
+            <div class="settings-block">
+                <h4 class="block-title">基本资料</h4>
+                <div class="stack">
+                    <div class="field">
+                        <label class="field-label" for="set-display-name">昵称</label>
+                        <input id="set-display-name" class="input" type="text" maxlength="20" placeholder="想让大家怎么称呼你">
+                    </div>
+                    <div class="field">
+                        <label class="field-label" for="set-username">用户名</label>
+                        <input id="set-username" class="input" type="text" maxlength="20" placeholder="3~20 位字母、数字或下划线">
+                        <span class="field-hint">补上用户名后，就能用「用户名 + 密码」登录了。</span>
+                    </div>
+                    <button id="btn-save-profile" class="btn btn-primary" type="button">保存资料</button>
+                </div>
+            </div>
+            <div class="settings-block">
+                <h4 class="block-title">设置密码</h4>
+                <div class="stack">
+                    <div class="field">
+                        <label class="field-label" for="set-password">新密码</label>
+                        <input id="set-password" class="input" type="password" autocomplete="new-password" maxlength="64" placeholder="8~64 位，且同时包含字母和数字">
+                    </div>
+                    <div class="field">
+                        <label class="field-label" for="set-password-confirm">再输一次</label>
+                        <input id="set-password-confirm" class="input" type="password" autocomplete="new-password" maxlength="64" placeholder="再输一次新密码">
+                    </div>
+                    <button id="btn-save-password" class="btn btn-soft" type="button">保存密码</button>
+                </div>
+            </div>
+            <div class="settings-foot">
+                <button id="btn-settings-logout" class="btn btn-danger btn-block" type="button">退出登录</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== 兑换奖品弹窗 ========== -->
+    <div class="modal-mask" id="redeem-modal" role="dialog" aria-modal="true" aria-labelledby="redeem-title">
+        <div class="modal redeem-box">
+            <button id="btn-redeem-close" class="icon-btn modal-close" type="button" aria-label="关闭兑换弹窗">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <div id="redeem-form">
+                <h3 id="redeem-title" class="modal-title">兑换奖品</h3>
+                <p id="redeem-sub" class="modal-sub">确认奖品信息，兑换后积分会立即扣除</p>
+                <div class="redeem-summary">
+                    <div class="redeem-prize-info">
+                        <strong id="redeem-prize-name">奖品</strong>
+                        <span id="redeem-prize-kind" class="badge badge-brand">虚拟奖品</span>
+                    </div>
+                    <div class="redeem-cost-row">
+                        <span>需要 <strong id="redeem-cost" class="redeem-cost">0</strong> 积分</span>
+                        <span class="text-xs muted">当前积分 <span id="redeem-balance">0</span></span>
+                    </div>
+                </div>
+                <div id="redeem-digital-tip" class="info-tip hidden">虚拟奖品：兑换成功后可以直接下载。</div>
+                <div class="stack redeem-fields">
+                    <div id="wrap-redeem-address" class="field">
+                        <label class="field-label" for="redeem-address">收货地址</label>
+                        <textarea id="redeem-address" class="textarea redeem-address" maxlength="200" placeholder="省 / 市 / 区 / 详细地址 / 收件人姓名"></textarea>
+                        <span class="field-hint">实物奖品需要填写，站长发货后会在「我的兑换」里更新快递单号。</span>
+                    </div>
+                    <div id="wrap-redeem-contact" class="field">
+                        <label class="field-label" for="redeem-contact">联系方式</label>
+                        <input id="redeem-contact" class="input" type="text" maxlength="100" placeholder="手机号 / 微信号 / QQ，方便发货时联系你">
+                    </div>
+                    <div class="field">
+                        <label class="field-label" for="redeem-note">备注（可选）</label>
+                        <input id="redeem-note" class="input" type="text" maxlength="200" placeholder="比如想要的款式、颜色">
+                    </div>
+                </div>
+                <button id="btn-redeem-submit" class="btn btn-primary btn-block btn-lg" type="button">确认兑换</button>
+                <p class="text-xs muted center redeem-tip-text">提交前会再和你确认一次；取消订单时站长会把积分退回。</p>
+            </div>
+            <div id="redeem-success" class="redeem-success hidden">
+                <div class="success-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none"><path d="M4.5 12.5l5 5 10-11" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <h3 id="redeem-success-title" class="modal-title center">兑换成功</h3>
+                <p id="redeem-success-text" class="modal-sub center"></p>
+                <button id="btn-success-download" class="btn btn-primary btn-block hidden" type="button">立即下载</button>
+                <button id="btn-success-close" class="btn btn-ghost btn-block" type="button">完成</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== 通用确认弹窗 ========== -->
+    <div class="modal-mask" id="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+        <div class="modal confirm-box">
+            <h3 id="confirm-title" class="modal-title">确认操作</h3>
+            <p id="confirm-message" class="modal-text"></p>
+            <div class="confirm-actions">
+                <button id="btn-confirm-cancel" class="btn btn-ghost" type="button">再想想</button>
+                <button id="btn-confirm-ok" class="btn btn-primary" type="button">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== 图片查看弹窗 ========== -->
+    <div class="modal-mask" id="image-modal" role="dialog" aria-modal="true" aria-label="查看建议配图">
+        <div class="image-viewer">
+            <button id="btn-image-close" class="icon-btn image-close" type="button" aria-label="关闭图片">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <img id="image-viewer-img" alt="建议配图">
+        </div>
+    </div>
+
+    <!-- 页面内 toast 容器 -->
+    <div id="toast-wrap" class="toast-wrap" aria-live="polite"></div>
+
+    <!-- 本地脚本，零外链：api.js 封装接口，app.js 是本页逻辑 -->
+    <script src="assets/js/api.js"></script>
+    <script src="assets/js/app.js"></script>
+</body>
+</html>
