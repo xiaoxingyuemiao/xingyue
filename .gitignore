@@ -73,3 +73,15 @@ build/
 *.txt
 # 例外：正式文档的纯文本版要入库（配 md 一起看）
 !docs/*.txt
+
+# ==============================
+# 建议网页（jiangyiwangye）的本机运行数据 —— 绝对不要上传
+#   shujuku-1/   ：SQLite 数据库 + 用户上传的图片 / 虚拟奖品文件
+#   config.local.json：本机端口、会话密钥、开发模式等配置
+#   preview/     ：本机验收截图
+# 子目录里也有一份 jiangyiwangye/.gitignore，这里再兜一层，防止以后误删子目录规则
+# ==============================
+jiangyiwangye/shujuku-1/
+jiangyiwangye/config.local.json
+jiangyiwangye/preview/
+
