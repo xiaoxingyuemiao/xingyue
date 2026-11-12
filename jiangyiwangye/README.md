@@ -90,7 +90,8 @@ jiangyiwangye/
 
 ### 本机要求
 
-- Node.js **22.5+**（本项目用 Node 内置的 `node:sqlite`，当前机器是 v24.19，没问题）
+- Node.js **24**（推荐；本项目用 Node 内置的 `node:sqlite`，23.4 以上已无需额外参数；
+  Node 22.5~23.3 需要在启动命令后加 `--experimental-sqlite`，不建议）
 - 不需要 npm install，不需要额外软件
 
 ### 常用命令
