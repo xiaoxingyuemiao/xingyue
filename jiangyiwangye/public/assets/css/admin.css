@@ -1,10 +1,12 @@
 /* ==============================
    星月小窝 · 建议网页 —— 管理后台样式（assets/css/admin.css）
+   视觉统一为主站（assets/css/style.css / settings.css）风格：
+   白底 + 主色 #66ccff + #eee/#ddd 浅灰描边 + 黑色柔光阴影
    只写后台专属样式；设计变量与通用组件（.btn / .card / .input / .modal / .toast / .badge）来自 base.css
    ============================== */
 
 body.admin-body {
-    background: linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+    background-color: var(--background-color);
 }
 
 /* 隐藏的原生文件选择框：用 label.btn 当可见按钮触发 */
@@ -40,9 +42,10 @@ label.btn {
     align-items: center;
     justify-content: center;
     padding: 32px 16px;
+    /* 纯白底，仅保留极淡蓝色光晕 */
     background:
-        radial-gradient(900px 420px at 12% -10%, rgba(107, 124, 255, 0.18), transparent 60%),
-        radial-gradient(700px 360px at 92% 8%, rgba(255, 159, 107, 0.14), transparent 60%);
+        radial-gradient(900px 420px at 12% -10%, rgba(102, 204, 255, 0.08), transparent 60%),
+        var(--background-color);
 }
 
 .admin-gate-inner {
@@ -58,9 +61,9 @@ label.btn {
     align-items: center;
     justify-content: center;
     gap: 10px;
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 700;
-    color: var(--brand-deep);
+    color: var(--brand);
 }
 
 .admin-logo {
@@ -70,10 +73,9 @@ label.btn {
     width: 34px;
     height: 34px;
     flex: 0 0 34px;
-    border-radius: 12px;
-    color: #fff;
-    background: linear-gradient(135deg, var(--brand), var(--brand-2));
-    box-shadow: 0 8px 18px rgba(107, 124, 255, 0.35);
+    border-radius: 10px;
+    color: var(--brand);
+    background-color: var(--brand-soft);
 }
 
 .admin-gate-card {
@@ -88,30 +90,31 @@ label.btn {
 .admin-gate-title {
     font-size: 22px;
     letter-spacing: 0.5px;
+    color: var(--text);
 }
 
 .admin-gate-sub {
     margin-top: 6px;
-    font-size: 13px;
+    font-size: 14px;
     color: var(--muted);
 }
 
 .admin-alert {
     margin-bottom: 16px;
     padding: 10px 14px;
-    border-radius: var(--radius-sm);
-    font-size: 13px;
+    border-radius: var(--radius);
+    font-size: 14px;
     line-height: 1.6;
     color: var(--danger);
     background: var(--danger-soft);
-    border: 1px solid rgba(229, 72, 77, 0.18);
+    border: 1px solid #f5cccc;
     word-break: break-word;
 }
 
 .admin-alert.info {
     color: var(--brand-deep);
     background: var(--brand-soft);
-    border-color: rgba(107, 124, 255, 0.2);
+    border-color: var(--brand-line);
 }
 
 .admin-retry {
@@ -121,7 +124,7 @@ label.btn {
 .admin-gate-back {
     display: inline-block;
     margin-top: 20px;
-    font-size: 13px;
+    font-size: 14px;
     color: var(--muted);
 }
 
@@ -131,8 +134,8 @@ label.btn {
 
 .admin-gate-foot {
     text-align: center;
-    font-size: 12px;
-    color: var(--muted);
+    font-size: 13px;
+    color: #999999;
 }
 
 .admin-login-tabs {
@@ -152,19 +155,20 @@ label.btn {
     border-radius: 999px;
     background: transparent;
     color: var(--text-2);
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 600;
-    transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .admin-tab:hover {
+    background-color: rgba(102, 204, 255, 0.1);
     color: var(--brand-deep);
 }
 
 .admin-tab.active {
+    background-color: rgba(102, 204, 255, 0.14);
     color: var(--brand-deep);
-    background: var(--surface);
-    box-shadow: var(--shadow-sm);
+    font-weight: 700;
 }
 
 .admin-code-row {
@@ -192,7 +196,7 @@ label.btn {
     min-height: 100vh;
 }
 
-/* 左侧导航（深色点缀） */
+/* 左侧导航：白底 + 右侧 1px 浅灰分隔线（同主站个人中心） */
 .admin-sidebar {
     width: 232px;
     flex: 0 0 232px;
@@ -203,8 +207,9 @@ label.btn {
     display: flex;
     flex-direction: column;
     padding: 20px 14px 16px;
-    color: #e8eaff;
-    background: linear-gradient(180deg, #3a4290 0%, #2c3269 55%, #232852 100%);
+    color: var(--text-2);
+    background-color: var(--surface);
+    border-right: 1px solid var(--line);
     overflow-y: auto;
 }
 
@@ -214,8 +219,8 @@ label.btn {
     gap: 10px;
     padding: 2px 8px 16px;
     margin-bottom: 14px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-    color: #fff;
+    border-bottom: 1px solid var(--line);
+    color: var(--text);
 }
 
 .admin-brand .admin-logo {
@@ -232,14 +237,15 @@ label.btn {
 }
 
 .admin-brand-title {
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 700;
+    color: var(--brand);
 }
 
 .admin-brand-sub {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 500;
-    color: rgba(232, 234, 255, 0.6);
+    color: #999999;
 }
 
 .admin-nav {
@@ -256,44 +262,39 @@ label.btn {
     width: 100%;
     padding: 10px 12px;
     border: none;
-    border-radius: 10px;
+    border-radius: 8px;
     background: transparent;
-    color: rgba(232, 234, 255, 0.78);
-    font-size: 14px;
+    color: var(--text-2);
+    font-size: 15px;
     font-weight: 600;
     text-align: left;
-    transition: background 0.15s ease, color 0.15s ease;
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .admin-nav-item svg {
     flex: 0 0 auto;
-    opacity: 0.85;
 }
 
 .admin-nav-item:hover {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.09);
+    background-color: rgba(102, 204, 255, 0.12);
+    color: var(--brand-deep);
 }
 
 .admin-nav-item.active {
+    background-color: rgba(102, 204, 255, 0.14);
     color: var(--brand-deep);
-    background: #fff;
-    box-shadow: 0 8px 20px rgba(15, 19, 60, 0.25);
-}
-
-.admin-nav-item.active svg {
-    opacity: 1;
+    font-weight: 700;
 }
 
 .admin-sidebar-foot {
     padding: 14px 10px 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    border-top: 1px solid var(--line);
 }
 
 .admin-sidebar-hint {
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.6;
-    color: rgba(232, 234, 255, 0.48);
+    color: #999999;
     word-break: break-all;
 }
 
@@ -305,6 +306,7 @@ label.btn {
     flex-direction: column;
 }
 
+/* 顶栏：白底 + 下边框 */
 .admin-topbar {
     position: sticky;
     top: 0;
@@ -315,9 +317,8 @@ label.btn {
     gap: 14px;
     min-height: 64px;
     padding: 0 26px;
-    background: rgba(255, 255, 255, 0.9);
+    background-color: var(--surface);
     border-bottom: 1px solid var(--line);
-    backdrop-filter: blur(10px);
 }
 
 .admin-topbar-title {
@@ -328,14 +329,15 @@ label.btn {
 }
 
 .admin-topbar-title h1 {
-    font-size: 16px;
+    font-size: 17px;
     white-space: nowrap;
+    color: var(--text);
 }
 
 .admin-topbar-section {
     padding: 3px 10px;
     border-radius: 999px;
-    background: var(--brand-soft);
+    background-color: var(--brand-soft);
     color: var(--brand-deep);
     font-size: 12px;
     font-weight: 700;
@@ -349,13 +351,17 @@ label.btn {
     flex: 0 0 auto;
 }
 
+/* 管理员昵称 chip：浅蓝底 + 主色深字 */
 .admin-name-badge {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    font-size: 13px;
+    padding: 4px 12px 4px 4px;
+    border-radius: 999px;
+    background-color: #eaf7ff;
+    color: var(--brand-deep);
+    font-size: 14px;
     font-weight: 600;
-    color: var(--text-2);
 }
 
 .admin-avatar {
@@ -365,10 +371,10 @@ label.btn {
     width: 28px;
     height: 28px;
     border-radius: 50%;
-    color: #fff;
+    color: #ffffff;
     font-size: 13px;
     font-weight: 700;
-    background: linear-gradient(135deg, var(--brand), var(--brand-2));
+    background-color: var(--brand);
 }
 
 .admin-content {
@@ -392,16 +398,17 @@ label.btn {
 }
 
 .admin-view-title {
-    font-size: 21px;
+    font-size: 22px;
+    color: var(--text);
 }
 
 .admin-view-desc {
     margin-top: 4px;
-    font-size: 13px;
+    font-size: 14px;
     color: var(--muted);
 }
 
-/* 统计卡片 */
+/* 统计卡片：白卡 + 黑柔光，数字用主色 */
 .admin-stats {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
@@ -410,49 +417,25 @@ label.btn {
 }
 
 .admin-stat {
-    position: relative;
     padding: 16px 18px;
-    background: var(--surface);
+    background-color: var(--surface);
     border: 1px solid var(--line);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-sm);
-    overflow: hidden;
-}
-
-.admin-stat::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 4px;
-    background: var(--brand);
+    border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
 }
 
 .admin-stat-label {
     display: block;
     margin-bottom: 4px;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
     color: var(--muted);
 }
 
 .admin-stat-value {
-    font-size: 27px;
+    font-size: 28px;
     line-height: 1.15;
-    color: var(--text);
-}
-
-.admin-stat-ok::before {
-    background: var(--ok);
-}
-
-.admin-stat-warn::before {
-    background: var(--warn);
-}
-
-.admin-stat-danger::before {
-    background: var(--danger);
+    color: var(--brand);
 }
 
 /* 概览两栏 */
@@ -489,16 +472,15 @@ label.btn {
     gap: 12px;
     padding: 12px 14px;
     border: 1px solid var(--line);
-    border-radius: var(--radius-sm);
-    background: var(--surface-soft);
+    border-radius: var(--radius);
+    background-color: var(--surface-soft);
     cursor: pointer;
-    transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .admin-row:hover {
-    border-color: var(--brand);
-    background: var(--surface);
-    transform: translateY(-1px);
+    border-color: var(--brand-line);
+    background-color: rgba(102, 204, 255, 0.06);
 }
 
 .admin-row-main {
@@ -506,8 +488,9 @@ label.btn {
 }
 
 .admin-row-title {
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 600;
+    color: var(--text);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -515,7 +498,7 @@ label.btn {
 
 .admin-row-meta {
     margin-top: 2px;
-    font-size: 12px;
+    font-size: 13px;
     color: var(--muted);
     white-space: nowrap;
     overflow: hidden;
@@ -544,7 +527,7 @@ label.btn {
 
 .admin-toolbar-count {
     margin-left: auto;
-    font-size: 12px;
+    font-size: 13px;
     color: var(--muted);
 }
 
@@ -554,10 +537,15 @@ label.btn {
     flex-direction: column;
     gap: 10px;
     padding: 18px 20px;
-    background: var(--surface);
+    background-color: var(--surface);
     border: 1px solid var(--line);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-sm);
+    border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.2s ease;
+}
+
+.admin-item:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
 }
 
 .admin-item-head {
@@ -571,6 +559,7 @@ label.btn {
 .admin-item-title {
     font-size: 16px;
     font-weight: 700;
+    color: var(--text);
     word-break: break-word;
 }
 
@@ -589,12 +578,12 @@ label.btn {
 }
 
 .admin-item-meta {
-    font-size: 12px;
+    font-size: 13px;
     color: var(--muted);
 }
 
 .admin-item-content {
-    font-size: 14px;
+    font-size: 15px;
     line-height: 1.75;
     color: var(--text-2);
     word-break: break-word;
@@ -603,7 +592,7 @@ label.btn {
 .admin-item-image img {
     max-width: 260px;
     max-height: 200px;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius);
     border: 1px solid var(--line);
     object-fit: cover;
 }
@@ -612,7 +601,7 @@ label.btn {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    font-size: 12px;
+    font-size: 13px;
 }
 
 .admin-point-chip {
@@ -620,7 +609,7 @@ label.btn {
     border-radius: 999px;
     border: 1px solid var(--line);
     color: var(--text-2);
-    background: var(--surface-soft);
+    background-color: var(--surface-soft);
 }
 
 .admin-point-chip strong {
@@ -629,22 +618,22 @@ label.btn {
 
 .admin-point-chip.ok {
     border-color: transparent;
-    background: var(--ok-soft);
+    background-color: var(--ok-soft);
     color: var(--ok);
 }
 
 .admin-point-chip.warn {
     border-color: transparent;
-    background: var(--warn-soft);
+    background-color: var(--warn-soft);
     color: var(--warn);
 }
 
 .admin-item-note {
     padding: 8px 12px;
-    border-radius: var(--radius-sm);
-    font-size: 13px;
-    color: var(--text-2);
-    background: var(--warn-soft);
+    border-radius: var(--radius);
+    font-size: 14px;
+    color: var(--warn);
+    background-color: var(--warn-soft);
     word-break: break-word;
 }
 
@@ -671,38 +660,38 @@ label.btn {
 }
 
 .admin-kv-label {
-    font-size: 12px;
+    font-size: 13px;
     color: var(--muted);
 }
 
 .admin-kv-value {
-    font-size: 13px;
+    font-size: 14px;
     color: var(--text);
     word-break: break-word;
 }
 
-/* 表格 */
+/* 表格：白卡 + #fafafa 表头 + hover 淡蓝行 */
 .admin-table-wrap {
-    background: var(--surface);
+    background-color: var(--surface);
     border: 1px solid var(--line);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-sm);
+    border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
     overflow-x: auto;
 }
 
 .admin-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 14px;
+    font-size: 15px;
 }
 
 .admin-table th {
     padding: 12px 16px;
     text-align: left;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 700;
     color: var(--muted);
-    background: var(--surface-soft);
+    background-color: #fafafa;
     border-bottom: 1px solid var(--line);
     white-space: nowrap;
 }
@@ -718,7 +707,7 @@ label.btn {
 }
 
 .admin-table tbody tr:hover {
-    background: #fbfcff;
+    background-color: rgba(102, 204, 255, 0.06);
 }
 
 .admin-table-actions {
@@ -731,7 +720,7 @@ label.btn {
     width: 44px;
     height: 44px;
     flex: 0 0 44px;
-    border-radius: 10px;
+    border-radius: var(--radius);
     border: 1px solid var(--line);
     object-fit: cover;
 }
@@ -742,7 +731,7 @@ label.btn {
     justify-content: center;
     font-weight: 700;
     color: var(--brand-deep);
-    background: linear-gradient(135deg, var(--brand-soft), #fff4ea);
+    background: linear-gradient(135deg, #eaf9ff, #f7f2ff);
 }
 
 .admin-cell-main {
@@ -754,13 +743,14 @@ label.btn {
 
 .admin-cell-name {
     font-weight: 600;
+    color: var(--text);
     word-break: break-word;
 }
 
 .admin-cell-desc {
     max-width: 260px;
-    font-size: 12px;
-    color: var(--muted);
+    font-size: 13px;
+    color: #999999;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -768,7 +758,7 @@ label.btn {
 
 .admin-cell-mono {
     font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
-    font-size: 12px;
+    font-size: 13px;
     color: var(--text-2);
     word-break: break-all;
 }
@@ -788,9 +778,12 @@ label.btn {
    四、弹窗与表单
    ============================== */
 
+/* 底子用 base.css：白卡 / 圆角 18 / 黑色柔光 / 遮罩 rgba(0,0,0,.35)；
+   这里显式写一遍圆角与阴影，保证后台弹窗始终是主站同款 */
 .admin-modal {
-    position: relative;
     max-width: 560px;
+    border-radius: 18px;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.2);
 }
 
 .admin-modal-lg {
@@ -813,15 +806,16 @@ label.btn {
     flex: 0 0 30px;
     border: none;
     border-radius: 50%;
-    background: var(--surface-soft);
-    color: var(--muted);
+    background-color: var(--surface-soft);
+    color: #999999;
     font-size: 18px;
     line-height: 1;
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .admin-modal-close:hover {
     color: var(--brand-deep);
-    background: var(--brand-soft);
+    background-color: var(--brand-soft);
 }
 
 .admin-modal-actions {
@@ -843,10 +837,10 @@ label.btn {
 
 .admin-form-section {
     margin: 22px 0 10px;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 700;
     letter-spacing: 1px;
-    color: var(--muted);
+    color: #999999;
 }
 
 .admin-form-section:first-child {
@@ -871,7 +865,7 @@ label.btn {
     flex-direction: row;
     align-items: center;
     gap: 8px;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 600;
     color: var(--text-2);
 }
@@ -898,10 +892,10 @@ label.btn {
     height: 96px;
     flex: 0 0 150px;
     border: 1px dashed var(--line-2);
-    border-radius: var(--radius-sm);
-    background: var(--surface-soft);
-    color: var(--muted);
-    font-size: 12px;
+    border-radius: var(--radius);
+    background-color: var(--surface-soft);
+    color: #999999;
+    font-size: 13px;
     overflow: hidden;
 }
 
@@ -934,7 +928,7 @@ label.btn {
 }
 
 /* ==============================
-   五、响应式：手机端导航收成顶部横向条
+   五、响应式：手机端导航收成白底顶部横向条
    ============================== */
 
 @media (max-width: 1024px) {
@@ -958,6 +952,8 @@ label.btn {
         flex-direction: column;
         gap: 8px;
         padding: 10px 12px 8px;
+        border-right: none;
+        border-bottom: 1px solid var(--line);
         overflow: visible;
     }
 
@@ -979,7 +975,7 @@ label.btn {
         width: auto;
         padding: 8px 13px;
         border-radius: 999px;
-        font-size: 13px;
+        font-size: 14px;
         white-space: nowrap;
     }
 
@@ -999,7 +995,7 @@ label.btn {
     }
 
     .admin-topbar-title h1 {
-        font-size: 14px;
+        font-size: 15px;
     }
 
     .admin-content {
@@ -1007,7 +1003,7 @@ label.btn {
     }
 
     .admin-view-title {
-        font-size: 19px;
+        font-size: 20px;
     }
 
     .admin-form-grid {

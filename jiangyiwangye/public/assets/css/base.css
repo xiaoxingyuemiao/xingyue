@@ -1,45 +1,59 @@
 /* ==============================
    星月小窝 · 建议网页 —— 公共基础样式
+   ⚠️ 本站已统一为「主站（assets/css/style.css）风格」：
+      白底 + 主色 #66ccff + 浅灰描边 + 黑色柔光阴影 + 圆角卡片
    只放设计变量 + 通用组件；页面各自的样式写进 app.css / admin.css
    ============================== */
 
 :root {
-    /* 品牌色：星月蓝紫 + 暖橙色点缀 */
-    --brand: #6b7cff;
-    --brand-2: #9b8cff;
-    --brand-soft: #eef0ff;
-    --brand-deep: #4d5ee6;
+    /* ---------- 主站同款基础色 ---------- */
+    --main-color: #66ccff;
+    --background-color: #ffffff;
+    --text-color: #333333;
+    --surface-color: #ffffff;
 
-    --accent: #ff9f6b;
-    --accent-soft: #fff1e8;
+    /* ---------- 品牌色（统一为主站蓝） ---------- */
+    --brand: #66ccff;
+    --brand-2: #9fe3ff;
+    --brand-soft: rgba(102, 204, 255, 0.14);
+    --brand-line: rgba(102, 204, 255, 0.32);
+    /* 浅色底上的蓝色文字（主站「发送验证码」按钮同款） */
+    --brand-deep: #2b93c9;
 
-    --bg: #f4f6ff;
-    --bg-2: #eef1ff;
+    /* 暖色只用于积分 / 采纳等小标注（主站「还在装修」徽章同款） */
+    --accent: #ffb26b;
+    --accent-soft: #ffe8cc;
+
+    /* ---------- 中性色 ---------- */
+    --bg: #ffffff;
+    --bg-2: #fafafa;
     --surface: #ffffff;
-    --surface-soft: #f8f9ff;
+    --surface-soft: #fafafa;
 
-    --text: #2b2f45;
-    --text-2: #5b6178;
-    --muted: #8b91a8;
-    --line: #e7eaf6;
-    --line-2: #d9ddef;
+    --text: #333333;
+    --text-2: #555555;
+    --muted: #888888;
+    --line: #eeeeee;
+    --line-2: #dddddd;
 
-    --ok: #22a06b;
-    --ok-soft: #e7f7ef;
-    --warn: #e08a00;
-    --warn-soft: #fff5e0;
-    --danger: #e5484d;
-    --danger-soft: #fdecec;
+    --ok: #2f8f5b;
+    --ok-soft: #eaf7ef;
+    --warn: #b26a00;
+    --warn-soft: #ffe8cc;
+    --danger: #d9534f;
+    --danger-soft: #fdf0f0;
 
-    --radius-sm: 10px;
-    --radius: 16px;
-    --radius-lg: 22px;
-    --shadow-sm: 0 4px 14px rgba(76, 86, 160, 0.08);
-    --shadow: 0 10px 30px rgba(76, 86, 160, 0.1);
-    --shadow-lg: 0 24px 60px rgba(76, 86, 160, 0.16);
+    /* ---------- 圆角 / 阴影（主站：黑柔光，不用彩色阴影） ---------- */
+    --radius-sm: 8px;
+    --radius: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+    --shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.05);
+    --shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 18px 50px rgba(0, 0, 0, 0.2);
 
-    --font: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", system-ui, -apple-system,
-        "Segoe UI", sans-serif;
+    --font: system-ui, -apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC",
+        "Noto Sans SC", sans-serif;
     --maxw: 1120px;
 }
 
@@ -56,16 +70,21 @@ body {
 body {
     min-height: 100vh;
     font-family: var(--font);
-    font-size: 15px;
-    line-height: 1.65;
+    font-size: 16px;
+    line-height: 1.7;
     color: var(--text);
     background: var(--bg);
     -webkit-font-smoothing: antialiased;
 }
 
 a {
-    color: var(--brand);
+    color: var(--brand-deep);
     text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+a:hover {
+    color: var(--brand);
 }
 
 button {
@@ -93,6 +112,7 @@ h4 {
     margin: 0;
     line-height: 1.35;
     font-weight: 700;
+    color: var(--text);
 }
 
 p {
@@ -147,12 +167,12 @@ p {
     flex: 1;
 }
 
-/* ---------- 卡片 ---------- */
+/* ---------- 卡片（主站：白底 + 1px 浅灰边 + 黑色柔光） ---------- */
 
 .card {
     background: var(--surface);
     border: 1px solid var(--line);
-    border-radius: var(--radius);
+    border-radius: var(--radius-lg);
     box-shadow: var(--shadow-sm);
 }
 
@@ -161,11 +181,12 @@ p {
 }
 
 .card-title {
-    font-size: 17px;
+    font-size: 18px;
     font-weight: 700;
+    color: var(--text);
 }
 
-/* ---------- 按钮 ---------- */
+/* ---------- 按钮（主站：主色 #66ccff / 浅蓝 / 灰描边） ---------- */
 
 .btn {
     display: inline-flex;
@@ -174,46 +195,40 @@ p {
     gap: 6px;
     padding: 10px 18px;
     border: 1px solid transparent;
-    border-radius: 999px;
-    font-size: 14px;
+    border-radius: 10px;
+    font-size: 15px;
     font-weight: 600;
     line-height: 1.2;
     background: var(--surface);
     color: var(--text);
-    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease,
-        opacity 0.15s ease;
+    transition: filter 0.2s ease, background-color 0.2s ease, border-color 0.2s ease,
+        color 0.2s ease, opacity 0.2s ease;
     user-select: none;
     white-space: nowrap;
 }
 
-.btn:hover {
-    transform: translateY(-1px);
-}
-
-.btn:active {
-    transform: translateY(0);
-}
-
 .btn:disabled,
 .btn[disabled] {
-    opacity: 0.55;
+    opacity: 0.6;
     cursor: not-allowed;
-    transform: none;
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, var(--brand), var(--brand-2));
-    color: #fff;
-    box-shadow: 0 6px 18px rgba(107, 124, 255, 0.35);
+    background-color: var(--brand);
+    color: #ffffff;
 }
 
 .btn-primary:hover {
-    box-shadow: 0 8px 22px rgba(107, 124, 255, 0.45);
+    filter: brightness(1.06);
 }
 
 .btn-soft {
-    background: var(--brand-soft);
+    background-color: rgba(102, 204, 255, 0.16);
     color: var(--brand-deep);
+}
+
+.btn-soft:hover {
+    background-color: rgba(102, 204, 255, 0.26);
 }
 
 .btn-ghost {
@@ -224,7 +239,8 @@ p {
 
 .btn-ghost:hover {
     border-color: var(--brand);
-    color: var(--brand);
+    color: var(--brand-deep);
+    background-color: rgba(102, 204, 255, 0.08);
 }
 
 .btn-danger {
@@ -235,18 +251,19 @@ p {
 .btn-sm {
     padding: 7px 14px;
     font-size: 13px;
+    border-radius: 8px;
 }
 
 .btn-lg {
     padding: 13px 26px;
-    font-size: 15px;
+    font-size: 16px;
 }
 
 .btn-block {
     width: 100%;
 }
 
-/* ---------- 表单 ---------- */
+/* ---------- 表单（主站设置页：浅灰底 + #ddd 边 + focus 主色） ---------- */
 
 .field {
     display: flex;
@@ -255,7 +272,7 @@ p {
 }
 
 .field-label {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
     color: var(--text-2);
 }
@@ -264,12 +281,12 @@ p {
 .textarea,
 .select {
     width: 100%;
-    padding: 11px 14px;
+    padding: 10px 14px;
     background: var(--surface-soft);
     border: 1px solid var(--line-2);
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius);
     outline: none;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
 .input:focus,
@@ -277,7 +294,6 @@ p {
 .select:focus {
     border-color: var(--brand);
     background: var(--surface);
-    box-shadow: 0 0 0 4px rgba(107, 124, 255, 0.12);
 }
 
 .textarea {
@@ -287,7 +303,7 @@ p {
 }
 
 .field-hint {
-    font-size: 12px;
+    font-size: 13px;
     color: var(--muted);
 }
 
@@ -295,7 +311,7 @@ p {
     color: var(--danger);
 }
 
-/* ---------- 徽章 ---------- */
+/* ---------- 徽章（浅底 + 深字，同主站「还在装修」徽章） ---------- */
 
 .badge {
     display: inline-flex;
@@ -310,7 +326,7 @@ p {
 }
 
 .badge-brand {
-    background: var(--brand-soft);
+    background: rgba(102, 204, 255, 0.16);
     color: var(--brand-deep);
 }
 
@@ -325,7 +341,7 @@ p {
 }
 
 .badge-muted {
-    background: #f1f2f8;
+    background: #f2f2f2;
     color: var(--muted);
 }
 
@@ -344,8 +360,7 @@ p {
     align-items: center;
     justify-content: center;
     padding: 20px;
-    background: rgba(30, 34, 60, 0.45);
-    backdrop-filter: blur(3px);
+    background: rgba(0, 0, 0, 0.35);
 }
 
 .modal-mask.open {
@@ -353,20 +368,21 @@ p {
 }
 
 .modal {
+    position: relative;
     width: 100%;
     max-width: 520px;
     max-height: 90vh;
     overflow: auto;
     padding: 26px;
     background: var(--surface);
-    border-radius: var(--radius-lg);
+    border-radius: 18px;
     box-shadow: var(--shadow-lg);
     animation: modal-in 0.18s ease;
 }
 
 @keyframes modal-in {
     from {
-        transform: translateY(10px);
+        transform: translateY(8px);
         opacity: 0;
     }
     to {
@@ -376,12 +392,13 @@ p {
 }
 
 .modal-title {
-    font-size: 19px;
+    font-size: 20px;
     margin-bottom: 4px;
+    color: var(--text);
 }
 
 .modal-sub {
-    font-size: 13px;
+    font-size: 14px;
     color: var(--muted);
     margin-bottom: 18px;
 }
@@ -410,21 +427,24 @@ p {
 .toast {
     max-width: min(90vw, 420px);
     padding: 10px 18px;
-    border-radius: 999px;
-    font-size: 13px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    font-size: 14px;
     font-weight: 600;
-    color: #fff;
-    background: rgba(43, 47, 69, 0.92);
+    color: var(--text);
+    background: var(--surface);
     box-shadow: var(--shadow);
     animation: toast-in 0.2s ease;
 }
 
 .toast.ok {
-    background: var(--ok);
+    border-color: #cdeddc;
+    color: var(--ok);
 }
 
 .toast.err {
-    background: var(--danger);
+    border-color: #f5cccc;
+    color: var(--danger);
 }
 
 @keyframes toast-in {
@@ -444,21 +464,21 @@ p {
     padding: 38px 16px;
     text-align: center;
     color: var(--muted);
-    font-size: 13px;
+    font-size: 14px;
 }
 
 .loading {
     padding: 30px 16px;
     text-align: center;
     color: var(--muted);
-    font-size: 13px;
+    font-size: 14px;
 }
 
 /* ---------- 响应式 ---------- */
 
 @media (max-width: 720px) {
     body {
-        font-size: 14px;
+        font-size: 15px;
     }
 
     .container {

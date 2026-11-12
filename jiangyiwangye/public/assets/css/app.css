@@ -1,87 +1,31 @@
 /* ==============================================================
    星月小窝 · 建议网页 —— 前台页面专属样式（public/assets/css/app.css）
-   依赖 base.css 的设计变量与通用组件；本文件只放 index.html 的页面样式
-   主题：星月蓝紫品牌色 + 暖橙点缀，卡片圆角，留白舒服
+   ⚠️ 视觉已统一为主站（assets/css/style.css / settings.css / home.css）：
+      纯白背景 + 主色 #66ccff + 浅灰描边 #eee/#ddd + 黑色柔光阴影 + 系统字体
+      通用组件（按钮 / 表单 / 卡片 / 弹窗 / 徽章 / toast）直接用 base.css，
+      本文件只写 index.html 的页面布局；不要在这里重定义主站公共组件。
    ============================================================== */
 
-/* ---------- 本页补充变量 ---------- */
+/* ---------- 页面骨架（主站子页面：白底、上下留白） ---------- */
 
-:root {
-    --accent-deep: #df7a3f;
-    --brand-line: rgba(107, 124, 255, 0.24);
+.main {
+    padding-top: 26px;
+    padding-bottom: 60px;
 }
 
-/* ---------- 背景星点装饰 ---------- */
-
-.sky {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    overflow: hidden;
-    pointer-events: none;
-    background:
-        radial-gradient(880px 520px at 8% -10%, rgba(155, 140, 255, 0.2), transparent 62%),
-        radial-gradient(760px 480px at 94% -4%, rgba(255, 159, 107, 0.14), transparent 58%),
-        radial-gradient(820px 560px at 50% 112%, rgba(107, 124, 255, 0.14), transparent 62%);
+/* 主站辅助文字统一 13~14px：本页把 base.css 的 12px 小字工具类抬到 13px */
+.text-xs {
+    font-size: 13px;
 }
 
-.sky::before,
-.sky::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background-repeat: no-repeat;
-    animation: sky-twinkle 9s ease-in-out infinite alternate;
-}
-
-.sky::before {
-    background-image:
-        radial-gradient(2px 2px at 12% 16%, rgba(155, 140, 255, 0.55), transparent 100%),
-        radial-gradient(1.6px 1.6px at 28% 8%, rgba(107, 124, 255, 0.45), transparent 100%),
-        radial-gradient(2.2px 2.2px at 42% 24%, rgba(155, 140, 255, 0.4), transparent 100%),
-        radial-gradient(1.5px 1.5px at 66% 12%, rgba(255, 159, 107, 0.45), transparent 100%),
-        radial-gradient(2px 2px at 82% 20%, rgba(107, 124, 255, 0.42), transparent 100%),
-        radial-gradient(1.4px 1.4px at 92% 8%, rgba(155, 140, 255, 0.5), transparent 100%),
-        radial-gradient(1.8px 1.8px at 6% 46%, rgba(155, 140, 255, 0.32), transparent 100%),
-        radial-gradient(1.4px 1.4px at 74% 52%, rgba(107, 124, 255, 0.28), transparent 100%);
-}
-
-.sky::after {
-    background-image:
-        radial-gradient(1.5px 1.5px at 18% 78%, rgba(107, 124, 255, 0.28), transparent 100%),
-        radial-gradient(2px 2px at 36% 64%, rgba(155, 140, 255, 0.3), transparent 100%),
-        radial-gradient(1.3px 1.3px at 56% 86%, rgba(255, 159, 107, 0.26), transparent 100%),
-        radial-gradient(1.8px 1.8px at 88% 74%, rgba(155, 140, 255, 0.3), transparent 100%),
-        radial-gradient(1.3px 1.3px at 94% 42%, rgba(107, 124, 255, 0.26), transparent 100%);
-    animation-delay: -4s;
-}
-
-@keyframes sky-twinkle {
-    from {
-        opacity: 0.55;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
-.site-head,
-.main,
-.site-foot {
-    position: relative;
-    z-index: 1;
-}
-
-/* ---------- 顶部栏 ---------- */
+/* ---------- 顶部栏（主站 nav 同款：白底 + 1px 黑色 8% 分隔线） ---------- */
 
 .site-head {
     position: sticky;
     top: 0;
     z-index: 50;
-    background: rgba(244, 246, 255, 0.82);
-    border-bottom: 1px solid var(--line);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
+    background-color: var(--surface);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .head-inner {
@@ -89,34 +33,32 @@
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    min-height: 74px;
-    padding-top: 12px;
-    padding-bottom: 12px;
+    min-height: 64px;
+    padding-top: 10px;
+    padding-bottom: 10px;
 }
 
 .brand {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     min-width: 0;
 }
 
+/* 主站 logo 同款：只用主色图标，不要渐变方块底 */
 .brand-logo {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     flex: 0 0 auto;
-    width: 44px;
-    height: 44px;
-    border-radius: 14px;
-    color: #fff;
-    background: linear-gradient(135deg, var(--brand), var(--brand-2) 55%, var(--accent));
-    box-shadow: 0 8px 20px rgba(107, 124, 255, 0.35);
+    width: 34px;
+    height: 34px;
+    color: var(--brand);
 }
 
 .brand-logo svg {
-    width: 24px;
-    height: 24px;
+    width: 30px;
+    height: 30px;
 }
 
 .brand-text {
@@ -124,16 +66,18 @@
 }
 
 .brand-title {
-    font-size: 19px;
+    font-size: 20px;
+    font-weight: bold;
     letter-spacing: 0.5px;
+    color: var(--brand);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
 .brand-sub {
-    margin-top: 2px;
-    font-size: 12.5px;
+    margin-top: 1px;
+    font-size: 13px;
     color: var(--muted);
     white-space: nowrap;
     overflow: hidden;
@@ -143,11 +87,11 @@
 .head-actions {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     flex: 0 0 auto;
 }
 
-/* 已登录的用户胶囊 + 下拉菜单 */
+/* 已登录：白色胶囊 + 浅蓝积分小徽章 + 下拉菜单（同主站页卡） */
 
 .user-box {
     position: relative;
@@ -157,33 +101,36 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    max-width: 240px;
-    padding: 7px 12px 7px 14px;
+    max-width: 260px;
+    padding: 6px 12px;
     border: 1px solid var(--line-2);
     border-radius: 999px;
-    background: var(--surface);
+    background-color: var(--surface);
     color: var(--text);
-    font-size: 13.5px;
+    font-size: 14px;
     font-weight: 600;
-    box-shadow: var(--shadow-sm);
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
 .user-chip:hover {
     border-color: var(--brand);
-    box-shadow: 0 6px 18px rgba(107, 124, 255, 0.18);
+    background-color: rgba(102, 204, 255, 0.06);
 }
 
 .user-name {
-    max-width: 96px;
+    max-width: 110px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
 .user-points {
-    color: var(--accent-deep);
-    font-weight: 700;
+    padding: 1px 9px;
+    border-radius: 999px;
+    background-color: rgba(102, 204, 255, 0.14);
+    color: var(--brand-deep);
+    font-size: 12.5px;
+    font-weight: bold;
     white-space: nowrap;
 }
 
@@ -191,7 +138,7 @@
     width: 15px;
     height: 15px;
     color: var(--muted);
-    transition: transform 0.18s ease;
+    transition: transform 0.2s ease;
 }
 
 .user-box.open .chevron {
@@ -206,10 +153,10 @@
     display: none;
     min-width: 148px;
     padding: 6px;
-    background: var(--surface);
+    background-color: var(--surface);
     border: 1px solid var(--line);
-    border-radius: 14px;
-    box-shadow: var(--shadow);
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
 }
 
 .user-box.open .user-menu {
@@ -221,17 +168,18 @@
     width: 100%;
     padding: 9px 12px;
     border: none;
-    border-radius: 9px;
+    border-radius: 8px;
     background: transparent;
-    color: var(--text-2);
-    font-size: 13.5px;
-    font-weight: 600;
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 500;
     text-align: left;
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .menu-item:hover {
-    background: var(--brand-soft);
-    color: var(--brand-deep);
+    background-color: rgba(102, 204, 255, 0.12);
+    color: var(--main-color);
 }
 
 .menu-item-danger {
@@ -239,43 +187,22 @@
 }
 
 .menu-item-danger:hover {
-    background: var(--danger-soft);
+    background-color: var(--danger-soft);
     color: var(--danger);
 }
 
-/* ---------- 主内容区 ---------- */
-
-.main {
-    padding-top: 26px;
-    padding-bottom: 60px;
-}
-
-/* ---------- 歌曲区 ---------- */
+/* ---------- 歌曲区（主站 about-card：白卡 + 浅色渐变占位 + 圆角 16） ---------- */
 
 .hero {
     display: grid;
-    grid-template-columns: 300px minmax(0, 1fr);
-    gap: 28px;
-    padding: 26px;
+    grid-template-columns: 260px minmax(0, 1fr);
+    gap: 32px;
+    padding: 28px;
     overflow: hidden;
-    position: relative;
-}
-
-.hero::after {
-    content: "";
-    position: absolute;
-    top: -80px;
-    right: -60px;
-    width: 220px;
-    height: 220px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(155, 140, 255, 0.16), transparent 70%);
-    pointer-events: none;
 }
 
 .hero-cover {
     position: relative;
-    z-index: 1;
 }
 
 .cover-wrap {
@@ -284,34 +211,31 @@
     aspect-ratio: 1 / 1;
     border-radius: var(--radius-lg);
     overflow: hidden;
-    background: var(--brand-soft);
-    box-shadow: var(--shadow);
+    border: 1px solid var(--line);
+    background: linear-gradient(135deg, #eaf9ff, #f7f2ff);
 }
 
+/* 主站 about-portrait 同款渐变占位（无封面时） */
 .cover-placeholder {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 10px;
     width: 100%;
     height: 100%;
-    color: #fff;
-    background:
-        radial-gradient(160px 120px at 76% 22%, rgba(255, 255, 255, 0.22), transparent 70%),
-        linear-gradient(140deg, var(--brand-deep), var(--brand) 46%, var(--brand-2) 74%, var(--accent));
+    background: linear-gradient(135deg, #eaf9ff, #f7f2ff);
 }
 
 .cover-placeholder svg {
-    width: 58%;
-    height: 58%;
-    opacity: 0.95;
+    width: 56%;
+    height: 56%;
 }
 
 .cover-ph-text {
-    font-size: 12.5px;
+    font-size: 13px;
     letter-spacing: 2px;
-    opacity: 0.85;
+    color: #8ab6cd;
 }
 
 .cover-img {
@@ -323,47 +247,47 @@
 }
 
 .hero-body {
-    position: relative;
-    z-index: 1;
     display: flex;
     flex-direction: column;
     min-width: 0;
-    padding: 6px 4px 2px 0;
+    padding: 2px 2px 0 0;
 }
 
+/* 「正在听」标签：浅蓝底 + 深蓝字（主站 badge 同款） */
 .hero-kicker {
     display: inline-flex;
     align-items: center;
     align-self: flex-start;
     gap: 6px;
-    margin-bottom: 10px;
-    padding: 4px 12px;
+    margin-bottom: 12px;
+    padding: 3px 12px;
     border-radius: 999px;
-    background: var(--accent-soft);
-    color: var(--accent-deep);
+    background-color: rgba(102, 204, 255, 0.14);
+    color: var(--brand-deep);
     font-size: 12px;
-    font-weight: 700;
+    font-weight: bold;
     letter-spacing: 1px;
 }
 
 .hero-title {
-    font-size: 27px;
+    font-size: 30px;
     line-height: 1.3;
     letter-spacing: 0.5px;
+    color: var(--text);
     word-break: break-word;
 }
 
 .hero-artist {
     margin-top: 8px;
+    font-size: 15px;
     color: var(--text-2);
-    font-size: 14px;
 }
 
 .hero-intro {
     margin-top: 14px;
+    font-size: 15px;
+    line-height: 1.9;
     color: var(--text-2);
-    font-size: 14px;
-    line-height: 1.85;
     white-space: pre-line;
     word-break: break-word;
 }
@@ -378,46 +302,48 @@
 }
 
 .hero-hint {
-    font-size: 12.5px;
+    font-size: 13px;
     color: var(--muted);
 }
 
+/* 公告：浅灰底 + 主色左边条（同主站强调块） */
 .announce {
     display: flex;
     align-items: flex-start;
     gap: 10px;
     margin-top: 16px;
     padding: 12px 14px;
-    border: 1px solid rgba(255, 159, 107, 0.35);
-    border-radius: var(--radius-sm);
-    background: var(--accent-soft);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--brand);
+    border-radius: var(--radius);
+    background-color: var(--surface-soft);
 }
 
 .announce-tag {
     flex: 0 0 auto;
     padding: 2px 9px;
     border-radius: 999px;
-    background: var(--accent);
-    color: #fff;
+    background-color: rgba(102, 204, 255, 0.16);
+    color: var(--brand-deep);
     font-size: 11.5px;
-    font-weight: 700;
+    font-weight: bold;
     letter-spacing: 1px;
 }
 
 .announce-text {
-    color: #9a5a24;
-    font-size: 13px;
+    color: var(--text-2);
+    font-size: 14px;
     line-height: 1.7;
     white-space: pre-line;
     word-break: break-word;
 }
 
-/* ---------- 统计条 ---------- */
+/* ---------- 统计条（主站白卡 + 黑色柔光） ---------- */
 
 .stats {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    margin-top: 18px;
+    margin-top: 20px;
     overflow: hidden;
 }
 
@@ -426,23 +352,24 @@
     flex-direction: column;
     align-items: center;
     gap: 2px;
-    padding: 18px 12px;
+    padding: 20px 12px;
 }
 
 .stat + .stat {
     border-left: 1px solid var(--line);
 }
 
+/* 统计数字统一用主色（要求 6） */
 .stat-num {
-    font-size: 25px;
-    font-weight: 800;
+    font-size: 28px;
+    font-weight: bold;
     line-height: 1.25;
-    color: var(--brand-deep);
+    color: var(--brand);
     font-variant-numeric: tabular-nums;
 }
 
 .stat-label {
-    font-size: 12.5px;
+    font-size: 13px;
     color: var(--muted);
 }
 
@@ -452,7 +379,7 @@
     display: grid;
     grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
     gap: 20px;
-    margin-top: 22px;
+    margin-top: 20px;
     align-items: start;
 }
 
@@ -472,7 +399,7 @@
 }
 
 .section-tip {
-    font-size: 12.5px;
+    font-size: 13px;
     color: var(--muted);
 }
 
@@ -494,17 +421,17 @@
     margin-top: 10px;
     padding: 10px;
     border: 1px dashed var(--line-2);
-    border-radius: var(--radius-sm);
-    background: var(--surface-soft);
+    border-radius: var(--radius);
+    background-color: var(--surface-soft);
 }
 
 .image-preview {
     width: 84px;
     height: 84px;
     flex: 0 0 auto;
-    border-radius: 10px;
+    border-radius: var(--radius-sm);
     object-fit: cover;
-    background: var(--brand-soft);
+    background-color: var(--surface-soft);
 }
 
 .image-preview-info {
@@ -540,7 +467,7 @@
     color: var(--danger);
 }
 
-/* ---------- 积分规则卡 ---------- */
+/* ---------- 积分规则卡 / 小贴士卡 ---------- */
 
 .rules-list {
     list-style: none;
@@ -555,7 +482,7 @@
     gap: 10px;
     padding: 10px 0;
     border-top: 1px dashed var(--line);
-    font-size: 13.5px;
+    font-size: 14px;
     color: var(--text-2);
 }
 
@@ -571,8 +498,8 @@
 
 .rules-text {
     margin-top: 12px;
-    font-size: 12.5px;
-    line-height: 1.75;
+    font-size: 13px;
+    line-height: 1.8;
     color: var(--muted);
     white-space: pre-line;
     word-break: break-word;
@@ -585,8 +512,9 @@
     gap: 10px;
     margin-top: 16px;
     padding: 12px 14px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, var(--brand-soft), var(--accent-soft));
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background-color: var(--surface-soft);
 }
 
 .my-points-info {
@@ -596,12 +524,10 @@
 }
 
 .my-points-info strong {
-    font-size: 21px;
-    color: var(--brand-deep);
+    font-size: 22px;
+    color: var(--brand);
     font-variant-numeric: tabular-nums;
 }
-
-/* ---------- 小贴士卡 ---------- */
 
 .tips-list {
     list-style: none;
@@ -612,7 +538,7 @@
 .tips-list li {
     position: relative;
     padding: 7px 0 7px 18px;
-    font-size: 13px;
+    font-size: 14px;
     line-height: 1.7;
     color: var(--text-2);
 }
@@ -622,11 +548,11 @@
     position: absolute;
     left: 0;
     top: 8px;
-    color: var(--accent);
     font-size: 12px;
+    color: var(--brand);
 }
 
-/* ---------- 区块标题 ---------- */
+/* ---------- 区块标题（主站标题：左侧主色竖条） ---------- */
 
 .section {
     margin-top: 36px;
@@ -644,28 +570,29 @@
 .section-title {
     font-size: 20px;
     letter-spacing: 0.5px;
+    color: var(--text);
 }
 
 .section-title::before {
     content: "";
     display: inline-block;
-    width: 6px;
+    width: 4px;
     height: 18px;
     margin-right: 9px;
-    border-radius: 3px;
+    border-radius: 2px;
     vertical-align: -2px;
-    background: linear-gradient(180deg, var(--brand), var(--accent));
+    background-color: var(--brand);
 }
 
 .section-desc {
-    font-size: 13px;
-    color: var(--muted);
     margin-top: 4px;
+    font-size: 14px;
+    color: var(--muted);
     white-space: pre-line;
     word-break: break-word;
 }
 
-/* ---------- 奖品商店 ---------- */
+/* ---------- 奖品商店（白卡 + #eee 边 + 黑色柔光） ---------- */
 
 .prize-grid {
     display: grid;
@@ -677,21 +604,18 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    transition: transform 0.18s ease, box-shadow 0.18s ease;
+    transition: box-shadow 0.2s ease;
 }
 
 .prize-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
 }
 
 .prize-media {
     position: relative;
     aspect-ratio: 4 / 3;
     overflow: hidden;
-    background:
-        radial-gradient(120px 90px at 72% 24%, rgba(255, 255, 255, 0.25), transparent 70%),
-        linear-gradient(140deg, var(--brand), var(--brand-2) 62%, var(--accent));
+    background: linear-gradient(135deg, #eaf9ff, #f7f2ff);
 }
 
 .prize-ph {
@@ -700,7 +624,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: rgba(255, 255, 255, 0.8);
+    color: #9edcff;
 }
 
 .prize-ph svg {
@@ -720,8 +644,7 @@
     position: absolute;
     top: 10px;
     left: 10px;
-    background: rgba(255, 255, 255, 0.92);
-    box-shadow: 0 2px 8px rgba(43, 47, 69, 0.14);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .prize-body {
@@ -733,19 +656,31 @@
 }
 
 .prize-name {
-    font-size: 15px;
+    font-size: 16px;
+    color: var(--text);
     word-break: break-word;
 }
 
 .prize-desc {
     display: -webkit-box;
     overflow: hidden;
-    font-size: 12.5px;
+    font-size: 13px;
     line-height: 1.65;
-    color: var(--text-2);
+    color: var(--muted);
     word-break: break-word;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
+}
+
+/* 积分价格：全页统一用主色浅蓝徽章（与 badge-brand 同款，不用暖色） */
+.prize-cost {
+    padding: 2px 10px;
+    border-radius: 999px;
+    background-color: rgba(102, 204, 255, 0.14);
+    color: var(--brand-deep);
+    font-size: 13px;
+    font-weight: bold;
+    white-space: nowrap;
 }
 
 .prize-meta {
@@ -757,15 +692,8 @@
     padding-top: 4px;
 }
 
-.prize-cost {
-    color: var(--accent-deep);
-    font-size: 14px;
-    font-weight: 800;
-    white-space: nowrap;
-}
-
 .prize-stock {
-    font-size: 12px;
+    font-size: 12.5px;
     color: var(--muted);
     white-space: nowrap;
 }
@@ -775,12 +703,12 @@
 }
 
 .prize-hint {
-    font-size: 11.5px;
+    font-size: 12px;
     color: var(--muted);
     text-align: center;
 }
 
-/* ---------- 我的区域 ---------- */
+/* ---------- 我的区域（登录后） ---------- */
 
 .my-head {
     align-items: center;
@@ -789,7 +717,7 @@
 .my-head-side {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
 }
 
 .my-balance {
@@ -801,8 +729,8 @@
 }
 
 .my-balance strong {
-    font-size: 23px;
-    color: var(--brand-deep);
+    font-size: 24px;
+    color: var(--brand);
     font-variant-numeric: tabular-nums;
 }
 
@@ -826,27 +754,27 @@
 
 .tab {
     flex: 0 0 auto;
-    padding: 10px 16px;
+    padding: 9px 16px;
     border: none;
     border-bottom: 2px solid transparent;
-    border-radius: 10px 10px 0 0;
+    border-radius: 8px 8px 0 0;
     margin-bottom: -1px;
     background: transparent;
     color: var(--text-2);
-    font-size: 13.5px;
-    font-weight: 700;
+    font-size: 14px;
+    font-weight: 600;
     white-space: nowrap;
-    transition: color 0.15s ease, background 0.15s ease;
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .tab:hover {
-    color: var(--brand);
+    color: var(--main-color);
 }
 
 .tab.active {
     color: var(--brand-deep);
     border-bottom-color: var(--brand);
-    background: linear-gradient(180deg, transparent, rgba(107, 124, 255, 0.07));
+    background-color: rgba(102, 204, 255, 0.08);
 }
 
 .tab-panel {
@@ -887,12 +815,13 @@
 }
 
 .ledger-type {
-    font-size: 13.5px;
-    font-weight: 700;
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--text);
 }
 
 .ledger-note {
-    font-size: 12px;
+    font-size: 13px;
     color: var(--muted);
     word-break: break-word;
 }
@@ -906,8 +835,8 @@
 }
 
 .ledger-delta {
-    font-size: 15px;
-    font-weight: 800;
+    font-size: 16px;
+    font-weight: bold;
     font-variant-numeric: tabular-nums;
 }
 
@@ -929,9 +858,14 @@
 
 .sub-card {
     padding: 16px;
+    background-color: var(--surface);
     border: 1px solid var(--line);
-    border-radius: var(--radius);
-    background: var(--surface-soft);
+    border-radius: var(--radius-lg);
+    transition: box-shadow 0.2s ease;
+}
+
+.sub-card:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
 }
 
 .sub-head {
@@ -944,7 +878,8 @@
 
 .sub-title {
     flex: 1 1 220px;
-    font-size: 15px;
+    font-size: 16px;
+    color: var(--text);
     word-break: break-word;
 }
 
@@ -956,14 +891,14 @@
 
 .sub-meta {
     margin-top: 6px;
-    font-size: 12px;
+    font-size: 13px;
     color: var(--muted);
     word-break: break-word;
 }
 
 .sub-content {
     margin-top: 10px;
-    font-size: 13.5px;
+    font-size: 14px;
     line-height: 1.8;
     color: var(--text-2);
     white-space: pre-wrap;
@@ -975,28 +910,31 @@
     max-width: 200px;
     max-height: 200px;
     margin-top: 12px;
-    border-radius: 10px;
     border: 1px solid var(--line);
+    border-radius: var(--radius);
     object-fit: cover;
     cursor: zoom-in;
 }
 
+/* 管理员备注：浅蓝信息块 + 左侧主色条 */
 .sub-note {
     display: flex;
     gap: 8px;
     margin-top: 12px;
     padding: 9px 12px;
-    border-radius: 10px;
-    background: var(--accent-soft);
-    font-size: 12.5px;
+    border: 1px solid #e8eef3;
+    border-left: 3px solid var(--brand);
+    border-radius: var(--radius-sm);
+    background-color: #f8fbfd;
+    font-size: 13px;
     line-height: 1.7;
-    color: #9a5a24;
+    color: var(--text-2);
     word-break: break-word;
 }
 
 .sub-note strong {
     flex: 0 0 auto;
-    color: var(--accent-deep);
+    color: var(--brand-deep);
 }
 
 /* 我的兑换 */
@@ -1011,9 +949,9 @@
     display: flex;
     gap: 14px;
     padding: 14px;
+    background-color: var(--surface);
     border: 1px solid var(--line);
-    border-radius: var(--radius);
-    background: var(--surface-soft);
+    border-radius: var(--radius-lg);
 }
 
 .order-media {
@@ -1022,10 +960,9 @@
     width: 74px;
     height: 74px;
     overflow: hidden;
-    border-radius: 12px;
-    background:
-        radial-gradient(60px 44px at 70% 24%, rgba(255, 255, 255, 0.24), transparent 70%),
-        linear-gradient(140deg, var(--brand), var(--brand-2) 62%, var(--accent));
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: linear-gradient(135deg, #eaf9ff, #f7f2ff);
 }
 
 .order-media img {
@@ -1040,7 +977,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: rgba(255, 255, 255, 0.82);
+    color: #9edcff;
 }
 
 .order-ph svg {
@@ -1062,13 +999,14 @@
 }
 
 .order-title {
-    font-size: 14.5px;
+    font-size: 15px;
+    color: var(--text);
     word-break: break-word;
 }
 
 .order-meta {
     margin-top: 3px;
-    font-size: 12px;
+    font-size: 13px;
     color: var(--muted);
 }
 
@@ -1076,7 +1014,7 @@
     display: flex;
     gap: 8px;
     margin-top: 7px;
-    font-size: 12.5px;
+    font-size: 13px;
     line-height: 1.65;
     color: var(--text-2);
     word-break: break-word;
@@ -1099,15 +1037,15 @@
     margin-top: 10px;
 }
 
-/* ---------- 空状态 / 加载 ---------- */
+/* ---------- 空状态 / 加载（图标用主色淡化） ---------- */
 
 .empty-icon {
     display: block;
     width: 40px;
     height: 40px;
     margin: 0 auto 8px;
-    color: var(--brand-2);
-    opacity: 0.75;
+    color: var(--brand);
+    opacity: 0.5;
 }
 
 .empty-icon svg {
@@ -1115,28 +1053,39 @@
     height: 100%;
 }
 
-/* ---------- 页脚 ---------- */
+/* ---------- 页脚（主站 footer：白底 + 上边框 #eee） ---------- */
 
 .site-foot {
-    margin-top: 10px;
-    padding: 26px 0 38px;
+    padding: 24px 0 34px;
     border-top: 1px solid var(--line);
+    background-color: var(--surface);
     text-align: center;
-    color: var(--muted);
-    font-size: 12.5px;
+    color: var(--text);
+    font-size: 15px;
 }
 
 .site-foot p + p {
-    margin-top: 5px;
+    margin-top: 6px;
+    font-size: 13px;
+    color: var(--muted);
 }
 
-/* ---------- 弹窗通用补充 ---------- */
-
-.modal {
-    position: relative;
+.site-foot a {
+    color: var(--text-2);
+    transition: color 0.2s ease;
 }
 
-/* 各弹窗的宽度（默认 520px 见 base.css） */
+.site-foot a:hover {
+    color: var(--main-color);
+}
+
+/* ---------- 弹窗补充（白卡 / 圆角 18 / 黑色柔光由 base.css 提供） ---------- */
+
+.modal-open {
+    overflow: hidden;
+}
+
+/* 各弹窗宽度（默认 520px 见 base.css） */
 .login-box {
     max-width: 480px;
 }
@@ -1155,21 +1104,14 @@
 
 @keyframes panel-in {
     from {
-        opacity: 0.35;
+        opacity: 0.4;
     }
     to {
         opacity: 1;
     }
 }
 
-.modal-open {
-    overflow: hidden;
-}
-
-.center {
-    text-align: center;
-}
-
+/* 圆形小按钮（弹窗右上角关闭） */
 .icon-btn {
     display: inline-flex;
     align-items: center;
@@ -1177,15 +1119,16 @@
     width: 32px;
     height: 32px;
     padding: 0;
-    border: none;
+    border: 1px solid var(--line);
     border-radius: 50%;
-    background: var(--surface-soft);
+    background-color: var(--surface);
     color: var(--muted);
-    transition: background 0.15s ease, color 0.15s ease;
+    transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
 }
 
 .icon-btn:hover {
-    background: var(--brand-soft);
+    border-color: var(--brand);
+    background-color: rgba(102, 204, 255, 0.08);
     color: var(--brand-deep);
 }
 
@@ -1194,13 +1137,14 @@
     height: 16px;
 }
 
+/* 弹窗顶部 tab：浅灰轨道 + 白色选中卡 */
 .modal-tabs {
     display: flex;
     gap: 6px;
     margin: 14px 0 18px;
     padding: 5px;
-    border-radius: 14px;
-    background: var(--surface-soft);
+    border-radius: 12px;
+    background-color: var(--surface-soft);
     overflow: visible;
 }
 
@@ -1209,17 +1153,19 @@
     padding: 9px 10px;
     margin: 0;
     border: none;
-    border-radius: 10px;
+    border-radius: 9px;
     text-align: center;
-    font-size: 13.5px;
+    font-size: 14px;
 }
 
 .modal-tabs .tab.active {
-    background: var(--surface);
+    background-color: var(--surface);
     color: var(--brand-deep);
-    box-shadow: var(--shadow-sm);
+    border-bottom-color: transparent;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
+/* 验证码登录内层：登录 / 注册 小胶囊 */
 .mini-tabs {
     display: flex;
     gap: 8px;
@@ -1234,24 +1180,21 @@
     color: var(--text-2);
     font-size: 13px;
     font-weight: 600;
-    transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
 .mini-tab:hover {
     border-color: var(--brand);
-    color: var(--brand);
+    color: var(--brand-deep);
 }
 
 .mini-tab.active {
     border-color: transparent;
-    background: var(--brand-soft);
+    background-color: rgba(102, 204, 255, 0.14);
     color: var(--brand-deep);
 }
 
-.input-plain {
-    background: var(--surface);
-}
-
+/* 输入框 + 右侧按钮同一行 */
 .input-with-btn {
     display: flex;
     align-items: stretch;
@@ -1268,6 +1211,7 @@
     min-width: 112px;
 }
 
+/* 开发模式验证码：沿用主站「还在装修」暖色徽章，只做开发提示 */
 .dev-code-tip {
     display: flex;
     align-items: baseline;
@@ -1275,44 +1219,46 @@
     gap: 10px;
     margin-top: 10px;
     padding: 12px 14px;
-    border: 1px dashed var(--accent);
-    border-radius: var(--radius-sm);
-    background: var(--accent-soft);
+    border: 1px dashed #f5c98f;
+    border-radius: var(--radius);
+    background-color: var(--warn-soft);
     cursor: pointer;
 }
 
 .dev-code-label {
     padding: 2px 9px;
     border-radius: 999px;
-    background: #ffe3cc;
-    color: #b45309;
+    background-color: #ffe0b8;
+    color: var(--warn);
     font-size: 11.5px;
-    font-weight: 800;
+    font-weight: bold;
     letter-spacing: 0.5px;
 }
 
 .dev-code-value {
     font-size: 23px;
-    font-weight: 800;
+    font-weight: bold;
     letter-spacing: 7px;
     line-height: 1.2;
-    color: #b45309;
+    color: var(--warn);
     font-variant-numeric: tabular-nums;
 }
 
 .dev-code-hint {
     margin-left: auto;
-    color: var(--muted);
+    color: #a98a63;
     font-size: 11.5px;
 }
 
+/* 浅蓝信息提示块（同主站设置页勾选说明） */
 .info-tip {
     margin: 14px 0;
     padding: 10px 14px;
-    border-radius: var(--radius-sm);
-    background: var(--brand-soft);
-    color: var(--brand-deep);
-    font-size: 12.5px;
+    border: 1px solid #e8eef3;
+    border-radius: var(--radius);
+    background-color: #f8fbfd;
+    color: var(--text-2);
+    font-size: 13px;
     line-height: 1.75;
 }
 
@@ -1325,24 +1271,25 @@
     padding: 0;
     border: none;
     background: transparent;
-    color: var(--brand);
-    font-size: 12.5px;
+    color: var(--muted);
+    font-size: 13px;
+    transition: color 0.2s ease;
 }
 
 .link-btn:hover {
-    color: var(--brand-deep);
-    text-decoration: underline;
+    color: var(--main-color);
 }
 
-/* ---------- 账号设置 ---------- */
+/* ---------- 账号设置弹窗 ---------- */
 
 .account-email {
     margin-top: 4px;
     padding: 9px 13px;
-    border-radius: 10px;
-    background: var(--surface-soft);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background-color: var(--surface-soft);
     color: var(--muted);
-    font-size: 12.5px;
+    font-size: 13px;
     word-break: break-all;
 }
 
@@ -1359,8 +1306,8 @@
 
 .block-title {
     margin-bottom: 12px;
-    color: var(--text-2);
-    font-size: 14px;
+    font-size: 15px;
+    color: var(--text);
 }
 
 .settings-foot {
@@ -1369,13 +1316,14 @@
     border-top: 1px solid var(--line);
 }
 
-/* ---------- 兑换奖品 ---------- */
+/* ---------- 兑换奖品弹窗 ---------- */
 
 .redeem-summary {
     margin: 14px 0;
     padding: 14px 16px;
-    border-radius: var(--radius);
-    background: var(--surface-soft);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background-color: var(--surface-soft);
 }
 
 .redeem-prize-info {
@@ -1386,7 +1334,8 @@
 }
 
 .redeem-prize-info strong {
-    font-size: 15.5px;
+    font-size: 16px;
+    color: var(--text);
     word-break: break-word;
 }
 
@@ -1401,9 +1350,10 @@
 }
 
 .redeem-cost {
-    color: var(--accent-deep);
+    color: var(--brand-deep);
     font-size: 18px;
-    font-weight: 800;
+    font-weight: bold;
+    font-variant-numeric: tabular-nums;
 }
 
 .redeem-fields {
@@ -1431,7 +1381,7 @@
     height: 62px;
     margin: 4px auto 14px;
     border-radius: 50%;
-    background: var(--ok-soft);
+    background-color: var(--ok-soft);
     color: var(--ok);
 }
 
@@ -1460,7 +1410,7 @@
 
 .modal-text {
     margin: 10px 0 22px;
-    font-size: 14px;
+    font-size: 15px;
     line-height: 1.8;
     color: var(--text-2);
     word-break: break-word;
@@ -1489,9 +1439,9 @@
     max-width: 100%;
     max-height: 84vh;
     margin: 0 auto;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-lg);
-    background: var(--surface);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.2);
+    background-color: var(--surface);
 }
 
 .image-close {
@@ -1499,11 +1449,15 @@
     top: -14px;
     right: -14px;
     z-index: 2;
-    background: var(--surface);
-    box-shadow: var(--shadow);
+    background-color: var(--surface);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
 
-/* ---------- toast 退场 ---------- */
+/* ---------- 通用 ---------- */
+
+.center {
+    text-align: center;
+}
 
 .toast-out {
     opacity: 0;
@@ -1511,8 +1465,7 @@
     transition: opacity 0.22s ease, transform 0.22s ease;
 }
 
-/* ---------- 焦点可见 ---------- */
-
+/* 焦点可见：统一用主色描边（同主站 focus 效果） */
 .btn:focus-visible,
 .tab:focus-visible,
 .mini-tab:focus-visible,
@@ -1520,30 +1473,29 @@
 .link-btn:focus-visible,
 .user-chip:focus-visible,
 .menu-item:focus-visible {
-    outline: 3px solid rgba(107, 124, 255, 0.38);
+    outline: 3px solid rgba(102, 204, 255, 0.45);
     outline-offset: 2px;
 }
 
-/* ---------- 轻量入场动画 ---------- */
-
+/* 轻量入场（主站同款淡入，不炫技） */
 .hero,
 .stats,
 .layout-2 {
-    animation: rise-in 0.4s ease both;
+    animation: rise-in 0.35s ease both;
 }
 
 .stats {
-    animation-delay: 0.05s;
+    animation-delay: 0.04s;
 }
 
 .layout-2 {
-    animation-delay: 0.1s;
+    animation-delay: 0.08s;
 }
 
 @keyframes rise-in {
     from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(6px);
     }
     to {
         opacity: 1;
@@ -1552,13 +1504,14 @@
 }
 
 /* ==============================================================
-   响应式：≤720px 关键区块单列
+   响应式：≤960px 双栏收窄，≤720px 关键区块单列
    ============================================================== */
 
 @media (max-width: 960px) {
     .hero {
-        grid-template-columns: 240px minmax(0, 1fr);
-        gap: 22px;
+        grid-template-columns: 220px minmax(0, 1fr);
+        gap: 24px;
+        padding: 22px;
     }
 
     .layout-2 {
@@ -1581,37 +1534,40 @@
 
 @media (max-width: 720px) {
     .head-inner {
-        min-height: 64px;
+        min-height: 58px;
         gap: 10px;
     }
 
     .brand-logo {
-        width: 38px;
-        height: 38px;
-        border-radius: 12px;
+        width: 30px;
+        height: 30px;
     }
 
     .brand-logo svg {
-        width: 21px;
-        height: 21px;
+        width: 26px;
+        height: 26px;
     }
 
     .brand-title {
-        font-size: 17px;
+        font-size: 18px;
     }
 
     .brand-sub {
-        font-size: 11.5px;
+        font-size: 12px;
     }
 
     .user-chip {
         max-width: 178px;
-        padding: 6px 10px 6px 12px;
-        font-size: 12.5px;
+        padding: 5px 10px;
+        font-size: 13px;
     }
 
     .user-name {
         max-width: 62px;
+    }
+
+    .user-points {
+        font-size: 12px;
     }
 
     .main {
@@ -1627,27 +1583,18 @@
 
     .cover-wrap {
         aspect-ratio: 16 / 10;
-        border-radius: var(--radius);
-    }
-
-    .hero-body {
-        padding: 0;
     }
 
     .hero-title {
-        font-size: 22px;
+        font-size: 24px;
     }
 
     .hero-intro {
-        font-size: 13.5px;
+        font-size: 14px;
     }
 
     .hero-foot {
         padding-top: 14px;
-    }
-
-    .announce {
-        margin-top: 14px;
     }
 
     .stats {
@@ -1659,16 +1606,16 @@
     }
 
     .stat-num {
-        font-size: 20px;
+        font-size: 22px;
     }
 
     .stat-label {
-        font-size: 11.5px;
+        font-size: 12px;
     }
 
     .layout-2 {
         gap: 16px;
-        margin-top: 18px;
+        margin-top: 16px;
     }
 
     .side-col {
@@ -1724,7 +1671,7 @@
     }
 
     .sub-card {
-        padding: 13px;
+        padding: 14px;
     }
 
     .sub-thumb {
@@ -1747,7 +1694,7 @@
     }
 
     .modal-title {
-        font-size: 17px;
+        font-size: 18px;
         padding-right: 30px;
     }
 
@@ -1769,11 +1716,12 @@
 
     .image-close {
         top: -10px;
-        right: -6px;
+        right: -4px;
     }
 
     .site-foot {
-        padding: 22px 0 30px;
+        padding: 20px 0 28px;
+        font-size: 14px;
     }
 }
 
@@ -1786,12 +1734,12 @@
         gap: 8px;
     }
 
-    #auth-guest .btn {
-        padding: 7px 13px;
-    }
-
     #auth-guest {
         gap: 6px;
+    }
+
+    #auth-guest .btn {
+        padding: 7px 13px;
     }
 }
 
