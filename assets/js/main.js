@@ -271,7 +271,7 @@ async function syncFromCloud() {
             renderAuthState();
             console.log("☁️ 云端资料已同步（uid: " + p.uid + "）");
         } else {
-            console.warn("云端没有这个账号的资料行（可执行 tools/supabase-schema.sql 里的「补齐历史用户」）");
+            console.warn("后端没有这个账号的资料行（注册时会自动创建；老账号需在后端补建）");
         }
     } catch (e) {
         console.warn("云端资料同步失败（不影响本地使用）：", e);
@@ -594,9 +594,11 @@ loginSend.addEventListener("click", async () => {
     loginSend.disabled = true;
     loginSend.textContent = "…";
     try {
-        await window.Auth.sendCode(email);
+        const res = await window.Auth.sendCode(email, "login");
         rememberEmail(email);
-        setCardMsg(loginMsg, "验证码已发送到 " + email + "，请查收（可能在垃圾邮件里）", "ok");
+        setCardMsg(loginMsg, res && res.dev_code
+            ? "本地调试验证码：" + res.dev_code + "（10 分钟内有效）"
+            : "验证码已发送到 " + email + "，请查收（可能在垃圾邮件里）", "ok");
         loginCode.focus();
         startResendCountdown("login", loginSend, "发送");
     } catch (e) {
@@ -668,7 +670,7 @@ loginToRegister.addEventListener("click", () => {
 
 // ---------- 注册卡 ----------
 
-// 发送注册验证码（创建账号 + 发确认码）
+// 发送注册验证码
 regSend.addEventListener("click", async () => {
     const email = regEmail.value.trim();
     const pwd = regPassword.value;
@@ -691,14 +693,11 @@ regSend.addEventListener("click", async () => {
     regSend.disabled = true;
     regSend.textContent = "…";
     try {
-        const result = await window.Auth.signUp(email, pwd);
+        const res = await window.Auth.sendCode(email, "register");
         rememberEmail(email);
-        if (result.needVerify === false) {
-            // 项目没开邮箱确认，注册即登录
-            authSuccess("注册成功", regMsg);
-            return;
-        }
-        setCardMsg(regMsg, "验证码已发送到 " + email + "，请填入后点「注册」", "ok");
+        setCardMsg(regMsg, res && res.dev_code
+            ? "本地调试验证码：" + res.dev_code + "，填入后点「注册」"
+            : "验证码已发送到 " + email + "，请查收（可能在垃圾邮件里）", "ok");
         regCode.focus();
         startResendCountdown("reg", regSend, "发送");
     } catch (e) {
@@ -734,7 +733,7 @@ regSubmit.addEventListener("click", async () => {
     regSubmit.disabled = true;
     regSubmit.textContent = "注册中……";
     try {
-        await window.Auth.verifySignup(email, token);
+        await window.Auth.signUp(email, regPassword.value, token);
         authSuccess("注册成功", regMsg);
     } catch (e) {
         setCardMsg(regMsg, e.message || "注册失败，请检查验证码", "error");
@@ -772,9 +771,11 @@ fgSend.addEventListener("click", async () => {
     fgSend.disabled = true;
     fgSend.textContent = "…";
     try {
-        await window.Auth.sendRecovery(email);
+        const res = await window.Auth.sendCode(email, "reset");
         rememberEmail(email);
-        setCardMsg(fgMsg, "验证码已发送到 " + email + "，请查收（可能在垃圾邮件里）", "ok");
+        setCardMsg(fgMsg, res && res.dev_code
+            ? "本地调试验证码：" + res.dev_code + "（10 分钟内有效）"
+            : "验证码已发送到 " + email + "，请查收（可能在垃圾邮件里）", "ok");
         fgCode.focus();
         startResendCountdown("forgot", fgSend, "发送");
     } catch (e) {
@@ -809,22 +810,10 @@ fgSubmit.addEventListener("click", async () => {
     fgSubmit.disabled = true;
     fgSubmit.textContent = "重置中……";
     try {
-        // 1. 校验验证码（会拿到一个临时登录态）
-        await window.Auth.verifyRecovery(email, token);
-        // 2. 用这个登录态设置新密码
-        await window.Auth.updatePassword(fgPassword.value);
-        // 3. 退出临时登录态，让用户用新密码正式登录
-        await window.Auth.signOut();
+        // 后端一次校验验证码 + 设置新密码，成功后直接就是登录态
+        await window.Auth.resetPassword(email, token, fgPassword.value);
         rememberEmail(email);
-
-        fgCode.value = "";
-        fgPassword.value = "";
-        fgPassword2.value = "";
-        showAuthCard("login");
-        loginUseCode = false;
-        applyLoginMode();
-        loginEmail.value = email;
-        setCardMsg(loginMsg, "密码已重置 ✓ 请用新密码登录", "ok");
+        authSuccess("密码已重置，已自动登录", fgMsg);
     } catch (e) {
         setCardMsg(fgMsg, e.message || "重置失败，请检查验证码", "error");
     } finally {

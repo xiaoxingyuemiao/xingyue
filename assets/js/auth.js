@@ -1,10 +1,14 @@
 // ================================
-// 邮箱验证码登录（assets/js/auth.js）
-// 用 Supabase Auth 的 REST 接口实现（原生 fetch，无需 SDK）：
-//   1. 输入邮箱 → POST /auth/v1/otp      发送 6 位验证码
-//   2. 输入验证码 → POST /auth/v1/verify  换取登录凭证
-//   3. 会自动刷新过期凭证，支持退出登录
-// 配置写在 assets/data/supabase-config.js（留空则登录功能关闭）
+// 登录态模块（assets/js/auth.js）
+// 对接本地 xingyue-api（ThinkPHP 8）的 /auth/* 接口（原生 fetch，无需 SDK）：
+//   POST /auth/send-code       发送邮箱验证码（scene：register / login / reset / delete）
+//   POST /auth/login           邮箱或手机号 + 密码登录
+//   POST /auth/login-code      邮箱验证码登录（未注册邮箱自动注册）
+//   POST /auth/register        注册（邮箱 + 密码 + 验证码，手机号选填）
+//   POST /auth/reset-password  找回密码（验证码 + 新密码，成功后直接是登录态）
+//   POST /auth/refresh         过期凭证换新（旧的即作废）
+//   POST /auth/logout          退出并作废刷新凭证
+// 配置在 assets/data/api-config.js（window.XY_API.base）
 // 暴露：window.Auth
 // ================================
 
@@ -13,32 +17,18 @@ window.Auth = (function () {
     // 登录凭证的 localStorage 键。
     // ⚠️ 必须走 store.js 的 KEYS.auth，**不要在这里另写一份字符串** ——
     // 两处一旦不一致，注销 / 换账号时"清本地"就会漏掉登录凭证（见 docs/08 §4.2）。
-    // 两个页面（index.html / user.html）都是先加载 store.js 再加载本文件，所以这里必然拿得到。
+    // 各页面都是先加载 store.js 再加载本文件，所以这里必然拿得到。
     const LS_KEY = window.Store.KEYS.auth;
 
     const listeners = [];
 
-    function cfg() {
-        return window.SUPABASE_CONFIG || {};
+    function base() {
+        return (window.XY_API && window.XY_API.base) || "";
     }
 
-    // 是否已配置 Supabase（没配置时登录功能关闭）
+    // 是否已配置后端（没配置时登录功能关闭）
     function isConfigured() {
-        const c = cfg();
-        return !!(c.url && c.anonKey);
-    }
-
-    function apiBase() {
-        return String(cfg().url || "").replace(/\/+$/, "");
-    }
-
-    function headers(token) {
-        return {
-            "Content-Type": "application/json",
-            "apikey": cfg().anonKey,
-            // 新版密钥要求带上 Bearer：未登录时用 publishable key，登录后用 access_token
-            "Authorization": "Bearer " + (token || cfg().anonKey),
-        };
+        return !!base();
     }
 
     // ---------- 凭证读写 ----------
@@ -72,7 +62,7 @@ window.Auth = (function () {
     }
 
     // ---------- 默认显示名：小窝第 N 成员 ----------
-    // N 优先用云端分配的 uid（登录后由 cloud.js 同步到本地）；
+    // N 优先用后端分配的 uid（登录后由 cloud.js 同步到本地）；
     // 没有云端编号时，退回本机随机编号（保证界面总有名字可显示）。
     function memberNo() {
         const cloudUid = window.Store.readJSON(window.Store.KEYS.uid, 0);
@@ -106,136 +96,39 @@ window.Auth = (function () {
         listeners.push(cb);
     }
 
-    // 把服务端的错误标识拼在正文后面，供 friendlyError 区分具体故障
-    function withCode(data) {
-        const code = data.error_code || data.code || "";
-        return code && String(code) !== "undefined" ? code : "";
-    }
+    // ---------- 请求封装 ----------
 
-    // 从错误响应里取出可读信息（英文 → 中文）
-    async function errorText(res) {
+    // POST 后端 JSON 接口；后端错误响应形如 { error_code, msg }，msg 已是中文
+    async function api(path, body, token) {
+        let res;
         try {
-            const data = await res.json();
-            const raw = data.msg || data.error_description || data.error || data.message || ("HTTP " + res.status);
-            const detail = data.detail || "";
-            const mark = withCode(data);
-            // 把状态码也拼进去：网关超时（504）这类响应体里往往没有可用字段，
-            // 光靠正文认不出来，得靠 "HTTP 504" 才能给出「服务暂时不可用」的提示
-            const combined = [raw, detail, mark, !res.ok ? "HTTP " + res.status : ""]
-                .filter(Boolean)
-                .join(" | ");
-            if (!res.ok) {
-                // 保留 error_id：Supabase 后台 Logs → Auth 里能按它查到这次发信失败的确切原因
-                console.warn("Auth 接口返回错误：", res.status, combined, data.error_id || "");
-            }
-            return friendlyError(combined);
+            res = await fetch(base() + path, {
+                method: "POST",
+                headers: Object.assign(
+                    { "Content-Type": "application/json" },
+                    token ? { "Authorization": "Bearer " + token } : {}
+                ),
+                body: JSON.stringify(body || {}),
+            });
         } catch (e) {
-            // 响应体不是 JSON（网关的 502/503/504 错误页通常是 HTML 或空的）→ 交给统一映射
-            return friendlyError("HTTP " + res.status);
+            throw new Error("连不上后端服务（" + base() + "），请确认 xingyue-api 已启动");
         }
-    }
-
-    // Supabase 的英文错误 → 中文提示
-    function friendlyError(raw) {
-        const m = String(raw || "");
-        const rules = [
-            // 发信相关：按服务端给的具体原因分开提示（都来自 Supabase SMTP 发信失败）
-            // 顺序要紧：先认「具体故障」，再兜底到笼统的发信失败，否则
-            // "Error sending email: 535 Authentication failed" 会被兜底规则吃掉。
-            // 注意端口写 587：Supabase 自定义 SMTP 走 STARTTLS，465（隐式 SSL）不支持
-            [/invalid (login|credentials).*(smtp|mail)|smtp.*(auth|login|credential|password).*(fail|invalid|incorrect)|535|authentication failed|username and password not accepted|bad credentials/i,
-                "验证码邮件发送失败：SMTP 授权码不正确（163 邮箱要填「授权码」，不是网页登录密码；过期了就重新生成）"],
-            [/could not connect|connection (timed out|refused|reset)|connect (timed out|refused)|network is unreachable|econnrefused|etimedout|starttls|handshake fail/i,
-                "验证码邮件发送失败：连不上 SMTP 服务器（端口应为 587 + STARTTLS；465 是隐式 SSL，Supabase 不支持）"],
-            [/sender.*(reject|not allowed|invalid|denied)|recipient.*(reject|not allowed|denied)|relay (access )?denied|mailbox unavailable|user unknown|domain.*(not (allowed|verified)|unverified)/i,
-                "验证码邮件发送失败：发件邮箱被 SMTP 服务器拒绝了（发件邮箱要和授权码所属账号完全一致）"],
-            [/error sending email|error sending confirmation email|error sending magic link/i,
-                "验证码邮件发送失败：请检查 Supabase 的 SMTP 配置（端口用 587，发件邮箱要和授权码所属账号完全一致）"],
-            [/error sending recovery email/i,
-                "找回密码邮件发送失败，请检查邮箱配置"],
-            // 密钥 / 配置
-            [/invalid api key|no api key found|invalid apikey/i,
-                "接口密钥无效：请检查 assets/data/supabase-config.js 里的配置"],
-            // 验证码
-            [/token has expired or is invalid|invalid token|otp_expired|invalid otp|invalid claim/i,
-                "验证码错误或已过期，请重新获取（验证码 10 分钟内有效）"],
-            [/email link is invalid or has expired/i,
-                "链接已失效，请重新获取验证码"],
-            // 频率限制
-            [/for security purposes.*after (\d+) seconds|only request this after (\d+) seconds/i,
-                "操作太频繁啦，请稍等一会儿再试"],
-            [/email rate limit exceeded|over_email_send_rate_limit|rate limit/i,
-                "验证码发送次数已达上限，请稍后再试"],
-            // 账号
-            [/user already registered/i,
-                "这个邮箱已经注册过了，直接登录就行（或点「忘记密码」重置）"],
-            [/signups not allowed/i,
-                "当前设置不允许注册新用户"],
-            [/unable to validate email|invalid format|email address.*invalid/i,
-                "邮箱格式不正确，请检查后重试"],
-            [/email not confirmed/i,
-                "邮箱还没有验证，请先完成邮箱验证"],
-            [/user not found/i,
-                "这个邮箱还没有注册过，先去注册一个吧"],
-            // 密码
-            [/invalid login credentials/i,
-                "邮箱或密码不正确，请检查后重试"],
-            [/password should be at least (\d+) characters/i,
-                "密码太短了，至少要 6 位"],
-            [/new password should be different/i,
-                "新密码不能和原密码一样"],
-            [/weak password|password.*too weak/i,
-                "密码强度太弱，换一个复杂点的吧"],
-            [/auth session missing|session.*not found|invalid refresh token/i,
-                "登录状态已失效，请重新登录"],
-            // 项目被暂停（Supabase 免费版 7 天没有任何请求就会自动暂停）
-            [/project .{0,12}(paused|inactive)|paused project|项目.{0,6}暂停/i,
-                "Supabase 项目处于「已暂停」状态：去 Supabase 后台把项目恢复（Restore / Restart project）后再试"],
-            // 服务端暂时不可用：刚唤醒 / 正在恢复时，网关会返回 502 / 503 / 504
-            [/HTTP 50[0-9]|bad gateway|service (temporarily )?unavailable|gateway time-?out|upstream (connect )?(error|timeout)/i,
-                "登录服务暂时不可用（Supabase 项目可能刚被唤醒、还在恢复中）：请等 1~2 分钟再试；" +
-                "如果一直这样，去 Supabase 后台确认项目状态是 Active，必要时点一下 Restart project"],
-            // 网络
-            [/failed to fetch|networkerror|load failed|network request failed/i,
-                "网络连接失败，请检查网络后重试"],
-        ];
-        for (const [re, text] of rules) {
-            if (re.test(m)) {
-                return text;
-            }
-        }
-        // 没匹配到：显示中文前缀 + 原文，方便排查
-        return "操作失败（" + m + "）";
-    }
-
-    // 带网络异常处理的 fetch
-    async function apiFetch(url, options) {
+        let data = null;
         try {
-            return await fetch(url, options);
+            data = await res.json();
         } catch (e) {
-            throw new Error("网络连接失败，请检查网络后重试");
+            // 非 JSON 响应
         }
-    }
-
-    // ---------- 发送验证码（登录 / 注册用）----------
-
-    async function sendCode(email) {
-        if (!isConfigured()) {
-            throw new Error("还没有配置 Supabase（见 assets/data/supabase-config.js）");
-        }
-        const res = await apiFetch(apiBase() + "/auth/v1/otp", {
-            method: "POST",
-            headers: headers(),
-            body: JSON.stringify({ email: email, create_user: true }),
-        });
         if (!res.ok) {
-            throw new Error(await errorText(res));
+            if (data && data.msg) {
+                throw new Error(data.msg);
+            }
+            throw new Error("请求失败（HTTP " + res.status + "）");
         }
-        return true;
+        return data;
     }
 
-    // ---------- 统一的凭证保存 ----------
-
+    // 统一的凭证保存（后端返回结构与原 Supabase 对齐）
     function saveSessionFromAuth(data, fallbackEmail) {
         writeSession({
             access_token: data.access_token,
@@ -243,121 +136,50 @@ window.Auth = (function () {
             expires_at: Date.now() + (data.expires_in || 3600) * 1000,
             email: (data.user && data.user.email) || fallbackEmail,
             user_id: data.user && data.user.id,
+            phone: (data.user && data.user.phone) || "",
         });
         emit();
         return current();
     }
 
-    // 校验验证码（type: email 登录 / signup 注册确认 / recovery 找回密码）
-    async function verifyToken(email, token, type) {
-        if (!isConfigured()) {
-            throw new Error("还没有配置 Supabase");
-        }
-        const res = await apiFetch(apiBase() + "/auth/v1/verify", {
-            method: "POST",
-            headers: headers(),
-            body: JSON.stringify({ email: email, token: token, type: type }),
-        });
-        if (!res.ok) {
-            throw new Error(await errorText(res));
-        }
-        return await res.json();
+    // ---------- 验证码 ----------
+
+    // scene：register 注册 / login 验证码登录 / reset 找回密码 / delete 注销
+    // 返回后端响应（本地调试 MAIL_DEV=true 时含 dev_code，可直接显示给用户）
+    async function sendCode(email, scene) {
+        return await api("/auth/send-code", { email: email, scene: scene || "login" });
     }
 
-    // ---------- 验证码登录 ----------
-
-    async function verifyCode(email, token) {
-        const data = await verifyToken(email, token, "email");
+    // 验证码登录（未注册邮箱会自动注册）
+    async function verifyCode(email, code) {
+        const data = await api("/auth/login-code", { email: email, code: code });
         return saveSessionFromAuth(data, email);
     }
 
     // ---------- 密码登录 ----------
 
-    async function signInWithPassword(email, password) {
-        if (!isConfigured()) {
-            throw new Error("还没有配置 Supabase");
+    async function signInWithPassword(account, password) {
+        const data = await api("/auth/login", { account: account, password: password });
+        return saveSessionFromAuth(data, account);
+    }
+
+    // ---------- 注册（邮箱 + 密码 + 验证码，手机号选填）----------
+    // 后端一次完成「验码 + 建号 + 发凭证」，成功即已登录
+
+    async function signUp(email, password, code, phone) {
+        const body = { email: email, password: password, code: code };
+        if (phone) {
+            body.phone = phone;
         }
-        const res = await apiFetch(apiBase() + "/auth/v1/token?grant_type=password", {
-            method: "POST",
-            headers: headers(),
-            body: JSON.stringify({ email: email, password: password }),
-        });
-        if (!res.ok) {
-            throw new Error(await errorText(res));
-        }
-        const data = await res.json();
+        const data = await api("/auth/register", body);
         return saveSessionFromAuth(data, email);
     }
 
-    // ---------- 注册（邮箱 + 密码）----------
-    // 返回 { needVerify: true } 表示还需要填邮件里的验证码
-    // 返回 { needVerify: false } 表示项目没开邮箱确认，已经直接登录了
+    // ---------- 找回密码（验证码 + 新密码一次提交，成功即已登录）----------
 
-    async function signUp(email, password) {
-        if (!isConfigured()) {
-            throw new Error("还没有配置 Supabase");
-        }
-        const res = await apiFetch(apiBase() + "/auth/v1/signup", {
-            method: "POST",
-            headers: headers(),
-            body: JSON.stringify({ email: email, password: password }),
-        });
-        if (!res.ok) {
-            throw new Error(await errorText(res));
-        }
-        const data = await res.json();
-        if (data.access_token) {
-            saveSessionFromAuth(data, email);
-            return { needVerify: false };
-        }
-        return { needVerify: true };
-    }
-
-    // 注册后的验证码确认（type: signup）
-    async function verifySignup(email, token) {
-        const data = await verifyToken(email, token, "signup");
+    async function resetPassword(email, code, password) {
+        const data = await api("/auth/reset-password", { email: email, code: code, password: password });
         return saveSessionFromAuth(data, email);
-    }
-
-    // ---------- 忘记密码 ----------
-
-    // 发重置密码邮件（邮件模板里的验证码来自 Reset password 模板）
-    async function sendRecovery(email) {
-        if (!isConfigured()) {
-            throw new Error("还没有配置 Supabase");
-        }
-        const res = await apiFetch(apiBase() + "/auth/v1/recover", {
-            method: "POST",
-            headers: headers(),
-            body: JSON.stringify({ email: email }),
-        });
-        if (!res.ok) {
-            throw new Error(await errorText(res));
-        }
-        return true;
-    }
-
-    // 用找回验证码换取临时登录态（type: recovery）
-    async function verifyRecovery(email, token) {
-        const data = await verifyToken(email, token, "recovery");
-        return saveSessionFromAuth(data, email);
-    }
-
-    // 修改当前登录用户的密码（需要已有登录凭证）
-    async function updatePassword(newPassword) {
-        const s = readSession();
-        if (!s || !s.access_token) {
-            throw new Error("登录状态已失效，请重新登录");
-        }
-        const res = await apiFetch(apiBase() + "/auth/v1/user", {
-            method: "PUT",
-            headers: headers(s.access_token),
-            body: JSON.stringify({ password: newPassword }),
-        });
-        if (!res.ok) {
-            throw new Error(await errorText(res));
-        }
-        return true;
     }
 
     // ---------- 刷新过期凭证 ----------
@@ -368,27 +190,22 @@ window.Auth = (function () {
             return null;
         }
         try {
-            const res = await apiFetch(apiBase() + "/auth/v1/token?grant_type=refresh_token", {
-                method: "POST",
-                headers: headers(),
-                body: JSON.stringify({ refresh_token: s.refresh_token }),
-            });
-            if (!res.ok) {
-                writeSession(null);
-                emit();
-                return null;
-            }
-            const data = await res.json();
+            const data = await api("/auth/refresh", { refresh_token: s.refresh_token });
             writeSession({
                 access_token: data.access_token,
                 refresh_token: data.refresh_token,
                 expires_at: Date.now() + (data.expires_in || 3600) * 1000,
                 email: (data.user && data.user.email) || s.email,
                 user_id: (data.user && data.user.id) || s.user_id,
+                phone: (data.user && data.user.phone) || s.phone || "",
             });
             emit();
             return current();
         } catch (e) {
+            if (/失效|重新登录|HTTP 4/.test(String(e.message || ""))) {
+                writeSession(null);
+                emit();
+            }
             return null; // 网络问题时保持现状
         }
     }
@@ -399,10 +216,7 @@ window.Auth = (function () {
         const s = readSession();
         if (s && s.access_token && isConfigured()) {
             try {
-                await apiFetch(apiBase() + "/auth/v1/logout", {
-                    method: "POST",
-                    headers: headers(s.access_token),
-                });
+                await api("/auth/logout", {}, s.access_token);
             } catch (e) {
                 // 网络失败也照样本地退出
             }
@@ -426,17 +240,13 @@ window.Auth = (function () {
         accessToken: accessToken,
         defaultDisplayName: defaultDisplayName,
         onChange: onChange,
-        sendCode: sendCode,
-        verifyCode: verifyCode,
+        init: init,
         refresh: refresh,
         signOut: signOut,
-        init: init,
-        // 密码 / 注册 / 找回密码
+        sendCode: sendCode,
+        verifyCode: verifyCode,
         signInWithPassword: signInWithPassword,
         signUp: signUp,
-        verifySignup: verifySignup,
-        sendRecovery: sendRecovery,
-        verifyRecovery: verifyRecovery,
-        updatePassword: updatePassword,
+        resetPassword: resetPassword,
     };
 })();

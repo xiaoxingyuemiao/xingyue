@@ -327,8 +327,10 @@ uDeleteSend.addEventListener("click", async () => {
     uDeleteSend.disabled = true;
     uDeleteSend.textContent = "…";
     try {
-        await window.Auth.sendCode(user.email);
-        uDeleteStatus.textContent = "验证码已发送到 " + user.email + "，请查收";
+        const res = await window.Auth.sendCode(user.email, "delete");
+        uDeleteStatus.textContent = res && res.dev_code
+            ? "本地调试验证码：" + res.dev_code
+            : "验证码已发送到 " + user.email + "，请查收";
         uDeleteCode.focus();
         startDeleteCountdown();
     } catch (e) {
@@ -361,19 +363,12 @@ uDeleteYes.addEventListener("click", async () => {
     uDeleteYes.disabled = true;
 
     try {
-        // 1. 验证密码（密码不对会报错）
-        uDeleteYes.textContent = "验证密码……";
-        await window.Auth.signInWithPassword(user.email, password);
-
-        // 2. 验证邮箱验证码
-        uDeleteYes.textContent = "验证验证码……";
-        await window.Auth.verifyCode(user.email, code);
-
-        // 3. 删除账号（数据库函数会把 uid 还回池子并级联删除数据）
+        // 后端一次校验「当前密码 + 注销验证码」，通过后回收 uid 并级联删除全部数据
         uDeleteYes.textContent = "注销中……";
-        if (window.Cloud && window.Cloud.isReady()) {
-            await window.Cloud.deleteAccount();
+        if (!window.Cloud || !window.Cloud.isReady()) {
+            throw new Error("未登录或未配置后端");
         }
+        await window.Cloud.deleteAccount(password, code);
 
         // 4. 清掉本地与这个账号有关的数据，回登录页
         localStorage.removeItem(USER_KEY);

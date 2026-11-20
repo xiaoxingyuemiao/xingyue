@@ -1,11 +1,12 @@
 // ================================
 // 云端同步模块（assets/js/cloud.js）
-// 用 Supabase 的 REST 接口读写「当前登录用户自己的」数据（配合数据库的行级安全 RLS）：
-//   profiles       用户资料：uid / 昵称 / 头像 / 签名
-//   user_settings  设置：API 提供商 + 我的角色（+ 用户选择同步的加密秘钥）
-//   chat_sessions  对话记录：按角色分组
+// 读写本地 xingyue-api 的「当前登录用户自己的」数据（/me/*，服务端按 token 强制过滤）：
+//   GET/PUT  /me/profile    用户资料：uid / 昵称 / 头像 / 签名
+//   GET/PUT  /me/settings   设置：API 提供商 + 我的角色（+ 用户选择同步的加密秘钥）
+//   GET/PUT  /me/sessions   对话记录：按角色分组
+//   POST     /me/delete     注销账号（需当前密码 + 邮箱验证码）
 //
-// 依赖：store.js（本地数据）、supabase-config.js（配置）、auth.js（拿登录凭证）
+// 依赖：store.js（本地数据）、api-config.js（后端地址）、auth.js（拿登录凭证）
 // 暴露：window.Cloud
 // ================================
 
@@ -13,13 +14,12 @@ window.Cloud = (function () {
 
     // ---------- 基础 ----------
 
-    function cfg() {
-        return window.SUPABASE_CONFIG || {};
+    function base() {
+        return (window.XY_API && window.XY_API.base) || "";
     }
 
     function isConfigured() {
-        const c = cfg();
-        return !!(c.url && c.anonKey);
+        return !!base();
     }
 
     // 已配置 + 已登录，才能读写云端
@@ -27,33 +27,33 @@ window.Cloud = (function () {
         return isConfigured() && !!window.Auth.current();
     }
 
-    function restBase() {
-        return String(cfg().url || "").replace(/\/+$/, "") + "/rest/v1/";
-    }
-
-    function authHeaders(extra) {
-        const token = (window.Auth.accessToken && window.Auth.accessToken()) || cfg().anonKey;
-        const base = {
-            "apikey": cfg().anonKey,
-            "Authorization": "Bearer " + token,
-            "Content-Type": "application/json",
-        };
-        return Object.assign(base, extra || {});
-    }
-
     async function request(path, options) {
         if (!isReady()) {
-            throw new Error("未登录或未配置云端");
+            throw new Error("未登录或未配置后端");
         }
-        const res = await fetch(restBase() + path, Object.assign({ headers: authHeaders() }, options || {}));
+        const opts = Object.assign({}, options || {});
+        opts.headers = Object.assign(
+            {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + window.Auth.accessToken(),
+            },
+            opts.headers || {}
+        );
+        let res;
+        try {
+            res = await fetch(base() + path, opts);
+        } catch (e) {
+            throw new Error("连不上后端服务（" + base() + "），请确认 xingyue-api 已启动");
+        }
         if (!res.ok) {
-            let detail = "";
+            let detail = "HTTP " + res.status;
             try {
-                detail = JSON.stringify(await res.json());
+                const data = await res.json();
+                detail = data.msg || detail;
             } catch (e) {
-                detail = "HTTP " + res.status;
+                // 非 JSON 响应
             }
-            throw new Error("云端请求失败：" + detail);
+            throw new Error(detail);
         }
         const text = await res.text();
         return text ? JSON.parse(text) : null;
@@ -61,63 +61,39 @@ window.Cloud = (function () {
 
     // ---------- 用户资料 ----------
 
-    // 读自己的资料行（返回 { uid, nickname, avatar, signature } 或 null）
+    // 读自己的资料（返回 { uid, nickname, avatar, signature }）
     async function profile() {
-        const user = window.Auth.current();
-        if (!user) {
+        if (!isReady()) {
             return null;
         }
-        const rows = await request("profiles?select=uid,nickname,avatar,signature&user_id=eq." + user.user_id);
-        return Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
+        return await request("/me/profile");
     }
 
-    // 保存资料：只更新自己那一行
-    // （行由数据库触发器在注册时创建；uid 只由数据库分配，前端不提供）
+    // 保存资料（uid 由后端分配，前端不提供）
     async function saveProfile(data) {
-        const user = window.Auth.current();
-        if (!user) {
-            throw new Error("未登录");
-        }
-        const rows = await request("profiles?user_id=eq." + user.user_id, {
-            method: "PATCH",
-            headers: authHeaders({ "Prefer": "return=representation" }),
+        return await request("/me/profile", {
+            method: "PUT",
             body: JSON.stringify({
                 nickname: data.nickname || "",
                 avatar: data.avatar || "",
                 signature: data.signature || "",
-                updated_at: new Date().toISOString(),
             }),
         });
-        if (!Array.isArray(rows) || rows.length === 0) {
-            throw new Error("云端还没有你的资料行（请在 Supabase SQL Editor 里执行 tools/supabase-schema.sql 的「补齐历史用户」那段）");
-        }
-        return rows[0];
     }
 
     // ---------- 用户设置（API 提供商 + 我的角色） ----------
 
     async function settings() {
-        const user = window.Auth.current();
-        if (!user) {
+        if (!isReady()) {
             return null;
         }
-        const rows = await request("user_settings?select=data&user_id=eq." + user.user_id);
-        return Array.isArray(rows) && rows.length > 0 ? (rows[0].data || {}) : null;
+        return await request("/me/settings");
     }
 
     async function saveSettings(data) {
-        const user = window.Auth.current();
-        if (!user) {
-            throw new Error("未登录");
-        }
-        await request("user_settings?on_conflict=user_id", {
-            method: "POST",
-            headers: authHeaders({ "Prefer": "resolution=merge-duplicates,return=minimal" }),
-            body: JSON.stringify({
-                user_id: user.user_id,
-                data: data || {},
-                updated_at: new Date().toISOString(),
-            }),
+        await request("/me/settings", {
+            method: "PUT",
+            body: JSON.stringify({ data: data || {} }),
         });
         return true;
     }
@@ -125,32 +101,19 @@ window.Cloud = (function () {
     // ---------- 对话记录 ----------
 
     async function sessions() {
-        const user = window.Auth.current();
-        if (!user) {
+        if (!isReady()) {
             return null;
         }
-        const rows = await request("chat_sessions?select=role_key,messages");
-        const out = {};
-        for (const row of rows || []) {
-            out[row.role_key] = row.messages || [];
-        }
-        return out;
+        return await request("/me/sessions");
     }
 
     async function saveSession(roleKey, messages) {
-        const user = window.Auth.current();
-        if (!user || !roleKey) {
+        if (!roleKey) {
             return false;
         }
-        await request("chat_sessions?on_conflict=user_id,role_key", {
-            method: "POST",
-            headers: authHeaders({ "Prefer": "resolution=merge-duplicates,return=minimal" }),
-            body: JSON.stringify({
-                user_id: user.user_id,
-                role_key: roleKey,
-                messages: messages || [],
-                updated_at: new Date().toISOString(),
-            }),
+        await request("/me/sessions", {
+            method: "PUT",
+            body: JSON.stringify({ role_key: roleKey, messages: messages || [] }),
         });
         return true;
     }
@@ -240,34 +203,20 @@ window.Cloud = (function () {
     }
 
     // ---------- 注销账号 ----------
-    // Supabase 不允许前端直接删自己的账号，所以调用数据库函数 delete_own_account()：
-    //   函数内部只删「当前登录者自己」那一行 → 触发释放 uid → 级联删除资料/设置/对话
-    async function deleteAccount() {
-        if (!isReady()) {
-            throw new Error("未登录或未配置云端");
-        }
-        const res = await fetch(String(cfg().url).replace(/\/+$/, "") + "/rest/v1/rpc/delete_own_account", {
+    // 后端一次校验「当前密码 + delete 场景邮箱验证码」，通过后回收 uid 并级联删除全部数据
+
+    async function deleteAccount(password, code) {
+        await request("/me/delete", {
             method: "POST",
-            headers: authHeaders({ "Prefer": "return=minimal" }),
-            body: JSON.stringify({}),
+            body: JSON.stringify({ password: password, code: code }),
         });
-        if (!res.ok) {
-            let detail = "";
-            try {
-                const data = await res.json();
-                detail = data.message || data.hint || JSON.stringify(data);
-            } catch (e) {
-                detail = "HTTP " + res.status;
-            }
-            throw new Error("注销失败：" + detail);
-        }
         return true;
     }
 
     // ================================
     // 秘钥加密（用户选择「同步到云端」时才用）
     // 密钥由 uid + 登录邮箱推导，前端可重建；数据库里存的是密文。
-    // 配合 RLS，别人本来就拿不到这行数据；加密是第二层防护。
+    // 服务端本来就只允许本人读写这行数据；加密是第二层防护。
     // ================================
 
     const FIELD_SALT = "xingyue-field-v1";

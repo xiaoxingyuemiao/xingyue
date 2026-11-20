@@ -10,8 +10,8 @@
 
 (function () {
 
-    // 后端地址：本地调试用 127.0.0.1:8000，上线改成正式域名
-    const API_BASE = "http://127.0.0.1:8000";
+    // 后端地址：统一读 assets/data/api-config.js（上线只改那一处）
+    const API_BASE = (window.XY_API && window.XY_API.base) || "http://127.0.0.1:8000";
 
     const PHONE_RE = /^1[3-9]\d{9}$/;
     const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
