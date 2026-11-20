@@ -148,6 +148,18 @@
     color: #888888;
 }
 
+/* 次要说明（比 tip 更轻一号） */
+.settings-tip-sm {
+    margin-top: 6px;
+
+    font-size: 13px;
+}
+
+/* 角色搜索框 */
+.role-search {
+    margin-top: 16px;
+}
+
 .settings-subtitle {
     margin: 28px 0 12px;
 
@@ -267,6 +279,15 @@
 
 .provider-btn:hover {
     filter: brightness(0.95);
+}
+
+/* 卡片右侧按钮组（编辑 / 删除并排，触屏可用） */
+.provider-card-actions {
+    display: flex;
+
+    gap: 8px;
+
+    flex-shrink: 0;
 }
 
 .provider-btn-del {
@@ -416,6 +437,21 @@
     gap: 10px;
 
     margin-top: 20px;
+}
+
+/* ---------- 通用站内确认弹窗（替代浏览器原生 confirm） ---------- */
+
+.modal-sm {
+    width: 340px;
+}
+
+.confirm-text {
+    margin: 4px 0 0;
+
+    font-size: 14px;
+    line-height: 1.7;
+
+    color: #555555;
 }
 
 .modal-status {
@@ -702,6 +738,15 @@
     min-width: 0;
 }
 
+/* 会话卡片右侧按钮组（导出 TXT / JSON / 删除） */
+.session-card-actions {
+    display: flex;
+
+    gap: 6px;
+
+    flex-shrink: 0;
+}
+
 .session-card-name {
     font-size: 16px;
     font-weight: bold;
@@ -737,6 +782,17 @@
 
 .session-card.expanded .session-card-body {
     display: flex;
+}
+
+/* 会话内按天分组的日期分隔 */
+.history-date {
+    margin: 8px 0 2px;
+
+    text-align: center;
+
+    font-size: 12px;
+
+    color: #999999;
 }
 
 .session-message {
@@ -1326,6 +1382,34 @@
         padding: 14px;
 
         gap: 10px;
+
+        /* 窄屏下按钮组换行，避免三个按钮把文字挤没 */
+        flex-wrap: wrap;
+    }
+
+    .provider-btn {
+        padding: 8px 10px;
+
+        font-size: 12px;
+    }
+
+    /* 会话卡片头：标题占一行，按钮组靠右可换行 */
+    .session-card-head {
+        flex-wrap: wrap;
+
+        gap: 8px;
+    }
+
+    .session-card-actions {
+        flex-wrap: wrap;
+
+        gap: 6px;
+    }
+
+    .history-item-btn {
+        padding: 7px 10px;
+
+        font-size: 12px;
     }
 
     /* ---------- 弹窗 ---------- */

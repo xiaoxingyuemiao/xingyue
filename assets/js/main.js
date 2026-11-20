@@ -1275,9 +1275,9 @@ function renderBubble() {
     }
 }
 
-// 写入历史并刷新气泡
+// 写入历史并刷新气泡（time 用于设置页按天分组显示）
 function addMessage(name, text, isUser) {
-    chatHistory.push({ name, text, isUser });
+    chatHistory.push({ name, text, isUser, time: Date.now() });
     saveChat();
     // 只有角色回复才刷新气泡：一轮对话在角色回复后整体显示
     if (!isUser) {

@@ -234,6 +234,10 @@
                         <span>把 API 秘钥加密同步到云端（换设备自动带回来）</span>
                     </label>
 
+                    <p class="settings-tip settings-tip-sm">
+                        说明：加密密钥由登录账号派生。换设备时请先登录同一个账号，再开启此选项，云端秘钥才能解开。
+                    </p>
+
                     <p class="modal-status" id="sync-key-status"></p>
 
                 </div>
@@ -253,11 +257,27 @@
                         没有选择自己的角色时，聊天默认使用网站的官方角色设定。
                     </p>
 
+                    <input class="settings-input role-search" id="role-search" type="text" placeholder="搜索角色（名字或设定内容）">
+
                     <div class="role-list" id="role-list"></div>
 
                     <button class="provider-add" id="role-add" type="button">
                         ＋ 添加角色
                     </button>
+
+                    <!-- 角色备份 / 分享：导出为 JSON 文件，可从文件导回 -->
+                    <div class="settings-actions">
+                        <button class="settings-btn" id="role-export" type="button">
+                            导出角色
+                        </button>
+                        <button class="settings-btn" id="role-import-btn" type="button">
+                            导入角色
+                        </button>
+                    </div>
+
+                    <input type="file" id="role-import-file" accept=".json,application/json" hidden>
+
+                    <p class="modal-status" id="role-io-status"></p>
 
                 </div>
 
@@ -271,9 +291,10 @@
                     </h2>
 
                     <p class="settings-tip">
-                        对话历史等重要隐私数据只保存在你的浏览器本地，不会上传。
+                        对话历史保存在你的浏览器本地；登录状态下会自动同步到星月小窝后端，
+                        换设备登录同账号即可带回。未登录时只留在本机，不会上传。
                         每个角色各自独立一份对话历史（切换角色会切换对应的历史），
-                        主页只显示最近一轮对话（气泡），历史记录全部保留在本地。
+                        主页只显示最近一轮对话（气泡），历史记录全部保留。
                     </p>
 
                     <label class="settings-label" for="keep-pairs">
@@ -287,10 +308,16 @@
                             保存
                         </button>
 
+                        <button class="settings-btn" id="history-import-btn" type="button">
+                            导入记录
+                        </button>
+
                         <button class="settings-btn settings-btn-danger" id="history-clear" type="button">
                             清空对话历史
                         </button>
                     </div>
+
+                    <input type="file" id="history-import-file" accept=".json,application/json" hidden>
 
                     <p class="modal-status" id="keep-status"></p>
 
@@ -464,6 +491,38 @@
                     </div>
 
                     <p class="modal-status" id="r-status"></p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ==================== 通用站内确认弹窗（替代浏览器原生 confirm） ==================== -->
+
+        <div class="modal-overlay" id="confirm-overlay">
+
+            <div class="modal modal-sm">
+
+                <div class="modal-header">
+
+                    <h3 id="confirm-title">请确认</h3>
+
+                    <button class="modal-close" id="confirm-close" type="button">
+                        ✕
+                    </button>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <p class="confirm-text" id="confirm-text"></p>
+
+                    <div class="modal-actions">
+                        <button class="settings-btn" id="confirm-cancel" type="button">取消</button>
+                        <button class="settings-btn settings-btn-danger" id="confirm-ok" type="button">确定</button>
+                    </div>
 
                 </div>
 
