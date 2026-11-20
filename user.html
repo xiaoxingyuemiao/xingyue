@@ -49,7 +49,7 @@
             <!-- 右侧内容 -->
             <section class="settings-main">
 
-                <!-- ========== 视图：个人资料（头像 / 昵称 / 签名 / 退出登录） ========== -->
+                <!-- ========== 视图：个人资料（基本资料 + 账号安全 两张卡片） ========== -->
 
                 <div class="settings-view" id="view-profile">
 
@@ -57,89 +57,155 @@
                         个人资料
                     </h2>
 
-<!-- 头像预览 -->
-                <div class="user-avatar-preview" id="avatar-preview">🐱</div>
+                    <!-- 分组一：基本资料（头像 / 昵称 / 签名，游客也可用，存本机） -->
+                    <section class="user-card">
 
-                <!-- 上传头像：图片会居中裁成正方形、缩到 128×128 存本地；
-                     不上传（或点「恢复默认头像」）就一直是默认头像 🐱 -->
-                <div class="user-avatar-actions">
-                    <button class="settings-btn" id="u-avatar-pick" type="button">
-                        设置头像
-                    </button>
-                    <button class="settings-btn" id="u-avatar-reset" type="button">
-                        恢复默认头像
-                    </button>
-                    <input id="u-avatar-file" type="file" accept="image/*" hidden>
-                </div>
+                        <h3 class="user-card-title">基本资料</h3>
 
+                        <!-- 头像预览 -->
+                        <div class="user-avatar-preview" id="avatar-preview">🐱</div>
 
-                <label class="settings-label" for="u-nickname">
-                    昵称（最多 12 个字符，留空则用「小窝第 N 成员」）
-                </label>
-
-                <input class="settings-input" id="u-nickname" type="text" maxlength="12" placeholder="最多十二个字符">
-
-
-                <label class="settings-label" for="u-signature">
-                    个性签名
-                </label>
-
-                <input class="settings-input" id="u-signature" type="text" placeholder="写点什么吧～">
-
-
-                <div class="settings-actions">
-                    <button class="settings-btn settings-btn-primary" id="u-save" type="button">
-                        保存
-                    </button>
-                </div>
-
-                <p class="modal-status" id="u-status"></p>
-
-                <!-- 退出登录：放在卡片最下方，点一下会先在原地问一次 -->
-                <div class="user-signout" id="u-signout-area" hidden>
-
-                    <button class="user-signout-btn" id="u-signout" type="button">
-                        退出登录
-                    </button>
-
-                    <div class="user-signout-confirm" id="u-signout-confirm" hidden>
-                        <span>确定要退出吗？</span>
-                        <button class="user-signout-yes" id="u-signout-yes" type="button">确定</button>
-                        <button class="user-signout-no" id="u-signout-no" type="button">取消</button>
-                    </div>
-
-                </div>
-
-                <!-- 注销账号（危险操作：账号和云端数据都会被删除，且无法恢复） -->
-                <div class="user-danger" id="u-danger-area" hidden>
-
-                    <button class="user-danger-btn" id="u-delete" type="button">
-                        注销账号
-                    </button>
-
-                    <div class="user-danger-confirm" id="u-delete-confirm" hidden>
-
-                        <p>注销后账号、云端资料、角色和对话记录都会被<strong>永久删除</strong>，且无法恢复。</p>
-
-                        <p class="user-danger-note">为了确认是你本人，请输入当前账号的密码和邮箱验证码：</p>
-
-                        <input class="settings-input" id="u-delete-password" type="password" placeholder="当前密码" autocomplete="current-password">
-
-                        <div class="user-danger-row">
-                            <input class="settings-input" id="u-delete-code" type="text" inputmode="numeric" maxlength="10" placeholder="邮箱验证码">
-                            <button class="settings-btn" id="u-delete-send" type="button">发送</button>
+                        <!-- 上传头像：图片会居中裁成正方形、缩到 128×128 存本地；
+                             不上传（或点「恢复默认头像」）就一直是默认头像 🐱 -->
+                        <div class="user-avatar-actions">
+                            <button class="settings-btn" id="u-avatar-pick" type="button">
+                                设置头像
+                            </button>
+                            <button class="settings-btn" id="u-avatar-reset" type="button">
+                                恢复默认头像
+                            </button>
+                            <input id="u-avatar-file" type="file" accept="image/*" hidden>
                         </div>
 
-                        <div class="user-danger-actions">
-                            <button class="user-danger-yes" id="u-delete-yes" type="button">确定注销</button>
-                            <button class="user-danger-no" id="u-delete-no" type="button">取消</button>
+                        <label class="settings-label" for="u-nickname">
+                            昵称（最多 12 个字符，留空则用「小窝第 N 成员」）
+                        </label>
+
+                        <input class="settings-input" id="u-nickname" type="text" maxlength="12" placeholder="最多十二个字符">
+
+                        <label class="settings-label" for="u-signature">
+                            个性签名
+                        </label>
+
+                        <input class="settings-input" id="u-signature" type="text" placeholder="写点什么吧～">
+
+                        <div class="settings-actions">
+                            <button class="settings-btn settings-btn-primary" id="u-save" type="button">
+                                保存
+                            </button>
                         </div>
 
-                        <p class="modal-status" id="u-delete-status"></p>
+                        <p class="modal-status" id="u-status"></p>
 
-                    </div>
+                    </section>
 
-                </div>
+                    <!-- 分组二：账号安全（登录后才显示：改邮箱 / 改密码 / 退出 / 注销） -->
+                    <section class="user-card" id="u-security-area" hidden>
+
+                        <h3 class="user-card-title">账号安全</h3>
+
+                        <p class="user-account-line">
+                            当前登录邮箱：<span class="user-account-email" id="u-email-text">—</span>
+                        </p>
+
+                        <!-- 改邮箱：当前密码 + 发往新邮箱的验证码 -->
+                        <div class="user-safe-item">
+
+                            <button class="settings-btn" id="u-email-toggle" type="button">修改邮箱</button>
+
+                            <div class="user-safe-form" id="u-email-form" hidden>
+
+                                <input class="settings-input" id="u-email-new" type="email" placeholder="新邮箱" autocomplete="email">
+
+                                <div class="user-safe-row">
+                                    <input class="settings-input" id="u-email-code" type="text" inputmode="numeric" maxlength="10" placeholder="新邮箱收到的验证码">
+                                    <button class="settings-btn" id="u-email-send" type="button">发送</button>
+                                </div>
+
+                                <input class="settings-input" id="u-email-password" type="password" placeholder="当前密码（验证身份用）" autocomplete="current-password">
+
+                                <div class="settings-actions">
+                                    <button class="settings-btn settings-btn-primary" id="u-email-submit" type="button">确认修改</button>
+                                    <button class="settings-btn" id="u-email-cancel" type="button">取消</button>
+                                </div>
+
+                                <p class="modal-status" id="u-email-status"></p>
+
+                            </div>
+
+                        </div>
+
+                        <!-- 改密码：当前密码 + 新密码（两次输入） -->
+                        <div class="user-safe-item">
+
+                            <button class="settings-btn" id="u-pwd-toggle" type="button">修改密码</button>
+
+                            <div class="user-safe-form" id="u-pwd-form" hidden>
+
+                                <input class="settings-input" id="u-pwd-old" type="password" placeholder="当前密码（验证码注册的账号没设过密码，可留空）" autocomplete="current-password">
+
+                                <input class="settings-input" id="u-pwd-new" type="password" placeholder="新密码（至少 8 位，含字母和数字）" autocomplete="new-password">
+
+                                <input class="settings-input" id="u-pwd-new2" type="password" placeholder="再次输入新密码" autocomplete="new-password">
+
+                                <div class="settings-actions">
+                                    <button class="settings-btn settings-btn-primary" id="u-pwd-save" type="button">保存新密码</button>
+                                    <button class="settings-btn" id="u-pwd-cancel" type="button">取消</button>
+                                </div>
+
+                                <p class="modal-status" id="u-pwd-status"></p>
+
+                            </div>
+
+                        </div>
+
+                        <!-- 退出登录：放在卡片最下方，点一下会先在原地问一次 -->
+                        <div class="user-signout" id="u-signout-area" hidden>
+
+                            <button class="user-signout-btn" id="u-signout" type="button">
+                                退出登录
+                            </button>
+
+                            <div class="user-signout-confirm" id="u-signout-confirm" hidden>
+                                <span>确定要退出吗？</span>
+                                <button class="user-signout-yes" id="u-signout-yes" type="button">确定</button>
+                                <button class="user-signout-no" id="u-signout-no" type="button">取消</button>
+                            </div>
+
+                        </div>
+
+                        <!-- 注销账号（危险操作：账号和云端数据都会被删除，且无法恢复） -->
+                        <div class="user-danger" id="u-danger-area" hidden>
+
+                            <button class="user-danger-btn" id="u-delete" type="button">
+                                注销账号
+                            </button>
+
+                            <div class="user-danger-confirm" id="u-delete-confirm" hidden>
+
+                                <p>注销后账号、云端资料、角色和对话记录都会被<strong>永久删除</strong>，且无法恢复。</p>
+
+                                <p class="user-danger-note">为了确认是你本人，请输入当前账号的密码和邮箱验证码：</p>
+
+                                <input class="settings-input" id="u-delete-password" type="password" placeholder="当前密码" autocomplete="current-password">
+
+                                <div class="user-danger-row">
+                                    <input class="settings-input" id="u-delete-code" type="text" inputmode="numeric" maxlength="10" placeholder="邮箱验证码">
+                                    <button class="settings-btn" id="u-delete-send" type="button">发送</button>
+                                </div>
+
+                                <div class="user-danger-actions">
+                                    <button class="user-danger-yes" id="u-delete-yes" type="button">确定注销</button>
+                                    <button class="user-danger-no" id="u-delete-no" type="button">取消</button>
+                                </div>
+
+                                <p class="modal-status" id="u-delete-status"></p>
+
+                            </div>
+
+                        </div>
+
+                    </section>
 
                 </div>
 

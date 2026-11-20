@@ -1153,6 +1153,94 @@
     background-color: #e3e8ee;
 }
 
+/* ---------- 个人资料分组卡片（基本资料 / 账号安全） ---------- */
+
+.user-card {
+    box-sizing: border-box;
+
+    margin-top: 20px;
+    padding: 22px 24px;
+
+    background-color: var(--surface-color);
+
+    border: 1px solid #eeeeee;
+    border-radius: 18px;
+
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+}
+
+.user-card-title {
+    margin: 0 0 6px;
+
+    font-size: 16px;
+
+    color: var(--main-color);
+}
+
+.user-account-line {
+    margin: 8px 0 0;
+
+    font-size: 14px;
+
+    color: #888888;
+}
+
+.user-account-email {
+    color: var(--text-color);
+
+    user-select: text;
+}
+
+.user-safe-item {
+    margin-top: 16px;
+}
+
+.user-safe-item > .settings-btn {
+    width: 100%;
+}
+
+.user-safe-form {
+    margin-top: 12px;
+}
+
+.user-safe-form[hidden] {
+    display: none;
+}
+
+.user-safe-form .settings-input {
+    margin-bottom: 10px;
+}
+
+/* 验证码一行：输入框自适应 + 右侧发送按钮（与注销区 user-danger-row 同款） */
+.user-safe-row {
+    display: flex;
+    align-items: stretch;
+
+    gap: 8px;
+
+    margin-bottom: 10px;
+}
+
+.user-safe-row .settings-input {
+    flex: 1;
+
+    margin-bottom: 0;
+
+    height: 40px;
+
+    box-sizing: border-box;
+}
+
+.user-safe-row .settings-btn {
+    min-width: 64px;
+
+    flex-shrink: 0;
+
+    height: 40px;
+
+    box-sizing: border-box;
+}
+
 /* ==============================
    手机端适配（设置页 / 个人中心）
    ============================== */
@@ -1265,5 +1353,13 @@
         height: 72px;
 
         font-size: 36px;
+    }
+
+    /* ---------- 个人资料分组卡片 ---------- */
+
+    .user-card {
+        padding: 18px 16px;
+
+        border-radius: 16px;
     }
 }

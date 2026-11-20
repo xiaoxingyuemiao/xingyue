@@ -1,7 +1,8 @@
 // ================================
 // 登录态模块（assets/js/auth.js）
 // 对接本地 xingyue-api（ThinkPHP 8）的 /auth/* 接口（原生 fetch，无需 SDK）：
-//   POST /auth/send-code       发送邮箱验证码（scene：register / login / reset / delete）
+//   POST /auth/send-code       发送邮箱验证码（scene：register / login / reset / delete / change_email）
+//   PUT  /auth/password        修改密码（需登录，带当前密码）
 //   POST /auth/login           邮箱或手机号 + 密码登录
 //   POST /auth/login-code      邮箱验证码登录（未注册邮箱自动注册）
 //   POST /auth/register        注册（邮箱 + 密码 + 验证码，手机号选填）
@@ -98,12 +99,12 @@ window.Auth = (function () {
 
     // ---------- 请求封装 ----------
 
-    // POST 后端 JSON 接口；后端错误响应形如 { error_code, msg }，msg 已是中文
-    async function api(path, body, token) {
+    // 通用请求封装（默认 POST）；后端错误响应形如 { error_code, msg }，msg 已是中文
+    async function api(path, body, token, method) {
         let res;
         try {
             res = await fetch(base() + path, {
-                method: "POST",
+                method: method || "POST",
                 headers: Object.assign(
                     { "Content-Type": "application/json" },
                     token ? { "Authorization": "Bearer " + token } : {}
@@ -144,7 +145,7 @@ window.Auth = (function () {
 
     // ---------- 验证码 ----------
 
-    // scene：register 注册 / login 验证码登录 / reset 找回密码 / delete 注销
+    // scene：register 注册 / login 验证码登录 / reset 找回密码 / delete 注销 / change_email 改邮箱（发往新邮箱）
     // 返回后端响应（本地调试 MAIL_DEV=true 时含 dev_code，可直接显示给用户）
     async function sendCode(email, scene) {
         return await api("/auth/send-code", { email: email, scene: scene || "login" });
@@ -180,6 +181,39 @@ window.Auth = (function () {
     async function resetPassword(email, code, password) {
         const data = await api("/auth/reset-password", { email: email, code: code, password: password });
         return saveSessionFromAuth(data, email);
+    }
+
+    // ---------- 账号安全（需登录） ----------
+
+    function requireSession() {
+        const s = readSession();
+        if (!s || !s.access_token) {
+            throw new Error("登录状态已失效，请重新登录");
+        }
+        return s;
+    }
+
+    // 修改密码：后端校验当前密码（验证码登录、从未设过密码的账号可直接设置）
+    async function changePassword(currentPassword, newPassword) {
+        const s = requireSession();
+        await api("/auth/password",
+            { current_password: currentPassword, password: newPassword },
+            s.access_token, "PUT");
+    }
+
+    // 改邮箱：当前密码 + 发往新邮箱的验证码；成功后把本地会话里的邮箱也换掉
+    async function changeEmail(newEmail, code, password) {
+        const s = requireSession();
+        const data = await api("/me/email",
+            { email: newEmail, code: code, password: password },
+            s.access_token);
+        const next = Object.assign({}, s, { email: data.email || newEmail });
+        if (data.user && data.user.id) {
+            next.user_id = data.user.id;
+        }
+        writeSession(next);
+        emit();
+        return data;
     }
 
     // ---------- 刷新过期凭证 ----------
@@ -248,5 +282,7 @@ window.Auth = (function () {
         signInWithPassword: signInWithPassword,
         signUp: signUp,
         resetPassword: resetPassword,
+        changePassword: changePassword,
+        changeEmail: changeEmail,
     };
 })();

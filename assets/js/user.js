@@ -1,7 +1,9 @@
 // ================================
 // 用户设置页（assets/js/user.js）
-// 头像（可上传图片，默认 🐱）/ 昵称 / 个性签名，保存在浏览器本地；
-// 首页侧边栏会自动读取显示；已登录时页面顶部显示邮箱账号
+// 「基本资料」卡：头像 / 昵称 / 个性签名，保存在浏览器本地，已登录时同步云端；
+// 「账号安全」卡（登录后显示）：修改邮箱（当前密码+新邮箱验证码）、
+// 修改密码（当前密码+新密码）、退出登录、注销账号；
+// 首页侧边栏会自动读取显示；当前登录邮箱显示在卡片顶部
 // ================================
 
 const USER_KEY = window.Store.KEYS.user;
@@ -28,6 +30,29 @@ const uDelete = document.querySelector("#u-delete");
 const uDeleteConfirm = document.querySelector("#u-delete-confirm");
 const uDeleteYes = document.querySelector("#u-delete-yes");
 const uDeleteNo = document.querySelector("#u-delete-no");
+
+// 账号安全卡片（改邮箱 / 改密码；整卡仅登录后可见）
+const uSecurityArea = document.querySelector("#u-security-area");
+const uEmailText = document.querySelector("#u-email-text");
+
+const uEmailToggle = document.querySelector("#u-email-toggle");
+const uEmailForm = document.querySelector("#u-email-form");
+const uEmailNew = document.querySelector("#u-email-new");
+const uEmailCode = document.querySelector("#u-email-code");
+const uEmailSend = document.querySelector("#u-email-send");
+const uEmailPassword = document.querySelector("#u-email-password");
+const uEmailSubmit = document.querySelector("#u-email-submit");
+const uEmailCancel = document.querySelector("#u-email-cancel");
+const uEmailStatus = document.querySelector("#u-email-status");
+
+const uPwdToggle = document.querySelector("#u-pwd-toggle");
+const uPwdForm = document.querySelector("#u-pwd-form");
+const uPwdOld = document.querySelector("#u-pwd-old");
+const uPwdNew = document.querySelector("#u-pwd-new");
+const uPwdNew2 = document.querySelector("#u-pwd-new2");
+const uPwdSave = document.querySelector("#u-pwd-save");
+const uPwdCancel = document.querySelector("#u-pwd-cancel");
+const uPwdStatus = document.querySelector("#u-pwd-status");
 
 const DEFAULT_AVATAR = "🐱"; // 默认头像：没上传过图片时用它
 const AVATAR_SIZE = 128; // 上传的图片会居中裁成正方形并缩到这个尺寸再保存
@@ -61,9 +86,20 @@ function renderAvatarPreview() {
     renderUserAvatar(avatarPreview, pickedAvatar || savedAvatar);
 }
 
-// 顶部不再显示登录状态；「退出登录」整块只在登录后出现，且每次都回到未确认状态
+// 「账号安全」整卡（含改邮箱/改密码/退出/注销）只在登录后出现，收起各表单回到初始状态
 function renderAccount() {
     const user = window.Auth && window.Auth.current ? window.Auth.current() : null;
+
+    if (uSecurityArea) {
+        uSecurityArea.hidden = !user;
+    }
+    if (uEmailText) {
+        uEmailText.textContent = user ? user.email : "—";
+    }
+    if (!user) {
+        closeEmailForm();
+        closePwdForm();
+    }
 
     if (uSignoutArea) {
         uSignoutArea.hidden = !user;
@@ -71,7 +107,7 @@ function renderAccount() {
         uSignoutConfirm.hidden = true;
     }
 
-    // 「注销账号」整块同理：未登录就不该出现（否则点了只会提示登录状态已失效）
+    // 「注销账号」同理：未登录就不该出现（否则点了只会提示登录状态已失效）
     if (uDangerArea) {
         uDangerArea.hidden = !user;
         uDelete.hidden = false;
@@ -263,42 +299,214 @@ uSave.addEventListener("click", async () => {
     }
 });
 
-// ---------- 注销账号（危险操作：先验密码 + 邮箱验证码） ----------
+// ---------- 账号安全：修改邮箱 / 修改密码 ----------
 
-const uDeletePassword = document.querySelector("#u-delete-password");
-const uDeleteCode = document.querySelector("#u-delete-code");
-const uDeleteSend = document.querySelector("#u-delete-send");
-const uDeleteStatus = document.querySelector("#u-delete-status");
+// 邮箱格式先在本机粗检一遍（最终以服务端校验为准），避免空跑一次发送
+function isEmailLike(value) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
+}
 
-let deleteTimer = null;
+// 强度规则和登录页一致（main.js 的 passwordProblem 同逻辑，加前缀避免同页覆盖）
+function userPasswordProblem(pwd) {
+    const value = String(pwd || "");
+    if (value.length < 8) {
+        return "密码至少 8 位";
+    }
+    if (!/[A-Za-z]/.test(value) || !/\d/.test(value)) {
+        return "密码要同时包含字母和数字";
+    }
+    return "";
+}
 
-function startDeleteCountdown() {
-    if (deleteTimer) {
-        clearInterval(deleteTimer);
+// 验证码 60 秒重发倒计时（改邮箱 / 注销共用，每个按钮各一个）
+const sendTimers = { email: null, del: null };
+
+function startCountdown(btn, which) {
+    if (sendTimers[which]) {
+        clearInterval(sendTimers[which]);
     }
     let left = 60;
-    uDeleteSend.disabled = true;
-    uDeleteSend.textContent = left + "s";
-    deleteTimer = setInterval(() => {
+    btn.disabled = true;
+    btn.textContent = left + "s";
+    sendTimers[which] = setInterval(() => {
         left--;
         if (left <= 0) {
-            clearInterval(deleteTimer);
-            deleteTimer = null;
-            uDeleteSend.disabled = false;
-            uDeleteSend.textContent = "发送";
+            clearInterval(sendTimers[which]);
+            sendTimers[which] = null;
+            btn.disabled = false;
+            btn.textContent = "发送";
         } else {
-            uDeleteSend.textContent = left + "s";
+            btn.textContent = left + "s";
         }
     }, 1000);
 }
 
 // 离开页面时收掉倒计时（不然它会一直空转到 60 秒）
 window.addEventListener("pagehide", (event) => {
-    if (!event.persisted && deleteTimer) {
-        clearInterval(deleteTimer);
-        deleteTimer = null;
+    if (event.persisted) {
+        return;
+    }
+    for (const which of Object.keys(sendTimers)) {
+        if (sendTimers[which]) {
+            clearInterval(sendTimers[which]);
+            sendTimers[which] = null;
+        }
     }
 });
+
+// 改邮箱表单：收起并清掉敏感输入（验证码留着没意义）
+function closeEmailForm() {
+    if (!uEmailForm) {
+        return;
+    }
+    uEmailForm.hidden = true;
+    uEmailToggle.hidden = false;
+    uEmailCode.value = "";
+    uEmailPassword.value = "";
+}
+
+uEmailToggle.addEventListener("click", () => {
+    uEmailToggle.hidden = true;
+    uEmailForm.hidden = false;
+    uEmailStatus.textContent = "";
+    uEmailNew.value = "";
+    uEmailCode.value = "";
+    uEmailPassword.value = "";
+    uEmailNew.focus();
+});
+
+uEmailCancel.addEventListener("click", closeEmailForm);
+
+// 发送验证码到新邮箱（scene=change_email；服务端会拒绝已注册的邮箱）
+uEmailSend.addEventListener("click", async () => {
+    const email = uEmailNew.value.trim().toLowerCase();
+    const user = window.Auth.current();
+
+    if (!user) {
+        uEmailStatus.textContent = "登录状态已失效，请重新登录";
+        return;
+    }
+    if (!isEmailLike(email)) {
+        uEmailStatus.textContent = "请先填写正确的「新邮箱」，再发送验证码";
+        return;
+    }
+    if (email === String(user.email).toLowerCase()) {
+        uEmailStatus.textContent = "新邮箱和当前邮箱一样，不用改啦";
+        return;
+    }
+
+    uEmailSend.disabled = true;
+    uEmailSend.textContent = "…";
+    try {
+        const res = await window.Auth.sendCode(email, "change_email");
+        uEmailStatus.textContent = res && res.dev_code
+            ? "本地调试验证码：" + res.dev_code
+            : "验证码已发送到 " + email + "，请查收";
+        uEmailCode.focus();
+        startCountdown(uEmailSend, "email");
+    } catch (e) {
+        uEmailStatus.textContent = e.message || "发送失败，请稍后再试";
+        uEmailSend.disabled = false;
+        uEmailSend.textContent = "发送";
+    }
+});
+
+// 确认修改：新邮箱 + 验证码 + 当前密码，一次提交
+uEmailSubmit.addEventListener("click", async () => {
+    const email = uEmailNew.value.trim().toLowerCase();
+    const code = uEmailCode.value.trim();
+    const password = uEmailPassword.value;
+
+    if (!isEmailLike(email)) {
+        uEmailStatus.textContent = "新邮箱格式不正确，请检查后重试";
+        return;
+    }
+    if (!/^\d{4,10}$/.test(code)) {
+        uEmailStatus.textContent = "请先点「发送」，再填入新邮箱收到的验证码";
+        return;
+    }
+    if (!password) {
+        uEmailStatus.textContent = "请输入当前密码（验证身份用）";
+        return;
+    }
+
+    uEmailSubmit.disabled = true;
+    uEmailSubmit.textContent = "提交中……";
+    try {
+        const data = await window.Auth.changeEmail(email, code, password);
+        // 会话里的邮箱已由 auth.js 更新，这里只刷新显示；表单留着让用户看到成功提示
+        renderAccount();
+        uEmailCode.value = "";
+        uEmailPassword.value = "";
+        uEmailStatus.textContent = "✓ 邮箱已改为 " + (data.email || email) + "，以后请用新邮箱登录";
+    } catch (e) {
+        uEmailStatus.textContent = "✗ " + (e.message || "修改失败，请稍后再试");
+    } finally {
+        uEmailSubmit.disabled = false;
+        uEmailSubmit.textContent = "确认修改";
+    }
+});
+
+// 改密码表单
+function closePwdForm() {
+    if (!uPwdForm) {
+        return;
+    }
+    uPwdForm.hidden = true;
+    uPwdToggle.hidden = false;
+    uPwdOld.value = "";
+    uPwdNew.value = "";
+    uPwdNew2.value = "";
+}
+
+uPwdToggle.addEventListener("click", () => {
+    uPwdToggle.hidden = true;
+    uPwdForm.hidden = false;
+    uPwdStatus.textContent = "";
+    uPwdOld.value = "";
+    uPwdNew.value = "";
+    uPwdNew2.value = "";
+    uPwdOld.focus();
+});
+
+uPwdCancel.addEventListener("click", closePwdForm);
+
+uPwdSave.addEventListener("click", async () => {
+    const oldPwd = uPwdOld.value;
+    const newPwd = uPwdNew.value;
+
+    const problem = userPasswordProblem(newPwd);
+    if (problem) {
+        uPwdStatus.textContent = problem;
+        return;
+    }
+    if (newPwd !== uPwdNew2.value) {
+        uPwdStatus.textContent = "两次输入的新密码不一样，请检查后再保存";
+        return;
+    }
+
+    uPwdSave.disabled = true;
+    uPwdSave.textContent = "保存中……";
+    try {
+        await window.Auth.changePassword(oldPwd, newPwd);
+        uPwdOld.value = "";
+        uPwdNew.value = "";
+        uPwdNew2.value = "";
+        uPwdStatus.textContent = "✓ 密码已更新，下次登录请用新密码";
+    } catch (e) {
+        uPwdStatus.textContent = "✗ " + (e.message || "修改失败，请稍后再试");
+    } finally {
+        uPwdSave.disabled = false;
+        uPwdSave.textContent = "保存新密码";
+    }
+});
+
+// ---------- 注销账号（危险操作：先验密码 + 邮箱验证码） ----------
+
+const uDeletePassword = document.querySelector("#u-delete-password");
+const uDeleteCode = document.querySelector("#u-delete-code");
+const uDeleteSend = document.querySelector("#u-delete-send");
+const uDeleteStatus = document.querySelector("#u-delete-status");
 
 uDelete.addEventListener("click", () => {
     uDelete.hidden = true;
@@ -332,7 +540,7 @@ uDeleteSend.addEventListener("click", async () => {
             ? "本地调试验证码：" + res.dev_code
             : "验证码已发送到 " + user.email + "，请查收";
         uDeleteCode.focus();
-        startDeleteCountdown();
+        startCountdown(uDeleteSend, "del");
     } catch (e) {
         uDeleteStatus.textContent = e.message || "发送失败，请稍后再试";
         uDeleteSend.disabled = false;
