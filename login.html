@@ -5,6 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>登录 · 星月小窝</title>
 
+        <link rel="stylesheet" href="assets/css/style.css">
         <link rel="stylesheet" href="assets/css/login.css">
 
         <link rel="icon" href="images/wangzhanmeiye.png">
@@ -12,111 +13,104 @@
 
     <body>
 
-        <!-- 暗黑风登录页：邮箱 / 手机号 + 密码登录，对接 xingyue-api 后端 -->
-        <div class="login-screen">
+        <!-- 登录页：样式以 index.html 起始屏为基准（整屏插画轮播 + 压暗层 + 白色卡片） -->
+        <div class="auth-screen">
 
-            <!-- 背景插画 + 压暗层（暗黑主题） -->
-            <div class="login-bg"></div>
-            <div class="login-overlay"></div>
+            <!-- 背景：星瑶 / 月瓷 轮播，与 index 同一套动画 -->
+            <div class="auth-bg">
+                <img class="auth-bg-img" src="images/xingyao-bg.jpg" alt="">
+                <img class="auth-bg-img" src="images/yueci-bg.jpg" alt="">
+            </div>
 
-            <div class="login-wrap">
+            <!-- 压暗一层，白卡片和文字才看得清 -->
+            <div class="auth-overlay"></div>
 
-                <div class="login-brand">
-                    <span class="login-brand-star">🌙</span>
-                    <span class="login-brand-name">星月小窝</span>
+            <!-- 登录卡：账号可以是邮箱或手机号 -->
+            <div class="auth-box" id="login-card">
+
+                <h1>登录</h1>
+
+                <input class="auth-input" id="login-account" type="text" placeholder="邮箱 / 手机号" autocomplete="username" inputmode="email">
+
+                <div class="auth-pwd">
+                    <input class="auth-input" id="login-password" type="password" placeholder="密码" autocomplete="current-password">
+                    <button class="auth-eye" type="button" data-target="login-password" aria-label="显示密码"></button>
                 </div>
 
-                <!-- 登录卡：账号可以是邮箱或手机号 -->
-                <div class="login-card" id="login-card">
+                <button class="auth-btn-primary" id="login-submit" type="button">登录</button>
 
-                    <h1>登录</h1>
-                    <p class="login-sub">邮箱或手机号都可以</p>
-
-                    <input class="login-input" id="login-account" type="text" placeholder="邮箱 / 手机号" autocomplete="username" inputmode="email">
-
-                    <div class="login-pwd">
-                        <input class="login-input" id="login-password" type="password" placeholder="密码" autocomplete="current-password">
-                        <button class="login-eye" type="button" data-target="login-password" aria-label="显示密码"></button>
-                    </div>
-
-                    <button class="login-btn-primary" id="login-submit" type="button">登录</button>
-
-                    <div class="login-links-row">
-                        <button class="login-link" id="login-to-forgot" type="button">忘记密码？</button>
-                        <button class="login-link" id="login-to-register" type="button">没有账号？去注册</button>
-                    </div>
-
-                    <a class="login-link login-guest" id="login-guest" href="index.html">先随便逛逛（游客进入）→</a>
-
-                    <div class="login-msg" id="login-msg"></div>
-
-                    <a class="login-btn-primary login-enter" id="login-enter" href="index.html" hidden>进入小窝 →</a>
-
+                <div class="auth-links-row">
+                    <button class="auth-link" id="login-to-forgot" type="button">忘记密码？</button>
+                    <button class="auth-link" id="login-to-register" type="button">没有账号？去注册</button>
                 </div>
 
-                <!-- 注册卡：邮箱 + 密码 + 验证码，手机号可选填 -->
-                <div class="login-card" id="register-card" hidden>
+                <a class="auth-link" id="login-guest" href="index.html">先随便逛逛（游客进入）</a>
 
-                    <h1>注册</h1>
-                    <p class="login-sub">手机号选填，填了以后就能用手机号登录</p>
+                <div class="auth-msg" id="login-msg"></div>
 
-                    <input class="login-input" id="reg-email" type="email" placeholder="邮箱" autocomplete="email">
+                <a class="auth-btn-primary auth-enter" id="login-enter" href="index.html" hidden>进入小窝 →</a>
 
-                    <input class="login-input" id="reg-phone" type="tel" placeholder="手机号（选填）" autocomplete="tel" inputmode="numeric" maxlength="11">
+            </div>
 
-                    <div class="login-pwd">
-                        <input class="login-input" id="reg-password" type="password" placeholder="密码（至少 8 位，含字母和数字）" autocomplete="new-password">
-                        <button class="login-eye" type="button" data-target="reg-password" aria-label="显示密码"></button>
-                    </div>
+            <!-- 注册卡：邮箱 + 密码 + 验证码，手机号选填 -->
+            <div class="auth-box" id="register-card" hidden>
 
-                    <div class="login-pwd">
-                        <input class="login-input" id="reg-password2" type="password" placeholder="再次输入密码" autocomplete="new-password">
-                        <button class="login-eye" type="button" data-target="reg-password2" aria-label="显示密码"></button>
-                    </div>
+                <h1>注册</h1>
 
-                    <div class="login-row">
-                        <input class="login-input" id="reg-code" type="text" inputmode="numeric" maxlength="6" placeholder="邮箱验证码">
-                        <button class="login-btn-soft" id="reg-send" type="button">发送</button>
-                    </div>
+                <input class="auth-input" id="reg-email" type="email" placeholder="邮箱" autocomplete="email">
 
-                    <button class="login-btn-primary" id="reg-submit" type="button">注册</button>
+                <input class="auth-input" id="reg-phone" type="tel" placeholder="手机号（选填，填后可用手机号登录）" autocomplete="tel" inputmode="numeric" maxlength="11">
 
-                    <button class="login-link" id="reg-to-login" type="button">已经有账号了？去登录</button>
-
-                    <div class="login-msg" id="reg-msg"></div>
-
+                <div class="auth-pwd">
+                    <input class="auth-input" id="reg-password" type="password" placeholder="密码（至少 8 位，含字母和数字）" autocomplete="new-password">
+                    <button class="auth-eye" type="button" data-target="reg-password" aria-label="显示密码"></button>
                 </div>
 
-                <!-- 找回密码卡：邮箱验证码 → 新密码 -->
-                <div class="login-card" id="forgot-card" hidden>
-
-                    <h1>重置密码</h1>
-                    <p class="login-sub">验证码会发到注册邮箱</p>
-
-                    <input class="login-input" id="fg-email" type="email" placeholder="邮箱" autocomplete="email">
-
-                    <div class="login-row">
-                        <input class="login-input" id="fg-code" type="text" inputmode="numeric" maxlength="6" placeholder="邮箱验证码">
-                        <button class="login-btn-soft" id="fg-send" type="button">发送</button>
-                    </div>
-
-                    <div class="login-pwd">
-                        <input class="login-input" id="fg-password" type="password" placeholder="新密码（至少 8 位，含字母和数字）" autocomplete="new-password">
-                        <button class="login-eye" type="button" data-target="fg-password" aria-label="显示密码"></button>
-                    </div>
-
-                    <div class="login-pwd">
-                        <input class="login-input" id="fg-password2" type="password" placeholder="再次输入新密码" autocomplete="new-password">
-                        <button class="login-eye" type="button" data-target="fg-password2" aria-label="显示密码"></button>
-                    </div>
-
-                    <button class="login-btn-primary" id="fg-submit" type="button">重置密码</button>
-
-                    <button class="login-link" id="fg-back" type="button">← 返回登录</button>
-
-                    <div class="login-msg" id="fg-msg"></div>
-
+                <div class="auth-pwd">
+                    <input class="auth-input" id="reg-password2" type="password" placeholder="再次输入密码" autocomplete="new-password">
+                    <button class="auth-eye" type="button" data-target="reg-password2" aria-label="显示密码"></button>
                 </div>
+
+                <div class="auth-row">
+                    <input class="auth-input" id="reg-code" type="text" inputmode="numeric" maxlength="6" placeholder="邮箱验证码">
+                    <button class="auth-btn-soft auth-btn-inline" id="reg-send" type="button">发送</button>
+                </div>
+
+                <button class="auth-btn-primary" id="reg-submit" type="button">注册</button>
+
+                <button class="auth-link" id="reg-to-login" type="button">已经有账号了？去登录</button>
+
+                <div class="auth-msg" id="reg-msg"></div>
+
+            </div>
+
+            <!-- 找回密码卡：邮箱验证码 → 新密码 -->
+            <div class="auth-box" id="forgot-card" hidden>
+
+                <h1>重置密码</h1>
+
+                <input class="auth-input" id="fg-email" type="email" placeholder="邮箱" autocomplete="email">
+
+                <div class="auth-row">
+                    <input class="auth-input" id="fg-code" type="text" inputmode="numeric" maxlength="6" placeholder="邮箱验证码">
+                    <button class="auth-btn-soft auth-btn-inline" id="fg-send" type="button">发送</button>
+                </div>
+
+                <div class="auth-pwd">
+                    <input class="auth-input" id="fg-password" type="password" placeholder="新密码（至少 8 位，含字母和数字）" autocomplete="new-password">
+                    <button class="auth-eye" type="button" data-target="fg-password" aria-label="显示密码"></button>
+                </div>
+
+                <div class="auth-pwd">
+                    <input class="auth-input" id="fg-password2" type="password" placeholder="再次输入新密码" autocomplete="new-password">
+                    <button class="auth-eye" type="button" data-target="fg-password2" aria-label="显示密码"></button>
+                </div>
+
+                <button class="auth-btn-primary" id="fg-submit" type="button">重置密码</button>
+
+                <button class="auth-link" id="fg-back" type="button">← 返回登录</button>
+
+                <div class="auth-msg" id="fg-msg"></div>
 
             </div>
 

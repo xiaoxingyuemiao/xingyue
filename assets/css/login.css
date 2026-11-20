@@ -1,327 +1,424 @@
-/* ================================
-   登录页样式（login.html 专用，暗黑主题 + 移动端自适应）
-   不往 style.css / home.css 里追加（仓库约定：新页面写独立 CSS）
-   ================================ */
+/* ==============================
+   登录页（login.html 专用）
+   样式基准：index.html 起始屏（home.css 的 auth-* 规格照搬还原）
+   仓库约定：新页面写独立 CSS，不往 home.css / style.css 追加
+   ============================== */
 
-:root {
-    --login-bg: #0a0d1c;
-    --login-card: rgba(22, 26, 46, 0.92);
-    --login-input: #10142a;
-    --login-text: #e9ebf5;
-    --login-muted: #9aa3c0;
-    --login-line: rgba(255, 255, 255, 0.14);
-    --login-accent: #8b9dff;
-    --login-accent-2: #a06bff;
-    --login-ok: #7fe0a7;
-    --login-err: #ff9d9d;
-}
-
-* {
-    box-sizing: border-box;
-}
-
-/* hidden 属性优先级兜底：防止 display 类规则把隐藏元素显示出来 */
+/* hidden 兜底：防止 display 类规则把隐藏元素显示出来 */
 [hidden] {
     display: none !important;
 }
 
-html,
-body {
-    margin: 0;
-    padding: 0;
-}
+/* ---------- 整屏：插画轮播 + 压暗层 + 靠右白卡片（同 index） ---------- */
 
-body {
-    background: var(--login-bg);
-    color: var(--login-text);
-    font-family: "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
-    font-size: 15px;
-    line-height: 1.6;
-}
+.auth-screen {
+    position: fixed;
+    inset: 0;
 
-/* ---------- 整屏背景 ---------- */
-
-.login-screen {
-    position: relative;
-    min-height: 100vh;
-    min-height: 100dvh;
     display: flex;
     align-items: center;
-    justify-content: center;
-    padding: 32px 16px;
-    overflow-x: hidden;
+    justify-content: flex-end; /* 卡片整体靠右 */
+
+    padding-right: clamp(40px, 9vw, 150px);
+
+    box-sizing: border-box;
+
+    z-index: 1000;
+
+    overflow: hidden;
+
+    user-select: none;
+
+    /* 图片加载前的兜底底色 */
+    background-color: #1c1c22;
 }
 
-.login-bg {
+.auth-bg {
     position: absolute;
     inset: 0;
-    background: url("../../images/xingyao-bg.jpg") center / cover no-repeat;
+    z-index: 0;
 }
 
-/* 压暗层：保证暗黑基调，卡片和文字清晰 */
-.login-overlay {
+.auth-bg-img {
     position: absolute;
     inset: 0;
-    background: linear-gradient(160deg, rgba(8, 10, 25, 0.86), rgba(18, 10, 40, 0.9));
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    opacity: 0;
+
+    user-select: none;
+    -webkit-user-drag: none;
 }
 
-.login-wrap {
+/* 第 1 张（星瑶）：0–4.5s 显示 → 淡出 → 9.5–10s 淡入 */
+.auth-bg-img:first-child {
+    animation: auth-bg-first 10s ease-in-out infinite;
+}
+
+/* 第 2 张（月瓷）：0–4.5s 隐藏 → 淡入 → 5.5–9.5s 显示 → 淡出 */
+.auth-bg-img:last-child {
+    animation: auth-bg-second 10s ease-in-out infinite;
+}
+
+@keyframes auth-bg-first {
+    0%, 45% { opacity: 1; }
+    55%, 95% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+@keyframes auth-bg-second {
+    0%, 45% { opacity: 0; }
+    55%, 95% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+/* 压暗一层：整体偏暗，白卡片才跳得出来 */
+.auth-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+
+    background: linear-gradient(180deg, rgba(18, 20, 28, 0.34), rgba(18, 20, 28, 0.58));
+}
+
+/* ---------- 白色卡片 ---------- */
+
+.auth-box {
     position: relative;
-    width: min(92vw, 400px);
-}
+    z-index: 2;
 
-/* ---------- 品牌 ---------- */
+    width: 340px;
+    max-width: calc(100vw - 40px);
 
-.login-brand {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    margin-bottom: 18px;
-    font-size: 20px;
-    letter-spacing: 4px;
-    color: var(--login-text);
-    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
-}
+    padding: 46px 30px 40px;
 
-.login-brand-star {
-    font-size: 22px;
-}
+    box-sizing: border-box;
 
-/* ---------- 卡片 ---------- */
+    text-align: center;
 
-.login-card {
-    background: var(--login-card);
-    border: 1px solid rgba(255, 255, 255, 0.09);
+    background-color: rgba(255, 255, 255, 0.97);
+
     border-radius: 18px;
-    padding: 30px 28px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(8px);
+
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
 }
 
-.login-card h1 {
-    margin: 0 0 4px;
+.auth-box h1 {
+    margin: 0 0 22px;
+
     font-size: 24px;
-    font-weight: 600;
     letter-spacing: 2px;
+
+    color: var(--main-color);
 }
 
-.login-sub {
-    margin: 0 0 20px;
+/* 卡片里的按钮：整体收小一圈 */
+.auth-box button {
+    display: block;
+
+    width: 100%;
+
+    margin: 0 0 10px;
+    padding: 10px;
+
+    border: none;
+    border-radius: 9px;
+
+    font-size: 14px;
+
+    cursor: pointer;
+
+    transition: filter 0.2s ease, background-color 0.2s ease;
+}
+
+.auth-box button:last-child {
+    margin-bottom: 0;
+}
+
+/* 主按钮：登录 / 注册 / 重置密码 */
+.auth-btn-primary {
+    background-color: var(--main-color);
+
+    color: #ffffff;
+
+    font-weight: bold;
+}
+
+.auth-btn-primary:hover {
+    filter: brightness(1.06);
+}
+
+.auth-btn-primary:disabled {
+    opacity: 0.65;
+    cursor: default;
+}
+
+/* 登录成功后的「进入小窝」链接：长得和主按钮一样 */
+.auth-enter {
+    display: block;
+
+    width: 100%;
+
+    margin-top: 12px;
+    padding: 10px;
+
+    box-sizing: border-box;
+
+    border-radius: 9px;
+
+    font-size: 14px;
+    font-weight: bold;
+    text-decoration: none;
+
+    background-color: var(--main-color);
+    color: #ffffff;
+}
+
+.auth-enter:hover {
+    filter: brightness(1.06);
+}
+
+/* 次按钮：发送验证码（小圆角，和输入框同一行） */
+.auth-btn-soft {
+    background-color: rgba(102, 204, 255, 0.16);
+
+    color: #2b93c9;
+
+    font-weight: bold;
+}
+
+.auth-btn-soft:hover {
+    background-color: rgba(102, 204, 255, 0.26);
+}
+
+.auth-btn-soft:disabled {
+    opacity: 0.65;
+    cursor: default;
+}
+
+/* 验证码 + 发送按钮：同一行、高度一致 */
+.auth-row {
+    display: flex;
+    align-items: stretch;
+
+    gap: 8px;
+
+    margin-bottom: 12px;
+}
+
+.auth-row .auth-input,
+.auth-row .auth-btn-inline {
+    height: 40px;
+
+    box-sizing: border-box;
+}
+
+.auth-row .auth-input {
+    flex: 1;
+
+    margin-bottom: 0;
+}
+
+.auth-btn-inline {
+    width: auto !important;
+
+    min-width: 64px;
+
+    margin: 0 !important;
+    padding: 0 14px;
+
+    flex-shrink: 0;
+
     font-size: 13px;
-    color: var(--login-muted);
 }
 
 /* ---------- 输入框 ---------- */
 
-.login-input {
+.auth-input {
     display: block;
+
     width: 100%;
-    height: 46px;
-    margin-bottom: 14px;
-    padding: 0 14px;
-    background: var(--login-input);
-    border: 1px solid var(--login-line);
-    border-radius: 10px;
-    color: var(--login-text);
-    /* 16px 防止 iOS 聚焦时自动放大页面 */
-    font-size: 16px;
+
+    padding: 9px 12px;
+
+    box-sizing: border-box;
+
+    border: 1px solid #e6e6e6;
+    border-radius: 9px;
+
     outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
+
+    font-size: 16px; /* 小于 16px 时 iOS 会自动放大页面 */
+
+    color: var(--text-color);
+
+    transition: border-color 0.2s ease;
 }
 
-.login-input::placeholder {
-    color: var(--login-muted);
-    font-size: 14px;
+.auth-input:focus {
+    border-color: var(--main-color);
 }
 
-.login-input:focus {
-    border-color: var(--login-accent);
-    box-shadow: 0 0 0 3px rgba(139, 157, 255, 0.18);
+.auth-box .auth-input {
+    margin-bottom: 12px;
+
+    /* 整屏是禁选的，但输入框必须能选中 / 编辑 */
+    user-select: text;
 }
 
-/* 密码框 + 眼睛按钮 */
-.login-pwd {
+/* ---------- 密码框：右侧小眼睛 ---------- */
+
+.auth-pwd {
     position: relative;
+
+    margin-bottom: 12px;
 }
 
-.login-pwd .login-input {
-    padding-right: 46px;
+.auth-pwd .auth-input {
+    padding-right: 44px;
+
+    margin-bottom: 0;
 }
 
-.login-eye {
+.auth-box .auth-eye {
     position: absolute;
-    top: 0;
-    right: 0;
-    width: 46px;
-    height: 46px;
-    border: none;
-    background: none;
-    cursor: pointer;
-    font-size: 16px;
-    color: var(--login-muted);
-}
 
-.login-eye::before {
-    content: "👁";
-    opacity: 0.7;
-}
+    right: 6px;
+    top: 50%;
 
-.login-eye.on::before {
-    content: "🙈";
-}
-
-/* 验证码行：输入框 + 发送按钮 */
-.login-row {
     display: flex;
-    gap: 10px;
+    align-items: center;
+    justify-content: center;
+
+    width: 28px;
+    height: 28px;
+
+    margin: 0;
+    padding: 0;
+
+    border: none;
+    border-radius: 0;
+
+    background: transparent;
+
+    line-height: 0;
+
+    color: #9aa3ad;
+
+    cursor: pointer;
+
+    transform: translateY(-50%);
 }
 
-.login-row .login-input {
-    flex: 1;
-    min-width: 0;
-}
-
-/* ---------- 按钮 ---------- */
-
-.login-btn-primary {
+.auth-box .auth-eye svg {
     display: block;
+}
+
+/* ---------- 文字链接 ---------- */
+
+.auth-link {
+    display: block;
+
     width: 100%;
-    height: 46px;
-    margin-top: 4px;
+
+    margin-top: 8px;
+    padding: 0;
+
     border: none;
-    border-radius: 10px;
-    background: linear-gradient(135deg, #6d7dff, var(--login-accent-2));
-    color: #fff;
-    font-size: 16px;
-    letter-spacing: 6px;
+
+    background: transparent;
+
+    font-size: 12.5px;
+
+    color: #999999;
+
     cursor: pointer;
-    transition: filter 0.2s, transform 0.1s;
-}
 
-.login-btn-primary:hover {
-    filter: brightness(1.12);
-}
-
-.login-btn-primary:active {
-    transform: scale(0.98);
-}
-
-.login-btn-primary:disabled {
-    filter: grayscale(0.6) brightness(0.7);
-    cursor: not-allowed;
-}
-
-.login-btn-soft {
-    flex: none;
-    width: 92px;
-    height: 46px;
-    border: 1px solid rgba(139, 157, 255, 0.4);
-    border-radius: 10px;
-    background: rgba(139, 157, 255, 0.14);
-    color: var(--login-accent);
-    font-size: 14px;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.login-btn-soft:hover {
-    background: rgba(139, 157, 255, 0.24);
-}
-
-.login-btn-soft:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-/* 登录成功后的「进入小窝」 */
-.login-enter {
-    margin-top: 14px;
-    text-align: center;
     text-decoration: none;
-    line-height: 46px;
-    letter-spacing: 2px;
 }
 
-/* ---------- 链接 ---------- */
+.auth-link:hover {
+    color: var(--main-color);
+}
 
-.login-links-row {
+/* 两个文字链接并排一行，中间竖线分隔 */
+.auth-links-row {
     display: flex;
-    justify-content: space-between;
-    margin-top: 14px;
+    align-items: center;
+    justify-content: center;
+
+    gap: 10px;
+
+    margin: 10px 0 4px;
 }
 
-.login-link {
+.auth-links-row .auth-link {
     display: inline-block;
-    padding: 4px 0;
-    border: none;
-    background: none;
-    color: var(--login-muted);
-    font-size: 14px;
-    cursor: pointer;
-    text-decoration: none;
-    transition: color 0.2s;
+
+    width: auto;
+
+    margin: 0;
+    padding: 0;
 }
 
-.login-link:hover {
-    color: var(--login-accent);
+.auth-links-row .auth-link + .auth-link::before {
+    content: "|";
+
+    margin-right: 10px;
+
+    color: #d8dde3;
 }
 
-.login-guest {
-    display: block;
-    margin-top: 10px;
-    text-align: center;
+/* ---------- 提示消息 ---------- */
+
+.auth-msg {
+    margin: 10px 0 0;
+
+    font-size: 12.5px;
+    line-height: 1.6;
+
+    color: #999999;
 }
 
-#reg-to-login,
-#fg-back {
-    display: block;
-    margin: 14px auto 0;
-    text-align: center;
+.auth-msg-error {
+    color: #e05b5b;
 }
 
-/* ---------- 提示信息 ---------- */
-
-.login-msg {
-    min-height: 22px;
-    margin-top: 12px;
-    font-size: 13px;
-    text-align: center;
-    word-break: break-all;
+.auth-msg-ok {
+    color: #3aa76d;
 }
 
-.login-msg.ok {
-    color: var(--login-ok);
-}
+/* ==============================
+   手机端适配（对照 index 的 @media 768 写法）
+   ============================== */
 
-.login-msg.err {
-    color: var(--login-err);
-}
+@media (max-width: 768px) {
 
-/* ---------- 手机端 ---------- */
+    .auth-screen {
+        justify-content: center;
 
-@media (max-width: 480px) {
-    .login-screen {
-        padding: 24px 14px;
+        padding-right: 0;
+
+        /* 注册卡字段多，小屏允许纵向滚动，避免卡片被裁切 */
+        overflow-y: auto;
         align-items: flex-start;
-        padding-top: 8vh;
+
+        padding-top: 24px;
+        padding-bottom: 32px;
     }
 
-    .login-card {
-        padding: 24px 18px;
-        border-radius: 14px;
+    .auth-box {
+        width: calc(100vw - 48px);
+
+        max-width: 340px;
+
+        padding: 28px 22px 22px;
+
+        margin: 0 auto;
     }
 
-    .login-card h1 {
-        font-size: 21px;
-    }
-
-    .login-brand {
-        font-size: 18px;
-        margin-bottom: 14px;
-    }
-
-    .login-btn-soft {
-        width: 84px;
-    }
 }

@@ -35,7 +35,7 @@
     function msg(id, text, ok) {
         const el = $id(id);
         el.textContent = text || "";
-        el.className = "login-msg" + (text ? (ok ? " ok" : " err") : "");
+        el.className = "auth-msg" + (text ? (ok ? " auth-msg-ok" : " auth-msg-error") : "");
     }
 
     // ---------- 请求封装 ----------
@@ -139,15 +139,21 @@
         }
     }
 
-    // ---------- 眼睛按钮 ----------
+    // ---------- 眼睛按钮（图标与 index 首页一致：SVG 睁眼 / 闭眼） ----------
 
-    const eyes = document.querySelectorAll(".login-eye");
+    const EYE_OPEN_SVG = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M2.5 12S6 6.6 12 6.6 21.5 12 21.5 12 18 17.4 12 17.4 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.6"/></svg>';
+    const EYE_CLOSED_SVG = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M2.5 12S6 6.6 12 6.6 21.5 12 21.5 12 18 17.4 12 17.4 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.6"/><line x1="4" y1="20" x2="20" y2="4"/></svg>';
+
+    const eyes = document.querySelectorAll(".auth-eye");
     for (const eye of eyes) {
+        eye.innerHTML = EYE_OPEN_SVG;
         eye.addEventListener("click", function () {
             const input = $id(eye.getAttribute("data-target"));
             const show = input.type === "password";
             input.type = show ? "text" : "password";
-            eye.classList.toggle("on", show);
+            eye.innerHTML = show ? EYE_CLOSED_SVG : EYE_OPEN_SVG;
+            eye.setAttribute("aria-label", show ? "隐藏密码" : "显示密码");
+            input.focus();
         });
     }
 
