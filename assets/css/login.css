@@ -157,31 +157,6 @@
     cursor: default;
 }
 
-/* 登录成功后的「进入小窝」链接：长得和主按钮一样 */
-.auth-enter {
-    display: block;
-
-    width: 100%;
-
-    margin-top: 12px;
-    padding: 10px;
-
-    box-sizing: border-box;
-
-    border-radius: 9px;
-
-    font-size: 14px;
-    font-weight: bold;
-    text-decoration: none;
-
-    background-color: var(--main-color);
-    color: #ffffff;
-}
-
-.auth-enter:hover {
-    filter: brightness(1.06);
-}
-
 /* 次按钮：发送验证码（小圆角，和输入框同一行） */
 .auth-btn-soft {
     background-color: rgba(102, 204, 255, 0.16);

@@ -179,8 +179,9 @@
         try {
             const data = await api("/auth/login", { account: account, password: password });
             saveSession(data);
-            msg("login-msg", "登录成功 ✓ 欢迎回窝～", true);
-            $id("login-enter").hidden = false;
+            // index 靠 visited 标记区分首访：置位后落地才直接进首页，而不是又弹登录屏
+            localStorage.setItem(window.Store.KEYS.visited, "true");
+            window.location.replace("index.html");
         } catch (e) {
             msg("login-msg", e.message);
         } finally {
@@ -221,9 +222,9 @@
             }
             const data = await api("/auth/register", body);
             saveSession(data);
-            showCard("login-card");
-            msg("login-msg", "注册成功 ✓ 已自动登录，欢迎入住小窝～", true);
-            $id("login-enter").hidden = false;
+            // 注册即自动登录，直接进网站（visited 置位理由同登录）
+            localStorage.setItem(window.Store.KEYS.visited, "true");
+            window.location.replace("index.html");
         } catch (e) {
             msg("reg-msg", e.message);
         } finally {
@@ -276,6 +277,10 @@
     });
     $id("login-to-forgot").addEventListener("click", function () {
         showCard("forgot-card");
+    });
+    // 游客进入也算「已完成启动流程」，落地 index 直接看首页
+    $id("login-guest").addEventListener("click", function () {
+        localStorage.setItem(window.Store.KEYS.visited, "true");
     });
 
     $id("reg-send").addEventListener("click", function () {
