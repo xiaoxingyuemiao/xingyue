@@ -1,0 +1,327 @@
+/* ================================
+   登录页样式（login.html 专用，暗黑主题 + 移动端自适应）
+   不往 style.css / home.css 里追加（仓库约定：新页面写独立 CSS）
+   ================================ */
+
+:root {
+    --login-bg: #0a0d1c;
+    --login-card: rgba(22, 26, 46, 0.92);
+    --login-input: #10142a;
+    --login-text: #e9ebf5;
+    --login-muted: #9aa3c0;
+    --login-line: rgba(255, 255, 255, 0.14);
+    --login-accent: #8b9dff;
+    --login-accent-2: #a06bff;
+    --login-ok: #7fe0a7;
+    --login-err: #ff9d9d;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+/* hidden 属性优先级兜底：防止 display 类规则把隐藏元素显示出来 */
+[hidden] {
+    display: none !important;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: var(--login-bg);
+    color: var(--login-text);
+    font-family: "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+/* ---------- 整屏背景 ---------- */
+
+.login-screen {
+    position: relative;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 16px;
+    overflow-x: hidden;
+}
+
+.login-bg {
+    position: absolute;
+    inset: 0;
+    background: url("../../images/xingyao-bg.jpg") center / cover no-repeat;
+}
+
+/* 压暗层：保证暗黑基调，卡片和文字清晰 */
+.login-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(160deg, rgba(8, 10, 25, 0.86), rgba(18, 10, 40, 0.9));
+}
+
+.login-wrap {
+    position: relative;
+    width: min(92vw, 400px);
+}
+
+/* ---------- 品牌 ---------- */
+
+.login-brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 18px;
+    font-size: 20px;
+    letter-spacing: 4px;
+    color: var(--login-text);
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+}
+
+.login-brand-star {
+    font-size: 22px;
+}
+
+/* ---------- 卡片 ---------- */
+
+.login-card {
+    background: var(--login-card);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 18px;
+    padding: 30px 28px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+}
+
+.login-card h1 {
+    margin: 0 0 4px;
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: 2px;
+}
+
+.login-sub {
+    margin: 0 0 20px;
+    font-size: 13px;
+    color: var(--login-muted);
+}
+
+/* ---------- 输入框 ---------- */
+
+.login-input {
+    display: block;
+    width: 100%;
+    height: 46px;
+    margin-bottom: 14px;
+    padding: 0 14px;
+    background: var(--login-input);
+    border: 1px solid var(--login-line);
+    border-radius: 10px;
+    color: var(--login-text);
+    /* 16px 防止 iOS 聚焦时自动放大页面 */
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.login-input::placeholder {
+    color: var(--login-muted);
+    font-size: 14px;
+}
+
+.login-input:focus {
+    border-color: var(--login-accent);
+    box-shadow: 0 0 0 3px rgba(139, 157, 255, 0.18);
+}
+
+/* 密码框 + 眼睛按钮 */
+.login-pwd {
+    position: relative;
+}
+
+.login-pwd .login-input {
+    padding-right: 46px;
+}
+
+.login-eye {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 46px;
+    height: 46px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 16px;
+    color: var(--login-muted);
+}
+
+.login-eye::before {
+    content: "👁";
+    opacity: 0.7;
+}
+
+.login-eye.on::before {
+    content: "🙈";
+}
+
+/* 验证码行：输入框 + 发送按钮 */
+.login-row {
+    display: flex;
+    gap: 10px;
+}
+
+.login-row .login-input {
+    flex: 1;
+    min-width: 0;
+}
+
+/* ---------- 按钮 ---------- */
+
+.login-btn-primary {
+    display: block;
+    width: 100%;
+    height: 46px;
+    margin-top: 4px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #6d7dff, var(--login-accent-2));
+    color: #fff;
+    font-size: 16px;
+    letter-spacing: 6px;
+    cursor: pointer;
+    transition: filter 0.2s, transform 0.1s;
+}
+
+.login-btn-primary:hover {
+    filter: brightness(1.12);
+}
+
+.login-btn-primary:active {
+    transform: scale(0.98);
+}
+
+.login-btn-primary:disabled {
+    filter: grayscale(0.6) brightness(0.7);
+    cursor: not-allowed;
+}
+
+.login-btn-soft {
+    flex: none;
+    width: 92px;
+    height: 46px;
+    border: 1px solid rgba(139, 157, 255, 0.4);
+    border-radius: 10px;
+    background: rgba(139, 157, 255, 0.14);
+    color: var(--login-accent);
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.login-btn-soft:hover {
+    background: rgba(139, 157, 255, 0.24);
+}
+
+.login-btn-soft:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* 登录成功后的「进入小窝」 */
+.login-enter {
+    margin-top: 14px;
+    text-align: center;
+    text-decoration: none;
+    line-height: 46px;
+    letter-spacing: 2px;
+}
+
+/* ---------- 链接 ---------- */
+
+.login-links-row {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 14px;
+}
+
+.login-link {
+    display: inline-block;
+    padding: 4px 0;
+    border: none;
+    background: none;
+    color: var(--login-muted);
+    font-size: 14px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.login-link:hover {
+    color: var(--login-accent);
+}
+
+.login-guest {
+    display: block;
+    margin-top: 10px;
+    text-align: center;
+}
+
+#reg-to-login,
+#fg-back {
+    display: block;
+    margin: 14px auto 0;
+    text-align: center;
+}
+
+/* ---------- 提示信息 ---------- */
+
+.login-msg {
+    min-height: 22px;
+    margin-top: 12px;
+    font-size: 13px;
+    text-align: center;
+    word-break: break-all;
+}
+
+.login-msg.ok {
+    color: var(--login-ok);
+}
+
+.login-msg.err {
+    color: var(--login-err);
+}
+
+/* ---------- 手机端 ---------- */
+
+@media (max-width: 480px) {
+    .login-screen {
+        padding: 24px 14px;
+        align-items: flex-start;
+        padding-top: 8vh;
+    }
+
+    .login-card {
+        padding: 24px 18px;
+        border-radius: 14px;
+    }
+
+    .login-card h1 {
+        font-size: 21px;
+    }
+
+    .login-brand {
+        font-size: 18px;
+        margin-bottom: 14px;
+    }
+
+    .login-btn-soft {
+        width: 84px;
+    }
+}
