@@ -22,6 +22,33 @@ window.Store = (function () {
         lastUser: "xingyue_last_user",  // 上次登录的账号 id（用来识别"换账号"，防止数据串台）
     };
 
+    // ---------- 头像 ----------
+
+    // 默认头像：没上传过图片时都用它（首页侧边栏和个人中心共用这一份定义）
+    const DEFAULT_AVATAR = "images/137270112_p0_master1200.jpg";
+
+    // 以前默认头像是这个 emoji，老数据里存着它，显示时一并换成默认头像
+    const LEGACY_EMOJI_AVATAR = "🐱";
+
+    // 图片头像：上传的 Base64 图片，或站内图片路径
+    function isAvatarImage(value) {
+        return value.indexOf("data:image") === 0 || value.indexOf("images/") === 0;
+    }
+
+    // 把任意存过的头像值归到能显示的那一种：空 / 老 emoji → 默认头像，
+    // 既不是图片又长得不像 emoji 的异常值也回退默认，避免显示成一串乱码
+    function resolveAvatar(value) {
+        const text = String(value || "");
+
+        if (!text || text === LEGACY_EMOJI_AVATAR) {
+            return DEFAULT_AVATAR;
+        }
+        if (isAvatarImage(text)) {
+            return text;
+        }
+        return Array.from(text).length <= 4 ? text : DEFAULT_AVATAR;
+    }
+
     // ---------- 基础读写 ----------
 
     function readJSON(key, fallback) {
@@ -156,6 +183,9 @@ window.Store = (function () {
 
     return {
         KEYS: KEYS,
+        DEFAULT_AVATAR: DEFAULT_AVATAR,
+        isAvatarImage: isAvatarImage,
+        resolveAvatar: resolveAvatar,
         readJSON: readJSON,
         writeJSON: writeJSON,
         readSettings: readSettings,

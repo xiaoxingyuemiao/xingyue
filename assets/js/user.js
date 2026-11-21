@@ -63,23 +63,22 @@ const uPwdSave = document.querySelector("#u-pwd-save");
 const uPwdCancel = document.querySelector("#u-pwd-cancel");
 const uPwdStatus = document.querySelector("#u-pwd-status");
 
-const DEFAULT_AVATAR = "🐱"; // 默认头像：没上传过图片时用它
+const DEFAULT_AVATAR = window.Store.DEFAULT_AVATAR; // 默认头像：没上传过图片时用它
 const AVATAR_SIZE = 128; // 上传的图片会居中裁成正方形并缩到这个尺寸再保存
 
-// 已保存的头像 + 本次新选的头像（DataURL 或 emoji）
+// 已保存的头像 + 本次新选的头像（图片路径 / DataURL / emoji）
 let savedAvatar = DEFAULT_AVATAR;
 let pickedAvatar = "";
 
-// 头像可能是 emoji 文字，也可能是上传的图片（DataURL），这里统一渲染。
-// 遇到既不是图片、又长得不像 emoji 的异常值（例如被当文本渲染的一长串数据），
-// 一律回退默认头像，避免显示出乱码
+// 头像可能是 emoji 文字，也可能是图片（上传的 DataURL 或站内路径），这里统一渲染。
+// 归一化和异常值回退都交给 store.js 的 resolveAvatar，避免显示出乱码
 //
 // ⚠️ 函数名带 User 前缀：main.js 里也有一个 renderAvatar（首页侧边栏用）。
 // 两个文件现在不同页加载，但顶层 function 声明是全局的，同页引入会互相覆盖（见 docs/08 §4.2）
 function renderUserAvatar(el, avatar) {
-    const value = String(avatar || "");
+    const value = window.Store.resolveAvatar(avatar);
 
-    if (value.indexOf("data:image") === 0) {
+    if (window.Store.isAvatarImage(value)) {
         el.textContent = "";
         el.style.backgroundImage = "url(" + value + ")";
         el.style.backgroundSize = "cover";
@@ -88,7 +87,7 @@ function renderUserAvatar(el, avatar) {
     }
 
     el.style.backgroundImage = "";
-    el.textContent = (value && Array.from(value).length <= 4) ? value : DEFAULT_AVATAR;
+    el.textContent = value;
 }
 
 function renderAvatarPreview() {
@@ -276,7 +275,7 @@ uSave.addEventListener("click", async () => {
     const nickname = uNickname.value.trim() || fallback;
     uNickname.value = nickname;
 
-    const avatar = pickedAvatar || savedAvatar || DEFAULT_AVATAR;
+    const avatar = window.Store.resolveAvatar(pickedAvatar || savedAvatar);
     const signature = uSignature.value.trim() || "";
 
     // 1. 先存本地（立刻生效）

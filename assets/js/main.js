@@ -195,12 +195,12 @@ window.Auth.onChange(() => {
     }
 });
 
-// 头像可能是 emoji 文字（默认 🐱），也可能是用户上传的图片（DataURL）。
-// 异常值（既不是图片、也不像短 emoji）一律回退默认，避免显示出一长串乱码
+// 头像可能是 emoji 文字，也可能是图片（上传的 DataURL 或站内路径，默认头像是后者）。
+// 归一化和回退都在 store.js 的 resolveAvatar 里，这里只管画出来
 function renderAvatar(el, avatar) {
-    const value = String(avatar || "");
+    const value = window.Store.resolveAvatar(avatar);
 
-    if (value.indexOf("data:image") === 0) {
+    if (window.Store.isAvatarImage(value)) {
         el.textContent = "";
         el.style.backgroundImage = "url(" + value + ")";
         el.style.backgroundSize = "cover";
@@ -209,7 +209,7 @@ function renderAvatar(el, avatar) {
     }
 
     el.style.backgroundImage = "";
-    el.textContent = (value && Array.from(value).length <= 4) ? value : "🐱";
+    el.textContent = value;
 }
 
 // 从本地读取头像（名字由 renderAuthState 负责）
@@ -264,7 +264,7 @@ async function syncFromCloud() {
             const local = window.Store.readJSON(window.Store.KEYS.user, null) || {};
             window.Store.writeJSON(window.Store.KEYS.user, {
                 nickname: p.nickname || local.nickname || "",
-                avatar: p.avatar || local.avatar || "🐱",
+                avatar: window.Store.resolveAvatar(p.avatar || local.avatar),
                 signature: p.signature || local.signature || "",
             });
             renderUserInfo();
