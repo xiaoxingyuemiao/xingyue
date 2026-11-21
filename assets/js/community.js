@@ -17,8 +17,8 @@ window.Community = (function () {
     const MAX_LEN = 1000;
 
     const el = {
-        count: document.getElementById("post-count"),
         list: document.getElementById("post-list"),
+
         empty: document.getElementById("post-empty"),
         more: document.getElementById("post-more"),
 
@@ -41,7 +41,6 @@ window.Community = (function () {
     };
 
     let page = 1;
-    let total = 0;
     let posts = [];
     let loading = false;
 
@@ -119,7 +118,6 @@ window.Community = (function () {
         try {
             const data = await window.Cloud.posts(target, PAGE_SIZE);
             page = data.page;
-            total = data.total;
 
             if (reset) {
                 posts = [];
@@ -130,7 +128,6 @@ window.Community = (function () {
                 el.list.appendChild(postCard(post));
             }
 
-            el.count.textContent = data.total > 0 ? "共 " + data.total + " 条动态" : "";
             el.empty.hidden = posts.length > 0;
             if (!posts.length) {
                 el.empty.textContent = "社区还空着，发第一条动态吧～";
@@ -145,9 +142,7 @@ window.Community = (function () {
     // 游客：动态接口要登录才给看，这里给一句说明 + 去登录的按钮
     function renderGuestState() {
         posts = [];
-        total = 0;
         el.list.textContent = "";
-        el.count.textContent = "";
         el.more.hidden = true;
 
         el.empty.hidden = false;
@@ -257,8 +252,6 @@ window.Community = (function () {
         window.Cloud.deletePost(post.id).then(() => {
             card.remove();
             posts = posts.filter((x) => x.id !== post.id);
-            total = Math.max(0, total - 1);
-            el.count.textContent = total > 0 ? "共 " + total + " 条动态" : "";
             el.empty.hidden = posts.length > 0;
         }).catch((e) => {
             say("删除失败：" + e.message, "#d24b4b");
@@ -337,9 +330,7 @@ window.Community = (function () {
             say("", "");
 
             posts.unshift(post);
-            total += 1;
             el.list.insertBefore(postCard(post), el.list.firstChild);
-            el.count.textContent = "共 " + total + " 条动态";
             el.empty.hidden = true;
             say("发出去啦～", "#2e9e5b");
             setTimeout(() => say("", ""), 2500);
