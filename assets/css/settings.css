@@ -647,6 +647,11 @@
     margin-top: 20px;
 }
 
+/* 上面那条 display: flex 会盖过 [hidden]，这里补回来 */
+.settings-actions[hidden] {
+    display: none;
+}
+
 .settings-btn {
     flex: 1;
 
@@ -1255,19 +1260,7 @@
     width: 100%;
 }
 
-.user-safe-form {
-    margin-top: 12px;
-}
-
-.user-safe-form[hidden] {
-    display: none;
-}
-
-.user-safe-form .settings-input {
-    margin-bottom: 10px;
-}
-
-/* 验证码一行：输入框自适应 + 右侧发送按钮（与注销区 user-danger-row 同款） */
+/* 弹窗里的验证码一行：输入框自适应 + 右侧发送按钮（与注销区 user-danger-row 同款） */
 .user-safe-row {
     display: flex;
     align-items: stretch;

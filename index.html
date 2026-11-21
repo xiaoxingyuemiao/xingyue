@@ -157,6 +157,44 @@
 
             </div>
 
+            <!-- 设置密码卡：验证码登录进来、账号还没设过密码时多出的最后一步（可跳过） -->
+            <div class="auth-box" id="start-step-setpwd" hidden>
+
+                <h1>
+                    设置密码
+                </h1>
+
+                <p class="auth-msg">
+                    你是用验证码登录进来的，这个账号还没有密码。
+                    设一个之后就能直接用密码登录，也可以随时在「个人中心」修改。
+                </p>
+
+                <p class="auth-msg" id="setpwd-email"></p>
+
+                <div class="auth-pwd">
+                    <input class="auth-input" id="setpwd-password" type="password" placeholder="新密码（至少 8 位，含字母和数字）" autocomplete="new-password">
+                    <button class="auth-eye" type="button" data-target="setpwd-password" aria-label="显示密码"></button>
+                </div>
+                <div class="auth-hint" id="setpwd-password-hint"></div>
+
+                <div class="auth-pwd">
+                    <input class="auth-input" id="setpwd-password2" type="password" placeholder="再次输入新密码" autocomplete="new-password">
+                    <button class="auth-eye" type="button" data-target="setpwd-password2" aria-label="显示密码"></button>
+                </div>
+                <div class="auth-hint" id="setpwd-password2-hint"></div>
+
+                <button class="auth-btn-primary" id="setpwd-submit" type="button">
+                    保存并进入
+                </button>
+
+                <button class="auth-link" id="setpwd-skip" type="button">
+                    先跳过，直接进去
+                </button>
+
+                <div class="auth-msg" id="setpwd-msg"></div>
+
+            </div>
+
         </div>
 
 

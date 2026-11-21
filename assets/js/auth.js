@@ -138,6 +138,8 @@ window.Auth = (function () {
             email: (data.user && data.user.email) || fallbackEmail,
             user_id: data.user && data.user.id,
             phone: (data.user && data.user.phone) || "",
+            // 验证码登录可能进到一个从没设过密码的账号，界面据此区分「设置 / 修改密码」
+            has_password: !(data.user && data.user.has_password === false),
         });
         emit();
         return current();
@@ -199,6 +201,8 @@ window.Auth = (function () {
         await api("/auth/password",
             { current_password: currentPassword, password: newPassword },
             s.access_token, "PUT");
+        writeSession(Object.assign({}, s, { has_password: true }));
+        emit();
     }
 
     // 改邮箱：当前密码 + 发往新邮箱的验证码；成功后把本地会话里的邮箱也换掉

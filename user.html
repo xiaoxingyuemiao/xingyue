@@ -108,54 +108,16 @@
                             当前登录邮箱：<span class="user-account-email" id="u-email-text">—</span>
                         </p>
 
-                        <!-- 改邮箱：当前密码 + 发往新邮箱的验证码 -->
+                        <!-- 改邮箱 / 改密码：点按钮弹出居中卡片（弹窗结构在页面底部） -->
                         <div class="user-safe-item">
 
                             <button class="settings-btn" id="u-email-toggle" type="button">修改邮箱</button>
 
-                            <div class="user-safe-form" id="u-email-form" hidden>
-
-                                <input class="settings-input" id="u-email-new" type="email" placeholder="新邮箱" autocomplete="email">
-
-                                <div class="user-safe-row">
-                                    <input class="settings-input" id="u-email-code" type="text" inputmode="numeric" maxlength="10" placeholder="新邮箱收到的验证码">
-                                    <button class="settings-btn" id="u-email-send" type="button">发送</button>
-                                </div>
-
-                                <input class="settings-input" id="u-email-password" type="password" placeholder="当前密码（验证身份用）" autocomplete="current-password">
-
-                                <div class="settings-actions">
-                                    <button class="settings-btn settings-btn-primary" id="u-email-submit" type="button">确认修改</button>
-                                    <button class="settings-btn" id="u-email-cancel" type="button">取消</button>
-                                </div>
-
-                                <p class="modal-status" id="u-email-status"></p>
-
-                            </div>
-
                         </div>
 
-                        <!-- 改密码：当前密码 + 新密码（两次输入） -->
                         <div class="user-safe-item">
 
                             <button class="settings-btn" id="u-pwd-toggle" type="button">修改密码</button>
-
-                            <div class="user-safe-form" id="u-pwd-form" hidden>
-
-                                <input class="settings-input" id="u-pwd-old" type="password" placeholder="当前密码（验证码注册的账号没设过密码，可留空）" autocomplete="current-password">
-
-                                <input class="settings-input" id="u-pwd-new" type="password" placeholder="新密码（至少 8 位，含字母和数字）" autocomplete="new-password">
-
-                                <input class="settings-input" id="u-pwd-new2" type="password" placeholder="再次输入新密码" autocomplete="new-password">
-
-                                <div class="settings-actions">
-                                    <button class="settings-btn settings-btn-primary" id="u-pwd-save" type="button">保存新密码</button>
-                                    <button class="settings-btn" id="u-pwd-cancel" type="button">取消</button>
-                                </div>
-
-                                <p class="modal-status" id="u-pwd-status"></p>
-
-                            </div>
 
                         </div>
 
@@ -491,6 +453,119 @@
                     </div>
 
                     <p class="modal-status" id="r-status"></p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ==================== 修改邮箱弹窗卡片（居中弹出） ==================== -->
+
+        <div class="modal-overlay" id="u-email-overlay">
+
+            <div class="modal">
+
+                <div class="modal-header">
+
+                    <h3>修改邮箱</h3>
+
+                    <button class="modal-close" id="u-email-close" type="button">
+                        ✕
+                    </button>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <p class="confirm-text" id="u-email-note">
+                        改邮箱要同时验证<strong>当前密码</strong>和<strong>新邮箱收到的验证码</strong>，
+                        改完以后用新邮箱登录。
+                    </p>
+
+                    <label class="settings-label" for="u-email-new">新邮箱</label>
+
+                    <input class="settings-input" id="u-email-new" type="email" placeholder="name@example.com" autocomplete="email">
+
+                    <label class="settings-label" for="u-email-code">验证码</label>
+
+                    <div class="user-safe-row">
+                        <input class="settings-input" id="u-email-code" type="text" inputmode="numeric" maxlength="10" placeholder="新邮箱收到的验证码">
+                        <button class="settings-btn" id="u-email-send" type="button">发送</button>
+                    </div>
+
+                    <div id="u-email-pwd-row">
+
+                        <label class="settings-label" for="u-email-password">当前密码</label>
+
+                        <input class="settings-input" id="u-email-password" type="password" placeholder="用来验证是你本人" autocomplete="current-password">
+
+                    </div>
+
+                    <!-- 验证码登录、还没设过密码的账号：改邮箱前先去设密码 -->
+                    <div class="settings-actions" id="u-email-goto-pwd-row" hidden>
+                        <button class="settings-btn settings-btn-primary" id="u-email-goto-pwd" type="button">先去设置密码</button>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button class="settings-btn settings-btn-primary" id="u-email-submit" type="button">确认修改</button>
+                        <button class="settings-btn" id="u-email-cancel" type="button">取消</button>
+                    </div>
+
+                    <p class="modal-status" id="u-email-status"></p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ==================== 修改密码弹窗卡片（居中弹出） ==================== -->
+
+        <div class="modal-overlay" id="u-pwd-overlay">
+
+            <div class="modal">
+
+                <div class="modal-header">
+
+                    <h3 id="u-pwd-title">修改密码</h3>
+
+                    <button class="modal-close" id="u-pwd-close" type="button">
+                        ✕
+                    </button>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <p class="confirm-text" id="u-pwd-note">
+                        填当前密码再设新密码。验证码登录进来、从没设过密码的账号，当前密码留空即可。
+                    </p>
+
+                    <div id="u-pwd-old-row">
+
+                        <label class="settings-label" for="u-pwd-old">当前密码</label>
+
+                        <input class="settings-input" id="u-pwd-old" type="password" placeholder="没设过密码就留空" autocomplete="current-password">
+
+                    </div>
+
+                    <label class="settings-label" for="u-pwd-new">新密码</label>
+
+                    <input class="settings-input" id="u-pwd-new" type="password" placeholder="至少 8 位，含字母和数字" autocomplete="new-password">
+
+                    <label class="settings-label" for="u-pwd-new2">再次输入新密码</label>
+
+                    <input class="settings-input" id="u-pwd-new2" type="password" placeholder="确认一下新密码" autocomplete="new-password">
+
+                    <div class="modal-actions">
+                        <button class="settings-btn settings-btn-primary" id="u-pwd-save" type="button">保存新密码</button>
+                        <button class="settings-btn" id="u-pwd-cancel" type="button">取消</button>
+                    </div>
+
+                    <p class="modal-status" id="u-pwd-status"></p>
 
                 </div>
 

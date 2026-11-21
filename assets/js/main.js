@@ -350,6 +350,7 @@ const authCards = {
     login: document.querySelector("#start-step-login"),
     register: document.querySelector("#start-step-register"),
     forgot: document.querySelector("#start-step-forgot"),
+    setpwd: document.querySelector("#start-step-setpwd"),
 };
 
 // ---- 登录卡 ----
@@ -384,6 +385,14 @@ const fgPassword2 = document.querySelector("#fg-password2");
 const fgSubmit = document.querySelector("#fg-submit");
 const fgBack = document.querySelector("#fg-back");
 const fgMsg = document.querySelector("#fg-msg");
+
+// ---- 设置密码卡（验证码登录 + 账号还没密码时的最后一步）----
+const setPwdEmail = document.querySelector("#setpwd-email");
+const setPwdPassword = document.querySelector("#setpwd-password");
+const setPwdPassword2 = document.querySelector("#setpwd-password2");
+const setPwdSubmit = document.querySelector("#setpwd-submit");
+const setPwdSkip = document.querySelector("#setpwd-skip");
+const setPwdMsg = document.querySelector("#setpwd-msg");
 
 // 状态
 let loginUseCode = false;   // 登录方式：false = 密码，true = 验证码
@@ -498,11 +507,13 @@ function watchPasswordMatch(input, otherInput, hintEl) {
     otherInput.addEventListener("input", check);
 }
 
-// 注册卡 + 找回密码卡的实时提示
+// 注册卡 + 找回密码卡 + 设置密码卡的实时提示
 watchPasswordRule(regPassword, document.querySelector("#reg-password-hint"));
 watchPasswordMatch(regPassword2, regPassword, document.querySelector("#reg-password2-hint"));
 watchPasswordRule(fgPassword, document.querySelector("#fg-password-hint"));
 watchPasswordMatch(fgPassword2, fgPassword, document.querySelector("#fg-password2-hint"));
+watchPasswordRule(setPwdPassword, document.querySelector("#setpwd-password-hint"));
+watchPasswordMatch(setPwdPassword2, setPwdPassword, document.querySelector("#setpwd-password2-hint"));
 
 function setCardMsg(el, text, kind) {
     el.textContent = text || "";
@@ -534,6 +545,8 @@ function showAuthCard(name) {
             fgEmail.value = lastEmail();
         }
         fgEmail.focus();
+    } else if (name === "setpwd") {
+        setPwdPassword.focus();
     }
 }
 
@@ -619,13 +632,17 @@ loginSubmit.addEventListener("click", async () => {
     loginSubmit.disabled = true;
     loginSubmit.textContent = "登录中……";
     try {
+        let needPassword = false;
+
         if (loginUseCode) {
             const token = loginCode.value.trim();
             if (!/^\d{4,10}$/.test(token)) {
                 throw new Error("请输入邮件里的数字验证码");
             }
-            await window.Auth.verifyCode(email, token);
+            const user = await window.Auth.verifyCode(email, token);
             rememberEmail(email);
+            // 验证码登录（含自动注册）的账号可能还没密码，多走一步设置密码
+            needPassword = user && user.has_password === false;
         } else {
             const password = loginPassword.value;
             if (!password) {
@@ -634,8 +651,15 @@ loginSubmit.addEventListener("click", async () => {
             await window.Auth.signInWithPassword(email, password);
             rememberEmail(email);
         }
+
         loginPassword.value = "";
         loginCode.value = "";
+
+        if (needPassword) {
+            openSetPasswordCard(email);
+            return;
+        }
+
         authSuccess("登录成功", loginMsg);
     } catch (e) {
         setCardMsg(loginMsg, e.message || "登录失败，请检查邮箱和密码", "error");
@@ -644,6 +668,60 @@ loginSubmit.addEventListener("click", async () => {
         loginSubmit.textContent = "登录";
     }
 });
+
+// ---------- 设置密码卡（验证码登录后的附加一步） ----------
+
+function openSetPasswordCard(email) {
+    setPwdEmail.textContent = "当前账号：" + email;
+    setPwdPassword.value = "";
+    setPwdPassword2.value = "";
+    setCardMsg(setPwdMsg, "");
+    showAuthCard("setpwd");
+}
+
+setPwdSubmit.addEventListener("click", async () => {
+    const password = setPwdPassword.value;
+
+    const problem = passwordProblem(password);
+    if (problem) {
+        setCardMsg(setPwdMsg, problem, "error");
+        return;
+    }
+    if (password !== setPwdPassword2.value) {
+        setCardMsg(setPwdMsg, "两次输入的新密码不一样，请检查", "error");
+        return;
+    }
+
+    setPwdSubmit.disabled = true;
+    setPwdSubmit.textContent = "保存中……";
+    try {
+        // 已经登录（验证码换来的凭证），账号没密码时后端不要求当前密码
+        await window.Auth.changePassword("", password);
+        setPwdPassword.value = "";
+        setPwdPassword2.value = "";
+        authSuccess("密码已设好", setPwdMsg);
+    } catch (e) {
+        setCardMsg(setPwdMsg, e.message || "设置失败，请稍后再试", "error");
+    } finally {
+        setPwdSubmit.disabled = false;
+        setPwdSubmit.textContent = "保存并进入";
+    }
+});
+
+// 跳过：照常进首页，之后在个人中心「修改密码」里还能补设
+setPwdSkip.addEventListener("click", () => {
+    enterHomeScreen();
+});
+
+// 回车提交
+for (const el of [setPwdPassword, setPwdPassword2]) {
+    el.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            setPwdSubmit.click();
+        }
+    });
+}
 
 // 回车提交
 for (const el of [loginEmail, loginPassword, loginCode]) {

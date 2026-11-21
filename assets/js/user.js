@@ -31,22 +31,31 @@ const uDeleteConfirm = document.querySelector("#u-delete-confirm");
 const uDeleteYes = document.querySelector("#u-delete-yes");
 const uDeleteNo = document.querySelector("#u-delete-no");
 
-// 账号安全卡片（改邮箱 / 改密码；整卡仅登录后可见）
+// 账号安全卡片（改邮箱 / 改密码；整卡仅登录后可见，两个表单是居中弹出卡片）
 const uSecurityArea = document.querySelector("#u-security-area");
 const uEmailText = document.querySelector("#u-email-text");
 
 const uEmailToggle = document.querySelector("#u-email-toggle");
-const uEmailForm = document.querySelector("#u-email-form");
+const uEmailOverlay = document.querySelector("#u-email-overlay");
+const uEmailClose = document.querySelector("#u-email-close");
+const uEmailNote = document.querySelector("#u-email-note");
 const uEmailNew = document.querySelector("#u-email-new");
 const uEmailCode = document.querySelector("#u-email-code");
 const uEmailSend = document.querySelector("#u-email-send");
+const uEmailPwdRow = document.querySelector("#u-email-pwd-row");
 const uEmailPassword = document.querySelector("#u-email-password");
+const uEmailGotoPwdRow = document.querySelector("#u-email-goto-pwd-row");
+const uEmailGotoPwd = document.querySelector("#u-email-goto-pwd");
 const uEmailSubmit = document.querySelector("#u-email-submit");
 const uEmailCancel = document.querySelector("#u-email-cancel");
 const uEmailStatus = document.querySelector("#u-email-status");
 
 const uPwdToggle = document.querySelector("#u-pwd-toggle");
-const uPwdForm = document.querySelector("#u-pwd-form");
+const uPwdOverlay = document.querySelector("#u-pwd-overlay");
+const uPwdClose = document.querySelector("#u-pwd-close");
+const uPwdTitle = document.querySelector("#u-pwd-title");
+const uPwdNote = document.querySelector("#u-pwd-note");
+const uPwdOldRow = document.querySelector("#u-pwd-old-row");
 const uPwdOld = document.querySelector("#u-pwd-old");
 const uPwdNew = document.querySelector("#u-pwd-new");
 const uPwdNew2 = document.querySelector("#u-pwd-new2");
@@ -354,20 +363,37 @@ window.addEventListener("pagehide", (event) => {
     }
 });
 
-// 改邮箱表单：收起并清掉敏感输入（验证码留着没意义）
+// 账号有没有设过密码（老会话里没这个字段时按「有」处理，保守地仍要求填当前密码）
+function sessionHasPassword() {
+    const user = window.Auth && window.Auth.current ? window.Auth.current() : null;
+    return !user || user.has_password !== false;
+}
+
+// 改邮箱卡片：没设过密码的账号改不了邮箱，改成引导先去设置密码
+function applyEmailModalMode() {
+    const noPwd = !sessionHasPassword();
+
+    uEmailPwdRow.hidden = noPwd;
+    uEmailGotoPwdRow.hidden = !noPwd;
+    uEmailSubmit.hidden = noPwd;
+    uEmailNote.innerHTML = noPwd
+        ? "这个账号还没设置过密码（验证码登录进来的），<strong>先设一个密码</strong>才能改邮箱。"
+        : "改邮箱要同时验证<strong>当前密码</strong>和<strong>新邮箱收到的验证码</strong>，改完以后用新邮箱登录。";
+}
+
+// 收起改邮箱卡片，并清掉敏感输入（验证码留着没意义）
 function closeEmailForm() {
-    if (!uEmailForm) {
+    if (!uEmailOverlay) {
         return;
     }
-    uEmailForm.hidden = true;
-    uEmailToggle.hidden = false;
+    uEmailOverlay.classList.remove("open");
     uEmailCode.value = "";
     uEmailPassword.value = "";
 }
 
 uEmailToggle.addEventListener("click", () => {
-    uEmailToggle.hidden = true;
-    uEmailForm.hidden = false;
+    applyEmailModalMode();
+    uEmailOverlay.classList.add("open");
     uEmailStatus.textContent = "";
     uEmailNew.value = "";
     uEmailCode.value = "";
@@ -376,6 +402,19 @@ uEmailToggle.addEventListener("click", () => {
 });
 
 uEmailCancel.addEventListener("click", closeEmailForm);
+uEmailClose.addEventListener("click", closeEmailForm);
+
+// 点卡片外的遮罩也收起
+uEmailOverlay.addEventListener("click", (event) => {
+    if (event.target === uEmailOverlay) {
+        closeEmailForm();
+    }
+});
+
+uEmailGotoPwd.addEventListener("click", () => {
+    closeEmailForm();
+    openPwdModal();
+});
 
 // 发送验证码到新邮箱（scene=change_email；服务端会拒绝已注册的邮箱）
 uEmailSend.addEventListener("click", async () => {
@@ -447,29 +486,59 @@ uEmailSubmit.addEventListener("click", async () => {
     }
 });
 
-// 改密码表单
+// 改密码卡片：没设过密码的账号是「设置密码」，不用填当前密码
+function applyPwdModalMode() {
+    const noPwd = !sessionHasPassword();
+
+    uPwdTitle.textContent = noPwd ? "设置密码" : "修改密码";
+    uPwdOldRow.hidden = noPwd;
+    uPwdNote.innerHTML = noPwd
+        ? "这个账号还没设置过密码（验证码登录进来的）。设好之后就能用密码登录，也才能改邮箱。"
+        : "先填当前密码再设新密码。验证码登录进来、从没设过密码的账号，当前密码留空即可。";
+}
+
+function openPwdModal() {
+    applyPwdModalMode();
+    uPwdOverlay.classList.add("open");
+    uPwdStatus.textContent = "";
+    uPwdOld.value = "";
+    uPwdNew.value = "";
+    uPwdNew2.value = "";
+    (uPwdOldRow.hidden ? uPwdNew : uPwdOld).focus();
+}
+
 function closePwdForm() {
-    if (!uPwdForm) {
+    if (!uPwdOverlay) {
         return;
     }
-    uPwdForm.hidden = true;
-    uPwdToggle.hidden = false;
+    uPwdOverlay.classList.remove("open");
     uPwdOld.value = "";
     uPwdNew.value = "";
     uPwdNew2.value = "";
 }
 
-uPwdToggle.addEventListener("click", () => {
-    uPwdToggle.hidden = true;
-    uPwdForm.hidden = false;
-    uPwdStatus.textContent = "";
-    uPwdOld.value = "";
-    uPwdNew.value = "";
-    uPwdNew2.value = "";
-    uPwdOld.focus();
-});
+uPwdToggle.addEventListener("click", openPwdModal);
 
 uPwdCancel.addEventListener("click", closePwdForm);
+uPwdClose.addEventListener("click", closePwdForm);
+
+uPwdOverlay.addEventListener("click", (event) => {
+    if (event.target === uPwdOverlay) {
+        closePwdForm();
+    }
+});
+
+// Esc 收起当前打开的卡片（改邮箱优先，两者不会同时打开）
+document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") {
+        return;
+    }
+    if (uEmailOverlay.classList.contains("open")) {
+        closeEmailForm();
+    } else if (uPwdOverlay.classList.contains("open")) {
+        closePwdForm();
+    }
+});
 
 uPwdSave.addEventListener("click", async () => {
     const oldPwd = uPwdOld.value;
@@ -492,7 +561,9 @@ uPwdSave.addEventListener("click", async () => {
         uPwdOld.value = "";
         uPwdNew.value = "";
         uPwdNew2.value = "";
-        uPwdStatus.textContent = "✓ 密码已更新，下次登录请用新密码";
+        // 会话里的 has_password 已更新，卡片文案跟着回到「修改密码」
+        applyPwdModalMode();
+        uPwdStatus.textContent = "✓ 密码已设好，下次可以直接用密码登录";
     } catch (e) {
         uPwdStatus.textContent = "✗ " + (e.message || "修改失败，请稍后再试");
     } finally {
