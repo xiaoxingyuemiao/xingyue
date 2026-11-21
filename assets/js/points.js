@@ -1,6 +1,6 @@
 // ================================
 // 个人中心 · 积分页（user.html 的 #view-points）
-// 余额 / 每日签到 / 积分用途 / 积分商城 / 我挂的兑换物 / 兑换单 / 积分明细
+// 余额 / 每日签到 / 积分用途 / 挂出兑换物 / 我挂的兑换物 / 兑换单 / 积分明细
 //
 // 依赖：store.js、auth.js、cloud.js（积分只存后端，本机不落库）
 // 暴露：window.Points.refresh()（settings.js 切到积分视图时调用）
@@ -8,18 +8,12 @@
 
 window.Points = (function () {
 
-    const SHOP_SIZE = 12;
     const LOG_SIZE = 10;
 
     const el = {
         balance: document.getElementById("points-balance"),
         dailyText: document.getElementById("points-daily-text"),
         dailyBtn: document.getElementById("points-daily-btn"),
-
-        chips: document.getElementById("points-chips"),
-        shopList: document.getElementById("points-shop-list"),
-        shopEmpty: document.getElementById("points-shop-empty"),
-        shopMore: document.getElementById("points-shop-more"),
 
         mineList: document.getElementById("points-mine"),
         mineEmpty: document.getElementById("points-mine-empty"),
@@ -32,16 +26,6 @@ window.Points = (function () {
         logsMore: document.getElementById("points-logs-more"),
 
         publishBtn: document.getElementById("points-publish-btn"),
-
-        redeem: {
-            overlay: document.getElementById("redeem-overlay"),
-            text: document.getElementById("redeem-text"),
-            contact: document.getElementById("redeem-contact"),
-            ok: document.getElementById("redeem-ok"),
-            cancel: document.getElementById("redeem-cancel"),
-            close: document.getElementById("redeem-close"),
-            status: document.getElementById("redeem-status")
-        },
 
         publish: {
             overlay: document.getElementById("publish-overlay"),
@@ -59,18 +43,10 @@ window.Points = (function () {
         }
     };
 
-    let kind = "";        // 商城当前筛选类别（"" = 全部）
-    let shopPage = 1;
-    let shopTotal = 0;
     let logsPage = 1;
     let logsTotal = 0;
-    let balance = 0;
     let dailyPoints = 1;
-    let buying = null;    // 兑换弹窗里正在确认的兑换物
     let coverImage = "";  // 挂兑换物时上传好的封面地址
-
-    // 别的页面（插画页、积分商城链接）带过来的 ?redeem=物品id：商城首页加载完直接帮他把确认框打开
-    let pendingRedeem = parseInt(new URLSearchParams(location.search).get("redeem"), 10) || 0;
 
     const ready = () => window.Cloud && window.Cloud.isReady();
 
@@ -158,7 +134,6 @@ window.Points = (function () {
 
         logsPage = page;
         logsTotal = data.total;
-        balance = data.balance;
         dailyPoints = data.daily_points;
 
         el.balance.textContent = data.balance;
@@ -198,118 +173,6 @@ window.Points = (function () {
             el.dailyText.textContent = "领取失败：" + e.message;
             el.dailyBtn.disabled = false;
         }
-    }
-
-    // ---------- 积分商城 ----------
-
-    async function loadShop(reset) {
-        if (!ready()) {
-            el.shopEmpty.hidden = false;
-            el.shopEmpty.textContent = "登录后才能逛积分商城";
-            return;
-        }
-
-        const page = reset ? 1 : shopPage + 1;
-        let data;
-        try {
-            data = await window.Cloud.shopItems(kind, page, SHOP_SIZE);
-        } catch (e) {
-            el.shopEmpty.hidden = false;
-            el.shopEmpty.textContent = "读商城失败：" + e.message;
-            return;
-        }
-
-        shopPage = page;
-        shopTotal = data.total;
-
-        if (reset) {
-            el.shopList.textContent = "";
-        }
-        for (const item of data.items) {
-            el.shopList.appendChild(shopCard(item));
-        }
-
-        el.shopEmpty.hidden = data.total > 0;
-        if (data.total > 0) {
-            el.shopEmpty.textContent = "还没有上架的兑换物，等站长或成员挂出来～";
-        }
-        el.shopMore.hidden = shopPage * SHOP_SIZE >= shopTotal;
-
-        if (reset) {
-            openPending();
-        }
-    }
-
-    // 从别的页面带 ?redeem=id 过来：找到那张卡片，替他点一下「兑换」
-    function openPending() {
-        if (!pendingRedeem) {
-            return;
-        }
-        const button = el.shopList.querySelector('button[data-id="' + pendingRedeem + '"]');
-        pendingRedeem = 0;
-        // 参数只用一次，立刻抹掉，免得翻页或刷新又弹一遍
-        const query = new URLSearchParams(location.search);
-        query.delete("redeem");
-        const tail = query.toString();
-        history.replaceState(null, "", location.pathname + (tail ? "?" + tail : "") + location.hash);
-        if (button && !button.disabled) {
-            button.click();
-        } else {
-            el.dailyText.textContent = "那件兑换物已经下架或兑完啦，在商城里看看别的～";
-        }
-    }
-
-    function shopCard(item) {
-        const card = document.createElement("div");
-        card.className = "shop-card";
-
-        const cover = document.createElement("div");
-        cover.className = "shop-cover";
-        if (item.image) {
-            cover.style.backgroundImage = "url(\"" + window.Cloud.assetUrl(item.image) + "\")";
-        } else {
-            cover.textContent = item.kind === "merch" ? "🎁" : "🖼️";
-        }
-        card.appendChild(cover);
-
-        const info = document.createElement("div");
-        info.className = "shop-info";
-
-        const title = document.createElement("p");
-        title.className = "shop-title";
-        title.textContent = item.title;
-        info.appendChild(title);
-
-        if (item.description) {
-            const desc = document.createElement("p");
-            desc.className = "shop-desc";
-            desc.textContent = item.description;
-            info.appendChild(desc);
-        }
-
-        info.appendChild(tag("shop-from", item.official
-            ? "官方出品"
-            : "成员 " + (item.creator_nickname || "小窝成员") + " 出品"));
-
-        card.appendChild(info);
-
-        const side = document.createElement("div");
-        side.className = "shop-side";
-        side.appendChild(tag("shop-price", item.price_points + " 分"));
-        side.appendChild(tag("shop-stock", item.stock < 0 ? "不限量" : "剩 " + item.stock + " 份"));
-
-        const buy = document.createElement("button");
-        buy.type = "button";
-        buy.className = "settings-btn settings-btn-primary";
-        buy.dataset.id = item.id;
-        buy.dataset.price = item.price_points;
-        buy.dataset.title = item.title;
-        buy.disabled = item.stock === 0;
-        buy.textContent = buy.disabled ? "已兑完" : "兑换";
-        side.appendChild(buy);
-
-        card.appendChild(side);
-        return card;
     }
 
     // 我挂出来的兑换物（含待审核 / 已下架）
@@ -368,40 +231,6 @@ window.Points = (function () {
             el.orders.appendChild(box);
         }
         el.ordersEmpty.hidden = data.redemptions.length > 0;
-    }
-
-    // ---------- 兑换确认弹窗 ----------
-
-    function openRedem(item) {
-        buying = item;
-        const enough = balance >= item.price;
-        el.redeem.text.textContent = enough
-            ? "「" + item.title + "」需要 " + item.price + " 分，你现在有 " + balance + " 分。"
-            : "「" + item.title + "」需要 " + item.price + " 分，你现在只有 " + balance + " 分，还差 " + (item.price - balance) + " 分。";
-        el.redeem.ok.disabled = !enough;
-        el.redeem.contact.value = "";
-        clearSay(el.redeem.status);
-        openOverlay(el.redeem.overlay);
-    }
-
-    async function doRedeem() {
-        if (!buying) {
-            return;
-        }
-        el.redeem.ok.disabled = true;
-        say(el.redeem.status, "正在下单…", true);
-        try {
-            const data = await window.Cloud.redeem(buying.id, el.redeem.contact.value.trim());
-            buying = null;
-            await refresh();
-            // 弹窗留着说结果，避免「点了没反应」；确认按钮保持禁用，防止重复下单
-            say(el.redeem.status,
-                "兑换单 #" + data.id + " 已生成（待发放），扣了 " + data.amount + " 分，余额 " + data.balance + " 分。" +
-                "站长发放后会按你留的联系方式联系你～", true);
-        } catch (e) {
-            say(el.redeem.status, e.message, false);
-            el.redeem.ok.disabled = false;
-        }
     }
 
     // ---------- 挂兑换物弹窗 ----------
@@ -478,56 +307,24 @@ window.Points = (function () {
     // ---------- 汇总刷新 ----------
 
     async function refresh() {
-        await Promise.all([loadLogs(true), loadShop(true), loadMine(), loadOrders()]);
+        await Promise.all([loadLogs(true), loadMine(), loadOrders()]);
     }
 
     // ---------- 事件绑定 ----------
 
     el.dailyBtn.addEventListener("click", dailyLogin);
     el.logsMore.addEventListener("click", () => loadLogs(false));
-    el.shopMore.addEventListener("click", () => loadShop(false));
     el.publishBtn.addEventListener("click", openPublish);
-
-    el.chips.addEventListener("click", (event) => {
-        const chip = event.target.closest(".points-chip");
-        if (!chip) {
-            return;
-        }
-        for (const node of el.chips.children) {
-            node.classList.toggle("active", node === chip);
-        }
-        kind = chip.dataset.kind || "";
-        loadShop(true);
-    });
-
-    // 兑换按钮在动态生成的卡片里，用事件委托
-    el.shopList.addEventListener("click", (event) => {
-        const buy = event.target.closest("button[data-id]");
-        if (!buy || buy.disabled) {
-            return;
-        }
-        openRedem({
-            id: parseInt(buy.dataset.id, 10),
-            title: buy.dataset.title,
-            price: parseInt(buy.dataset.price, 10)
-        });
-    });
-
-    for (const key of ["redeem", "publish"]) {
-        const box = el[key];
-        box.cancel.addEventListener("click", () => closeOverlay(box.overlay));
-        box.close.addEventListener("click", () => closeOverlay(box.overlay));
-        // 点遮罩空白处也能关
-        box.overlay.addEventListener("click", (event) => {
-            if (event.target === box.overlay) {
-                closeOverlay(box.overlay);
-            }
-        });
-    }
-
-    el.redeem.ok.addEventListener("click", doRedeem);
-
     el.publish.ok.addEventListener("click", doPublish);
+
+    el.publish.cancel.addEventListener("click", () => closeOverlay(el.publish.overlay));
+    el.publish.close.addEventListener("click", () => closeOverlay(el.publish.overlay));
+    // 点遮罩空白处也能关
+    el.publish.overlay.addEventListener("click", (event) => {
+        if (event.target === el.publish.overlay) {
+            closeOverlay(el.publish.overlay);
+        }
+    });
     el.publish.imageBtn.addEventListener("click", () => el.publish.imageFile.click());
     el.publish.imageFile.addEventListener("change", pickCover);
 

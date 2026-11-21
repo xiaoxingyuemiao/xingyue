@@ -340,26 +340,19 @@
 
                     </section>
 
-                    <!-- 兑换区 -->
+                    <!-- 兑换区：浏览与下单都搬到周边页，这里只留跳转和「挂出我的兑换物」 -->
                     <section class="user-card">
 
-                        <h3 class="user-card-title">积分商城</h3>
+                        <h3 class="user-card-title">兑换物都在周边页</h3>
 
-                        <div class="points-chips" id="points-chips">
-                            <button class="points-chip active" type="button" data-kind="">全部</button>
-                            <button class="points-chip" type="button" data-kind="illustration">插画</button>
-                            <button class="points-chip" type="button" data-kind="merch">周边</button>
-                            <button class="points-chip" type="button" data-kind="user">成员出品</button>
-                        </div>
-
-                        <div class="shop-list" id="points-shop-list"></div>
-
-                        <p class="points-empty" id="points-shop-empty" hidden>
-                            还没有上架的兑换物，等站长或成员挂出来～
+                        <p class="settings-tip">
+                            插画原图、周边和其他成员挂出来的东西，都在周边页一处浏览，
+                            点「用积分兑换」当场就能下单。
                         </p>
 
+                        <a class="points-go" href="zhoubian.html">去周边页看看</a>
+
                         <div class="settings-actions">
-                            <button class="settings-btn" id="points-shop-more" type="button" hidden>看更多兑换物</button>
                             <button class="settings-btn" id="points-publish-btn" type="button">挂出我的兑换物</button>
                         </div>
 
@@ -712,48 +705,6 @@
                         <button class="settings-btn" id="confirm-cancel" type="button">取消</button>
                         <button class="settings-btn settings-btn-danger" id="confirm-ok" type="button">确定</button>
                     </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <!-- ==================== 兑换确认弹窗（扣分 + 留联系方式） ==================== -->
-
-        <div class="modal-overlay" id="redeem-overlay">
-
-            <div class="modal">
-
-                <div class="modal-header">
-
-                    <h3>确认兑换</h3>
-
-                    <button class="modal-close" id="redeem-close" type="button">
-                        ✕
-                    </button>
-
-                </div>
-
-                <div class="modal-body">
-
-                    <p class="confirm-text" id="redeem-text"></p>
-
-                    <label class="settings-label" for="redeem-contact">收货 / 联系方式</label>
-
-                    <input class="settings-input" id="redeem-contact" type="text" maxlength="200" placeholder="收件人 + 地址，或 QQ / 邮箱（虚拟物品可留邮箱）">
-
-                    <p class="settings-tip">
-                        点确认会立刻扣掉积分并生成一张「待发放」的兑换单，站长确认后交付。
-                    </p>
-
-                    <div class="modal-actions">
-                        <button class="settings-btn settings-btn-primary" id="redeem-ok" type="button">确认兑换</button>
-                        <button class="settings-btn" id="redeem-cancel" type="button">再想想</button>
-                    </div>
-
-                    <p class="modal-status" id="redeem-status"></p>
 
                 </div>
 

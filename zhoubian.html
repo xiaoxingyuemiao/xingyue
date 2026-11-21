@@ -26,17 +26,29 @@
 
                     <div class="board-tools">
                         <span class="board-count" id="merch-count"></span>
-                        <a class="board-btn" href="user.html#points">积分商城</a>
+                        <a class="board-btn" href="user.html#points">我的兑换单</a>
                     </div>
 
                 </div>
 
-                <!-- 周边卡片（内容由 assets/js/merch.js 填） -->
+                <!-- 类型筛选（内容由 assets/js/merch.js 响应） -->
+                <div class="merch-chips" id="merch-chips">
+                    <button class="merch-chip active" type="button" data-kind="">全部</button>
+                    <button class="merch-chip" type="button" data-kind="illustration">插画</button>
+                    <button class="merch-chip" type="button" data-kind="merch">周边</button>
+                    <button class="merch-chip" type="button" data-kind="user">成员出品</button>
+                </div>
+
+                <!-- 兑换物卡片（内容由 assets/js/merch.js 填） -->
                 <div class="merch-list" id="merch-list"></div>
 
                 <div class="merch-empty" id="merch-empty">
                     <div class="merch-empty-icon">🎁</div>
-                    <p>这里还没有上架的周边<br>去积分商城看看别的～</p>
+                    <p>这里还没有上架的兑换物<br>等站长或成员挂出来～</p>
+                </div>
+
+                <div class="merch-more">
+                    <button class="merch-more-btn" id="merch-more-btn" type="button" hidden>看更多兑换物</button>
                 </div>
 
                 <p class="merch-status" id="merch-status"></p>
@@ -48,6 +60,48 @@
 
         <!-- 页脚（由 assets/js/common.js 注入） -->
         <div id="site-footer"></div>
+
+
+        <!-- ==================== 兑换确认弹窗（扣分 + 留联系方式） ==================== -->
+
+        <div class="merch-mask" id="redeem-overlay">
+
+            <div class="merch-modal">
+
+                <div class="merch-modal-head">
+
+                    <h3>确认兑换</h3>
+
+                    <button class="merch-close" id="redeem-close" type="button">
+                        ✕
+                    </button>
+
+                </div>
+
+                <div class="merch-modal-body">
+
+                    <p class="merch-confirm" id="redeem-text"></p>
+
+                    <label class="merch-label" for="redeem-contact">收货 / 联系方式</label>
+
+                    <input class="merch-input" id="redeem-contact" type="text" maxlength="200" placeholder="收件人 + 地址，或 QQ / 邮箱（虚拟物品可留邮箱）">
+
+                    <p class="merch-tip">
+                        点确认会立刻扣掉积分并生成一张「待发放」的兑换单，站长确认后交付。
+                    </p>
+
+                    <div class="merch-modal-actions">
+                        <button class="merch-btn merch-btn-primary" id="redeem-ok" type="button">确认兑换</button>
+                        <button class="merch-btn" id="redeem-cancel" type="button">再想想</button>
+                    </div>
+
+                    <p class="merch-modal-status" id="redeem-status"></p>
+
+                </div>
+
+            </div>
+
+        </div>
 
         <script>
             // 当前页面标识（导航栏会隐藏"自己"的入口）

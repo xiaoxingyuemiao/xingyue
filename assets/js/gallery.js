@@ -178,9 +178,9 @@
             return;
         }
         bigRedeem.textContent = item.stock === 0
-            ? "这件已兑完 · 看看积分商城"
+            ? "这件已兑完 · 去周边页看看"
             : "可 " + item.price_points + " 积分兑换";
-        bigRedeem.href = "user.html?redeem=" + item.id + "#points";
+        bigRedeem.href = "zhoubian.html?redeem=" + item.id;
         bigRedeem.hidden = false;
     }
 

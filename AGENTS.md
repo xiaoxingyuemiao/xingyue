@@ -11,7 +11,7 @@
 技术栈就是原生 HTML + CSS + JS，**不要引入 npm 包、打包工具、框架、CDN 依赖**。
 
 页面：`index.html`（登录 / 注册 / 找回密码 + 首页聊天 + Live2D 舞台）、`user.html`（个人中心四分区 + 积分）、
-`chahua.html`（插画画廊）、`zhoubian.html`（周边）、`dongtai.html`（社区动态）、`xingyao.html` / `yueci.html` / `xiaomiao.html`、
+`chahua.html`（插画画廊）、`zhoubian.html`（周边，站内唯一的兑换物浏览 + 兑换页）、`dongtai.html`（社区动态）、`xingyao.html` / `yueci.html` / `xiaomiao.html`、
 `live2d.html` / `live2d-guide.html`。
 
 **回答与注释一律用简体中文**，代码、路径、变量名保持原样。
