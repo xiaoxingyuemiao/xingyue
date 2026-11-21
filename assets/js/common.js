@@ -73,7 +73,7 @@
 
                 <ul class="footer-menu">
                     <li><a class="footer-link" href="https://space.bilibili.com/1124976899?spm_id_from=333.1007.0.0">联系站长</a></li>
-                    <li><a class="footer-link" href="#">友情赞助</a></li>
+                    <li><a class="footer-link" href="https://afdian.com/a/xiaoxingyuemiao?utm_source=copylink&utm_medium=link">友情赞助</a></li>
                     <li><a class="footer-link" href="https://www.bilibili.com/video/BV1GJ411x7h7/?spm_id_from=333.337.search-card.all.click&vd_source=710e320d34b83c8454c441692f5eee47">不要点！</a></li>
                 </ul>
 
