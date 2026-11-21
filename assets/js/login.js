@@ -1,8 +1,8 @@
 // ================================
 // 登录页逻辑（login.html 专用）
 // 对接 xingyue-api（ThinkPHP 8）后端：
-//   登录：邮箱或手机号 + 密码
-//   注册：邮箱 + 密码 + 邮箱验证码，手机号选填
+//   登录：邮箱 + 密码
+//   注册：邮箱 + 密码 + 邮箱验证码
 //   找回密码：邮箱验证码 → 新密码
 // 登录凭证写进 store.js 的 KEYS.auth（与全站共用同一份键）
 // 依赖：store.js（必须先加载）
@@ -13,7 +13,6 @@
     // 后端地址：统一读 assets/data/api-config.js（上线只改那一处）
     const API_BASE = (window.XY_API && window.XY_API.base) || "http://127.0.0.1:8000";
 
-    const PHONE_RE = /^1[3-9]\d{9}$/;
     const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     function $id(id) {
@@ -163,11 +162,11 @@
         const account = $id("login-account").value.trim();
         const password = $id("login-password").value;
         if (!account) {
-            msg("login-msg", "请填写邮箱或手机号");
+            msg("login-msg", "请填写邮箱");
             return;
         }
-        if (!PHONE_RE.test(account) && !EMAIL_RE.test(account)) {
-            msg("login-msg", "账号格式不对：填邮箱或 11 位手机号");
+        if (!EMAIL_RE.test(account)) {
+            msg("login-msg", "邮箱格式不对");
             return;
         }
         if (!password) {
@@ -193,17 +192,12 @@
 
     async function doRegister() {
         const email = $id("reg-email").value.trim();
-        const phone = $id("reg-phone").value.trim();
         const pw = $id("reg-password").value;
         const pw2 = $id("reg-password2").value;
         const code = $id("reg-code").value.trim();
 
         if (!EMAIL_RE.test(email)) {
             msg("reg-msg", "请填写正确的邮箱");
-            return;
-        }
-        if (phone && !PHONE_RE.test(phone)) {
-            msg("reg-msg", "手机号格式不对（11 位，1 开头）；不填也可以");
             return;
         }
         if (!checkPassword(pw, pw2, "reg-msg")) {
@@ -216,11 +210,7 @@
         const btn = $id("reg-submit");
         btn.disabled = true;
         try {
-            const body = { email: email, password: pw, code: code };
-            if (phone) {
-                body.phone = phone;
-            }
-            const data = await api("/auth/register", body);
+            const data = await api("/auth/register", { email: email, password: pw, code: code });
             saveSession(data);
             // 注册即自动登录，直接进网站（visited 置位理由同登录）
             localStorage.setItem(window.Store.KEYS.visited, "true");

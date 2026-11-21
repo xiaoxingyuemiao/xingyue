@@ -3,9 +3,9 @@
 // 对接本地 xingyue-api（ThinkPHP 8）的 /auth/* 接口（原生 fetch，无需 SDK）：
 //   POST /auth/send-code       发送邮箱验证码（scene：register / login / reset / delete / change_email）
 //   PUT  /auth/password        修改密码（需登录，带当前密码）
-//   POST /auth/login           邮箱或手机号 + 密码登录
+//   POST /auth/login           邮箱 + 密码登录
 //   POST /auth/login-code      邮箱验证码登录（未注册邮箱自动注册）
-//   POST /auth/register        注册（邮箱 + 密码 + 验证码，手机号选填）
+//   POST /auth/register        注册（邮箱 + 密码 + 验证码）
 //   POST /auth/reset-password  找回密码（验证码 + 新密码，成功后直接是登录态）
 //   POST /auth/refresh         过期凭证换新（旧的即作废）
 //   POST /auth/logout          退出并作废刷新凭证
@@ -137,7 +137,6 @@ window.Auth = (function () {
             expires_at: Date.now() + (data.expires_in || 3600) * 1000,
             email: (data.user && data.user.email) || fallbackEmail,
             user_id: data.user && data.user.id,
-            phone: (data.user && data.user.phone) || "",
             // 验证码登录可能进到一个从没设过密码的账号，界面据此区分「设置 / 修改密码」
             has_password: !(data.user && data.user.has_password === false),
         });
@@ -166,15 +165,11 @@ window.Auth = (function () {
         return saveSessionFromAuth(data, account);
     }
 
-    // ---------- 注册（邮箱 + 密码 + 验证码，手机号选填）----------
+    // ---------- 注册（邮箱 + 密码 + 验证码）----------
     // 后端一次完成「验码 + 建号 + 发凭证」，成功即已登录
 
-    async function signUp(email, password, code, phone) {
-        const body = { email: email, password: password, code: code };
-        if (phone) {
-            body.phone = phone;
-        }
-        const data = await api("/auth/register", body);
+    async function signUp(email, password, code) {
+        const data = await api("/auth/register", { email: email, password: password, code: code });
         return saveSessionFromAuth(data, email);
     }
 
@@ -235,7 +230,6 @@ window.Auth = (function () {
                 expires_at: Date.now() + (data.expires_in || 3600) * 1000,
                 email: (data.user && data.user.email) || s.email,
                 user_id: (data.user && data.user.id) || s.user_id,
-                phone: (data.user && data.user.phone) || s.phone || "",
             });
             emit();
             return current();
