@@ -32,7 +32,7 @@
 | `user.html` | **个人中心**：个人资料 / API 设置 / 角色设定 / 对话记录 / **积分**（余额、明细、挂兑换物、兑换单）+ 退出登录 |
 | `chahua.html` | 插画页（一排自动排序、按图片真实比例自动换行的图墙 + 点开看大图，大图里可跳周边页兑换） |
 | `zhoubian.html` / `dongtai.html` | **周边**（站内唯一的兑换物浏览页：类型筛选 + 卡片标注「虚拟自动到账 / 实物待发放」+ 就地弹框用积分兑换）/ 社区（发布动态、配图、点赞、看大图） |
-| `xingyao.html` / `yueci.html` / `xiaomiao.html` | 关于页（三个角色）|
+| `xingyao.html` / `yueci.html` / `xiaomiao.html` | 关于页（星瑶 / 月瓷 / 小喵：立绘 + 简介 + 基本资料卡，内容取自 `official-roles.js` 的人设）|
 | `live2d.html` / `live2d-guide.html` | Live2D Param 介绍下载页 / **使用说明**（左边一层叠一层的目录 + 右边正文的文档页） |
 | `assets/js/store.js` | **数据层**：localStorage key 常量 + 读写封装 + 旧数据迁移（各页共用） |
 | `assets/js/auth.js` | **登录模块**：Supabase 邮箱验证码 / 密码登录 / 注册 / 找回密码（REST，零依赖） |
@@ -53,7 +53,7 @@
 | `assets/data/official-roles.js` | 官方角色设定（后台维护，push 即生效） |
 | `assets/data/models.js` | **模型配置**：每个模型的缩放 / 锚点 / 表情与动作映射 |
 | `assets/data/supabase-config.js` | Supabase 登录服务配置（Project URL + Publishable key） |
-| `assets/css/` | 各页面样式：`style.css`（全站公共）、`home.css`（首页）、`settings.css`（个人中心）、`live2d.css`（Live2D Param 两页公共）、`live2d-guide.css`（使用说明页的文档版面）、`gallery.css`（插画）、`community.css`（社区）、`merch.css`（周边） |
+| `assets/css/` | 各页面样式：`style.css`（全站公共）、`home.css`（首页）、`settings.css`（个人中心）、`live2d.css`（Live2D Param 两页公共）、`live2d-guide.css`（使用说明页的文档版面）、`gallery.css`（插画）、`community.css`（社区）、`merch.css`（周边）、`about.css`（关于三页共用） |
 | `assets/vendor/oh-my-live2d.min.js` | 唯一第三方依赖（已 vendor 化，自包含 SDK） |
 | `assets/live2d/` | 模型文件：`default/`（其他模型按需添加） |
 | `docs/` | 网站定位、结构、Git 协作指南、AI 协作约定、流程图、云端同步、踩坑与错误记录（`docs/08-踩坑与错误记录.md` 是该目录**唯一可写**的文件） |

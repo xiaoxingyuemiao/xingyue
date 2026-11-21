@@ -1,0 +1,310 @@
+/* ==============================
+   关于页（xingyao.html / yueci.html / xiaomiao.html 三页共用）
+   风格基准：首页 index.html / 周边页 / 社区页 —— 白色圆角卡片 + 主色 #66ccff
+   结构：立绘 + 一句话 + 简介，下面一块「基本资料」卡（含喜好标签）
+
+   ⚠️ 只写这三页自己的样式，公共的 style.css 只读复用（见 AGENTS.md）
+   ============================== */
+
+.char-body {
+    background-color: var(--background-color);
+}
+
+.char-main {
+    flex: 1;
+
+    width: 100%;
+}
+
+.char-board {
+    width: 100%;
+    max-width: 900px;
+
+    margin: 0 auto;
+    padding: 28px 20px 60px;
+
+    box-sizing: border-box;
+}
+
+/* ---------- 标题行（与其他子页一致） ---------- */
+
+.board-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+
+    gap: 10px 14px;
+
+    margin-bottom: 18px;
+}
+
+.board-head h2 {
+    margin: 0;
+
+    font-size: 20px;
+
+    color: var(--text-color);
+}
+
+/* ---------- 主卡：立绘 + 文字 ---------- */
+
+.char-card {
+    box-sizing: border-box;
+
+    display: flex;
+    align-items: flex-start;
+
+    gap: 28px;
+
+    padding: 22px;
+
+    border: 1px solid #eeeeee;
+    border-radius: 18px;
+
+    background-color: rgba(255, 255, 255, 0.97);
+
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+}
+
+.char-portrait {
+    flex-shrink: 0;
+
+    width: 240px;
+    height: 240px;
+
+    border-radius: 12px;
+
+    background-color: #f2f5f7;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    overflow: hidden;
+
+    /* 立绘不参与拖选和拖出 */
+    user-select: none;
+}
+
+.char-portrait img {
+    width: 100%;
+    height: 100%;
+
+    object-fit: contain;
+
+    -webkit-user-drag: none;
+}
+
+/* 没有立绘的角色（小喵）用大号 emoji 代替 */
+.char-portrait.emoji {
+    font-size: 104px;
+}
+
+.char-text {
+    min-width: 0;
+
+    flex: 1;
+}
+
+.char-name {
+    margin: 0;
+
+    font-size: 24px;
+
+    color: var(--main-color);
+}
+
+.char-line {
+    margin: 8px 0 0;
+
+    font-size: 16px;
+
+    color: #555555;
+}
+
+.char-desc {
+    margin: 12px 0 0;
+
+    font-size: 15px;
+    line-height: 1.9;
+
+    color: var(--text-color);
+}
+
+.char-desc + .char-desc {
+    margin-top: 8px;
+}
+
+/* ---------- 基本资料卡 ---------- */
+
+.char-panel {
+    box-sizing: border-box;
+
+    margin-top: 16px;
+    padding: 20px 22px;
+
+    border: 1px solid #eeeeee;
+    border-radius: 18px;
+
+    background-color: rgba(255, 255, 255, 0.97);
+
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+}
+
+.char-panel h4 {
+    margin: 0 0 14px;
+
+    font-size: 16px;
+
+    color: var(--text-color);
+}
+
+/* 一行一项：左标签右内容，窄屏自动变单列 */
+.char-facts {
+    display: grid;
+
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+
+    gap: 10px 24px;
+
+    margin: 0;
+}
+
+.char-fact {
+    display: flex;
+    align-items: baseline;
+
+    gap: 10px;
+
+    font-size: 15px;
+}
+
+.char-fact dt {
+    flex-shrink: 0;
+
+    min-width: 3.5em;
+
+    color: #888888;
+}
+
+.char-fact dd {
+    margin: 0;
+
+    color: var(--text-color);
+}
+
+/* 待定的项：灰一点，和已填的区分开 */
+.char-fact dd.todo {
+    color: #b0b0b0;
+}
+
+.char-sub {
+    margin: 18px 0 10px;
+
+    font-size: 15px;
+
+    color: #888888;
+}
+
+.char-likes {
+    display: flex;
+    flex-wrap: wrap;
+
+    gap: 8px;
+
+    margin: 0;
+    padding: 0;
+
+    list-style: none;
+}
+
+.char-like {
+    padding: 6px 14px;
+
+    border-radius: 999px;
+
+    font-size: 14px;
+
+    background-color: rgba(102, 204, 255, 0.14);
+    color: #1f7fc4;
+}
+
+/* 设定缺口说明 */
+.char-note {
+    margin: 16px 0 0;
+
+    font-size: 14px;
+    line-height: 1.8;
+
+    color: #888888;
+}
+
+/* ==============================
+   手机端（≤768px）
+   ============================== */
+
+@media (max-width: 768px) {
+    .char-board {
+        padding: 20px 12px 44px;
+    }
+
+    .board-head h2 {
+        font-size: 17px;
+    }
+
+    /* 立绘挪到上方居中，文字整块跟着收窄 */
+    .char-card {
+        flex-direction: column;
+
+        align-items: center;
+
+        gap: 16px;
+
+        padding: 18px 16px;
+    }
+
+    .char-portrait {
+        width: 180px;
+        height: 180px;
+    }
+
+    .char-portrait.emoji {
+        font-size: 76px;
+    }
+
+    .char-text {
+        width: 100%;
+    }
+
+    .char-name {
+        font-size: 20px;
+    }
+
+    .char-line {
+        font-size: 15px;
+    }
+
+    .char-desc {
+        font-size: 14px;
+
+        line-height: 1.8;
+    }
+
+    .char-panel {
+        padding: 16px;
+    }
+
+    .char-facts {
+        grid-template-columns: 1fr;
+    }
+
+    .char-fact {
+        font-size: 14px;
+    }
+
+    .char-like {
+        padding: 8px 14px;
+
+        font-size: 13px;
+    }
+}
