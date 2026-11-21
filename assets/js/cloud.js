@@ -29,17 +29,21 @@ window.Cloud = (function () {
     }
 
     async function request(path, options) {
-        if (!isReady()) {
+        const opts = Object.assign({}, options || {});
+        // public：目录类只读接口，游客也放行（后端用 OptionalAuth，带凭证才认人）
+        const isPublic = !!opts.public;
+        delete opts.public;
+
+        if (!isConfigured() || (!isPublic && !window.Auth.current())) {
             throw new Error("未登录或未配置后端");
         }
-        const opts = Object.assign({}, options || {});
-        opts.headers = Object.assign(
-            {
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + window.Auth.accessToken(),
-            },
-            opts.headers || {}
-        );
+
+        const headers = { "Content-Type": "application/json" };
+        const token = window.Auth.accessToken();
+        if (token) {
+            headers.Authorization = "Bearer " + token;
+        }
+        opts.headers = Object.assign(headers, opts.headers || {});
         // 上传文件走 FormData：Content-Type 要让浏览器自己带 boundary
         if (opts.body instanceof FormData) {
             delete opts.headers["Content-Type"];
@@ -232,12 +236,13 @@ window.Cloud = (function () {
 
     // ---------- 积分兑换 ----------
 
+    // 兑换物目录：游客也能拿（插画页要提示「这张要积分」），登录了后端会带上 redeemed
     async function shopItems(kind, page, size) {
         let path = "/shop/items?page=" + (page || 1) + "&page_size=" + (size || 20);
         if (kind) {
             path += "&kind=" + encodeURIComponent(kind);
         }
-        return await request(path);
+        return await request(path, { public: true });
     }
 
     // 我挂出来的兑换物（含待审核）

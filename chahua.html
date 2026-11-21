@@ -54,6 +54,12 @@
 
                 <div class="lightbox-stage">
                     <img class="lightbox-img" id="lightbox-img" alt="">
+
+                    <!-- 下载 / 兑换：悬浮在图片右下角；要积分的图只留兑换 -->
+                    <div class="lightbox-actions">
+                        <a class="lightbox-download" id="lightbox-download" href="#" download>下载原图</a>
+                        <button class="lightbox-redeem" id="lightbox-redeem" type="button" hidden></button>
+                    </div>
                 </div>
 
                 <div class="lightbox-meta">
@@ -67,9 +73,37 @@
                         <span class="lightbox-index" id="lightbox-index"></span>
                         <button class="lightbox-nav" id="lightbox-prev" type="button" aria-label="上一张">‹</button>
                         <button class="lightbox-nav" id="lightbox-next" type="button" aria-label="下一张">›</button>
-                        <a class="lightbox-download" id="lightbox-download" href="#" download>下载原图</a>
-                        <a class="lightbox-redeem" id="lightbox-redeem" href="#" hidden></a>
                     </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- 兑换确认弹层（插画是虚拟物品，下单即发放，不用填收货信息） -->
+        <div class="redeem-mask" id="redeem-mask">
+
+            <div class="redeem-modal">
+
+                <div class="redeem-head">
+                    <h3>确认兑换</h3>
+                    <button class="redeem-close" id="redeem-close" type="button" aria-label="关闭">✕</button>
+                </div>
+
+                <div class="redeem-body">
+
+                    <p class="redeem-text" id="redeem-text"></p>
+
+                    <p class="redeem-tip">虚拟插画：点确认立刻扣积分并发放，之后这张图就能直接下载原图，个人中心「我的兑换单」里也查得到～</p>
+
+                    <div class="redeem-actions">
+                        <button class="redeem-ok" id="redeem-ok" type="button">确认兑换</button>
+                        <button class="redeem-cancel" id="redeem-cancel" type="button">再想想</button>
+                    </div>
+
+                    <p class="redeem-status" id="redeem-status"></p>
 
                 </div>
 

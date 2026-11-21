@@ -242,6 +242,8 @@
 }
 
 .lightbox-stage {
+    position: relative;
+
     display: flex;
     align-items: center;
     justify-content: center;
@@ -368,17 +370,43 @@
     color: var(--main-color);
 }
 
-.lightbox-download {
+/* 悬浮在图片右下角的操作：下载原图 / 积分兑换（要积分的图只出现兑换那颗） */
+.lightbox-actions {
+    position: absolute;
+    right: 18px;
+    bottom: 18px;
+
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    flex-wrap: wrap;
+
+    gap: 8px;
+
+    max-width: calc(100% - 36px);
+}
+
+.lightbox-download,
+.lightbox-redeem {
     padding: 8px 18px;
 
+    border: none;
     border-radius: 999px;
 
     font-size: 14px;
+    font-family: inherit;
     text-decoration: none;
 
-    background-color: var(--main-color);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28);
 
     color: #ffffff;
+}
+
+.lightbox-download {
+    background-color: var(--main-color);
+
+    cursor: pointer;
 }
 
 .lightbox-download:hover {
@@ -387,18 +415,11 @@
     color: #ffffff;
 }
 
-/* 「可积分兑换」入口：和下载按钮成对出现，暖橙呼应积分商城的价格色 */
+/* 「可积分兑换」入口：暖橙呼应积分商城的价格色 */
 .lightbox-redeem {
-    padding: 8px 18px;
-
-    border-radius: 999px;
-
-    font-size: 14px;
-    text-decoration: none;
-
     background-color: #ef7d3a;
 
-    color: #ffffff;
+    cursor: pointer;
 }
 
 .lightbox-redeem:hover {
@@ -407,9 +428,196 @@
     color: #ffffff;
 }
 
-/* display 规则会盖掉 [hidden]：这张图没有对应兑换物时要真的藏起来 */
+/* 兑完了 / 还没登录点过提示时的灰态 */
+.lightbox-redeem:disabled {
+    background-color: rgba(0, 0, 0, 0.55);
+
+    cursor: default;
+}
+
+/* display 规则会盖掉 [hidden]：这两颗要藏的时候得真的消失 */
+.lightbox-download[hidden],
 .lightbox-redeem[hidden] {
     display: none;
+}
+
+/* ==============================
+   兑换确认弹层（压在大图之上）
+   ============================== */
+
+.redeem-mask {
+    position: fixed;
+    inset: 0;
+
+    display: none;
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+
+    box-sizing: border-box;
+
+    background-color: rgba(0, 0, 0, 0.6);
+
+    z-index: 700;
+}
+
+.redeem-mask.open {
+    display: flex;
+}
+
+.redeem-modal {
+    width: 100%;
+    max-width: 420px;
+
+    background-color: rgba(255, 255, 255, 0.97);
+    border: 1px solid #eeeeee;
+    border-radius: 18px;
+
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+
+    box-sizing: border-box;
+}
+
+.redeem-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 12px;
+
+    padding: 16px 18px 12px;
+
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.redeem-head h3 {
+    margin: 0;
+
+    font-size: 17px;
+
+    color: var(--text-color);
+}
+
+.redeem-close {
+    width: 30px;
+    height: 30px;
+
+    border: 1px solid #dddddd;
+    border-radius: 50%;
+
+    background-color: #ffffff;
+
+    font-size: 14px;
+    line-height: 1;
+
+    color: #555555;
+
+    cursor: pointer;
+
+    flex-shrink: 0;
+}
+
+.redeem-close:hover {
+    border-color: var(--main-color);
+
+    color: var(--main-color);
+}
+
+.redeem-body {
+    padding: 16px 18px 18px;
+}
+
+.redeem-text {
+    margin: 0 0 12px;
+
+    font-size: 15px;
+    line-height: 1.7;
+
+    color: var(--text-color);
+}
+
+.redeem-tip {
+    margin: 0;
+
+    padding: 10px 12px;
+
+    border-radius: 12px;
+
+    background-color: rgba(102, 204, 255, 0.12);
+
+    font-size: 13px;
+    line-height: 1.7;
+
+    color: #1f7fc4;
+}
+
+.redeem-actions {
+    display: flex;
+    align-items: center;
+
+    gap: 10px;
+
+    margin-top: 16px;
+}
+
+.redeem-ok,
+.redeem-cancel {
+    padding: 10px 18px;
+
+    border-radius: 999px;
+
+    font-size: 15px;
+    font-family: inherit;
+
+    cursor: pointer;
+
+    flex: 1;
+}
+
+.redeem-ok {
+    border: none;
+
+    background-color: var(--main-color);
+
+    color: #ffffff;
+}
+
+.redeem-ok:hover {
+    background-color: #4db8f5;
+
+    color: #ffffff;
+}
+
+.redeem-ok:disabled {
+    background-color: #d5d5d5;
+
+    color: #888888;
+
+    cursor: default;
+}
+
+.redeem-cancel {
+    border: 1px solid #dddddd;
+
+    background-color: #ffffff;
+
+    color: #555555;
+}
+
+.redeem-cancel:hover {
+    border-color: var(--main-color);
+
+    color: var(--main-color);
+}
+
+.redeem-status {
+    margin: 12px 0 0;
+
+    font-size: 14px;
+    line-height: 1.7;
+
+    min-height: 1em;
 }
 
 /* 弹窗打开时锁住页面滚动 */
@@ -492,6 +700,37 @@ body.no-scroll {
 
     .lightbox-side {
         justify-content: center;
+    }
+
+    .lightbox-actions {
+        right: 10px;
+        bottom: 10px;
+
+        gap: 6px;
+
+        max-width: calc(100% - 20px);
+    }
+
+    .lightbox-download,
+    .lightbox-redeem {
+        padding: 8px 14px;
+
+        font-size: 13px;
+    }
+
+    .redeem-mask {
+        padding: 14px;
+    }
+
+    .redeem-actions {
+        flex-direction: column;
+    }
+
+    .redeem-ok,
+    .redeem-cancel {
+        flex: none;
+
+        width: 100%;
     }
 
     .lightbox-close {
