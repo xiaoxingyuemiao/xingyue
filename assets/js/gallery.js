@@ -23,11 +23,15 @@
     const prevBtn = document.getElementById("lightbox-prev");
     const nextBtn = document.getElementById("lightbox-next");
     const closeBtn = document.getElementById("lightbox-close");
+    const bigRedeem = document.getElementById("lightbox-redeem");
 
     // 只留 src 在的条目：宽、高不用写，由图片自己load出来
     const ARTWORKS = (window.XY_ARTWORKS || []).filter((a) => a && a.src);
 
     let current = -1;
+
+    // 在售的插画兑换物：图片路径 -> 物品，大图里命中就提示「可积分兑换」
+    const shopByImage = new Map();
 
     // ---------- 图墙 ----------
 
@@ -125,6 +129,7 @@
         } else {
             bigDownload.setAttribute("download", art.title || "artwork");
         }
+        paintRedeem(art);
     }
 
     function isSameOrigin(url) {
@@ -133,6 +138,50 @@
         } catch (e) {
             return false;
         }
+    }
+
+    // ---------- 积分兑换 ----------
+
+    // 站内图片和兑换物封面存的路径可能一个带域名一个不带，只比路径
+    function pathKey(url) {
+        try {
+            return new URL(url, location.href).pathname;
+        } catch (e) {
+            return String(url || "");
+        }
+    }
+
+    async function loadShopItems() {
+        if (!window.Cloud || !window.Auth.current()) {
+            return;
+        }
+        try {
+            // 不限类型：只要兑换物填的封面就是这张图，大图里就给入口
+            const data = await window.Cloud.shopItems("", 1, 50);
+            shopByImage.clear();
+            ((data && data.items) || []).forEach((item) => {
+                if (item.image) {
+                    shopByImage.set(pathKey(item.image), item);
+                }
+            });
+            if (current >= 0) paint();
+        } catch (e) {
+            console.warn("兑换物列表没拿到（不影响看图）：", e);
+        }
+    }
+
+    function paintRedeem(art) {
+        if (!bigRedeem) return;
+        const item = shopByImage.get(pathKey(art.src));
+        if (!item) {
+            bigRedeem.hidden = true;
+            return;
+        }
+        bigRedeem.textContent = item.stock === 0
+            ? "这件已兑完 · 看看积分商城"
+            : "可 " + item.price_points + " 积分兑换";
+        bigRedeem.href = "user.html?redeem=" + item.id + "#points";
+        bigRedeem.hidden = false;
     }
 
     // ---------- 交互 ----------
@@ -155,4 +204,13 @@
     });
 
     render();
+
+    // 兑换物要登录后才能查，凭证刷新（Auth.init / 登录回来）后重新拿一次
+    if (window.Cloud && window.Auth) {
+        window.Auth.onChange(() => {
+            shopByImage.clear();
+            loadShopItems();
+        });
+        loadShopItems();
+    }
 })();

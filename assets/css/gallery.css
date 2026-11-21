@@ -387,6 +387,31 @@
     color: #ffffff;
 }
 
+/* 「可积分兑换」入口：和下载按钮成对出现，暖橙呼应积分商城的价格色 */
+.lightbox-redeem {
+    padding: 8px 18px;
+
+    border-radius: 999px;
+
+    font-size: 14px;
+    text-decoration: none;
+
+    background-color: #ef7d3a;
+
+    color: #ffffff;
+}
+
+.lightbox-redeem:hover {
+    background-color: #e0682a;
+
+    color: #ffffff;
+}
+
+/* display 规则会盖掉 [hidden]：这张图没有对应兑换物时要真的藏起来 */
+.lightbox-redeem[hidden] {
+    display: none;
+}
+
 /* 弹窗打开时锁住页面滚动 */
 body.no-scroll {
     overflow: hidden;
@@ -451,6 +476,8 @@ body.no-scroll {
     }
 
     .lightbox-meta {
+        /* 提示文字要能被挤换行 */
+        min-width: 0;
         flex-direction: column;
         align-items: stretch;
 

@@ -308,6 +308,16 @@ async function syncFromCloud() {
     } catch (e) {
         console.warn("云端对话同步失败：", e);
     }
+
+    // 4. 每日登录积分：后端按「同一天只加一次」处理，所以每次进首页/登录都可以放心调
+    try {
+        const daily = await window.Cloud.dailyLogin();
+        if (daily.awarded) {
+            console.log("🎁 每日登录积分已到账，余额 " + daily.balance + " 分");
+        }
+    } catch (e) {
+        console.warn("每日登录积分领取失败（不影响使用）：", e);
+    }
 }
 
 // ---------- Live2D 的启动时机 ----------

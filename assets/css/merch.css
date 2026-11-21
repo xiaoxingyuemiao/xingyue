@@ -1,0 +1,280 @@
+/* ==============================
+   周边页（zhoubian.html 专用）
+   这一页的底色 / 导航 / 页脚深色化写在 zhoubian.html 的 <style> 里（宇宙引力场背景），
+   本文件只负责商品卡片，配色沿用那一套深色玻璃质感。
+
+   ⚠️ 只写本页自己的样式，公共的 style.css 只读复用（见 AGENTS.md）
+   ============================== */
+
+.merch-main {
+    display: flex;
+
+    flex-direction: column;
+
+    flex: 1;
+
+    width: 100%;
+}
+
+.merch-board {
+    width: 100%;
+    max-width: 1080px;
+
+    margin: 0 auto;
+    padding: 30px 20px 60px;
+
+    box-sizing: border-box;
+}
+
+/* ---------- 标题行（与插画页一致） ---------- */
+
+.board-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 10px 14px;
+
+    margin-bottom: 20px;
+}
+
+.board-head h2 {
+    margin: 0;
+
+    font-size: 20px;
+
+    color: #eef2fa;
+
+    text-shadow: 0 2px 18px rgba(0, 0, 0, 0.6);
+}
+
+.board-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+
+    gap: 10px;
+}
+
+.board-count {
+    font-size: 14px;
+
+    color: #9aa4b2;
+}
+
+.board-btn {
+    display: inline-block;
+
+    padding: 8px 18px;
+
+    border-radius: 999px;
+
+    font-size: 14px;
+    text-decoration: none;
+
+    color: #dfe5ef;
+
+    background-color: rgba(255, 255, 255, 0.1);
+
+    transition: background-color 0.2s ease;
+}
+
+.board-btn:hover {
+    background-color: rgba(255, 255, 255, 0.18);
+}
+
+/* 按钮靠 hidden 控制显隐，display 规则会盖掉 [hidden] */
+.board-btn[hidden] {
+    display: none;
+}
+
+/* ---------- 商品卡片 ---------- */
+
+.merch-list {
+    display: grid;
+
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+
+    gap: 16px;
+}
+
+.merch-card {
+    box-sizing: border-box;
+
+    display: flex;
+
+    flex-direction: column;
+
+    overflow: hidden;
+
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 18px;
+
+    background-color: rgba(10, 14, 22, 0.62);
+
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.merch-cover {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    aspect-ratio: 16 / 10;
+
+    font-size: 40px;
+
+    background-color: rgba(255, 255, 255, 0.05);
+    background-position: center;
+    background-size: cover;
+}
+
+.merch-info {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 8px;
+
+    padding: 14px 16px 16px;
+}
+
+.merch-title {
+    margin: 0;
+
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.5;
+
+    color: #eef2fa;
+
+    overflow-wrap: anywhere;
+}
+
+.merch-desc {
+    margin: 0;
+
+    font-size: 13px;
+    line-height: 1.7;
+
+    color: #9aa4b2;
+
+    overflow-wrap: anywhere;
+}
+
+.merch-meta {
+    display: flex;
+
+    align-items: baseline;
+    justify-content: space-between;
+
+    gap: 10px;
+
+    margin-top: 2px;
+}
+
+.merch-price {
+    font-size: 18px;
+    font-weight: 700;
+
+    color: var(--main-color);
+}
+
+.merch-stock {
+    font-size: 12px;
+
+    color: #8f98a6;
+}
+
+.merch-buy {
+    margin-top: 6px;
+
+    padding: 10px 14px;
+
+    border: none;
+    border-radius: 999px;
+
+    font-size: 14px;
+    text-align: center;
+    text-decoration: none;
+
+    color: #06101c;
+
+    background-color: var(--main-color);
+
+    cursor: pointer;
+
+    transition: filter 0.2s ease;
+}
+
+.merch-buy:hover {
+    filter: brightness(1.08);
+}
+
+.merch-buy.sold {
+    color: #8f98a6;
+
+    background-color: rgba(255, 255, 255, 0.1);
+
+    cursor: default;
+}
+
+/* ---------- 空状态 / 提示 ---------- */
+
+.merch-empty {
+    padding: 40px 16px 8px;
+
+    text-align: center;
+
+    user-select: none;
+}
+
+.merch-empty[hidden] {
+    display: none;
+}
+
+.merch-empty p {
+    margin: 10px 0 0;
+
+    font-size: 16px;
+    line-height: 1.9;
+
+    color: #9aa4b2;
+
+    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.6);
+}
+
+.merch-status {
+    margin: 18px 0 0;
+
+    min-height: 18px;
+
+    font-size: 13px;
+    line-height: 1.7;
+
+    color: #9aa4b2;
+
+    text-align: center;
+}
+
+/* ==============================
+   手机端
+   ============================== */
+
+@media (max-width: 768px) {
+    .merch-board {
+        padding: 22px 12px 44px;
+    }
+
+    .merch-list {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+
+        gap: 12px;
+    }
+
+    .merch-info {
+        padding: 12px 14px 14px;
+    }
+}

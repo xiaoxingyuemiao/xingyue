@@ -104,6 +104,9 @@ function switchView(name) {
         loadHistoryView();
     } else if (name === "role") {
         renderRoles();
+    } else if (name === "points" && window.Points) {
+        // 积分余额、商城、兑换单都要现取现显示
+        window.Points.refresh();
     }
 }
 

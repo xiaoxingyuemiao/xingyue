@@ -1440,3 +1440,472 @@
         border-radius: 16px;
     }
 }
+
+/* ==============================
+   个人中心 · 积分页
+   ============================== */
+
+.points-balance-card {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    flex-wrap: wrap;
+
+    gap: 16px;
+}
+
+.points-balance {
+    display: flex;
+
+    align-items: baseline;
+
+    gap: 6px;
+}
+
+.points-number {
+    font-size: 40px;
+    font-weight: 700;
+    line-height: 1;
+
+    color: var(--main-color);
+}
+
+.points-unit {
+    font-size: 15px;
+
+    color: #888888;
+}
+
+.points-daily {
+    display: flex;
+
+    flex: 1 1 260px;
+
+    align-items: center;
+
+    gap: 12px;
+}
+
+.points-daily-text {
+    margin: 0;
+
+    flex: 1;
+
+    font-size: 14px;
+    line-height: 1.6;
+
+    color: #666666;
+}
+
+.points-daily .settings-btn {
+    flex: 0 0 auto;
+
+    padding: 10px 18px;
+
+    font-size: 14px;
+
+    white-space: nowrap;
+}
+
+/* ---------- 积分用途说明 ---------- */
+
+.points-usage {
+    margin: 8px 0 0;
+    padding-left: 20px;
+
+    font-size: 14px;
+    line-height: 1.9;
+
+    color: #555555;
+}
+
+.points-usage b {
+    font-weight: 600;
+
+    color: var(--main-color);
+}
+
+.points-usage + .settings-tip {
+    margin-top: 12px;
+}
+
+/* ---------- 商城类别筛选 ---------- */
+
+.points-chips {
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 8px;
+
+    margin-top: 14px;
+}
+
+.points-chip {
+    padding: 7px 16px;
+
+    border: 1px solid #e3e8ee;
+    border-radius: 999px;
+
+    font-size: 14px;
+
+    color: #666666;
+
+    background-color: #f5f7fa;
+
+    cursor: pointer;
+
+    transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+}
+
+.points-chip:hover {
+    border-color: var(--main-color);
+
+    color: var(--main-color);
+}
+
+.points-chip.active {
+    border-color: var(--main-color);
+
+    color: #ffffff;
+
+    background-color: var(--main-color);
+}
+
+/* ---------- 兑换物卡片 ---------- */
+
+.shop-list {
+    display: grid;
+
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+
+    gap: 14px;
+
+    margin-top: 14px;
+}
+
+.shop-card {
+    box-sizing: border-box;
+
+    display: flex;
+
+    gap: 12px;
+
+    padding: 14px;
+
+    border: 1px solid #eef1f5;
+    border-radius: 16px;
+
+    background-color: #f9fbfd;
+}
+
+.shop-cover {
+    display: flex;
+
+    flex: 0 0 74px;
+
+    align-items: center;
+    justify-content: center;
+
+    width: 74px;
+    height: 74px;
+
+    border-radius: 12px;
+
+    font-size: 28px;
+
+    background-color: #eef4fa;
+    background-position: center;
+    background-size: cover;
+}
+
+.shop-info {
+    min-width: 0;
+
+    flex: 1;
+}
+
+.shop-title {
+    display: -webkit-box;
+
+    overflow: hidden;
+
+    margin: 0;
+
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.5;
+
+    color: var(--text-color);
+
+    overflow-wrap: anywhere;
+
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.shop-desc {
+    display: -webkit-box;
+
+    overflow: hidden;
+
+    margin: 4px 0 0;
+
+    font-size: 13px;
+    line-height: 1.6;
+
+    color: #777777;
+
+    overflow-wrap: anywhere;
+
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.shop-from {
+    margin: 6px 0 0;
+
+    font-size: 12px;
+
+    color: #999999;
+
+    overflow-wrap: anywhere;
+}
+
+.shop-side {
+    display: flex;
+
+    flex: 0 0 auto;
+
+    flex-direction: column;
+
+    align-items: flex-end;
+    justify-content: space-between;
+
+    gap: 6px;
+}
+
+.shop-price {
+    font-size: 16px;
+    font-weight: 700;
+
+    color: #ef7d3a;
+}
+
+.shop-stock {
+    font-size: 12px;
+
+    color: #999999;
+
+    white-space: nowrap;
+}
+
+.shop-side .settings-btn {
+    flex: 0 0 auto;
+
+    padding: 8px 16px;
+
+    font-size: 13px;
+
+    white-space: nowrap;
+}
+
+.shop-side .settings-btn:disabled {
+    color: #aaaaaa;
+
+    background-color: #eef2f5;
+
+    cursor: not-allowed;
+}
+
+/* ---------- 明细 / 兑换单 / 我挂的兑换物 ---------- */
+
+.points-rows {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 10px;
+
+    margin-top: 12px;
+}
+
+.points-row {
+    box-sizing: border-box;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 12px;
+
+    padding: 12px 14px;
+
+    border: 1px solid #eef1f5;
+    border-radius: 14px;
+
+    background-color: #f7fafc;
+}
+
+.points-row-main {
+    display: flex;
+
+    min-width: 0;
+
+    flex-direction: column;
+
+    gap: 3px;
+}
+
+.points-row-name {
+    font-size: 14px;
+
+    color: var(--text-color);
+
+    overflow-wrap: anywhere;
+}
+
+.points-row-note {
+    font-size: 12px;
+    line-height: 1.6;
+
+    color: #999999;
+
+    overflow-wrap: anywhere;
+}
+
+.points-row-side {
+    display: flex;
+
+    flex: 0 0 auto;
+
+    flex-direction: column;
+
+    align-items: flex-end;
+
+    gap: 3px;
+}
+
+.points-amount {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.points-amount.plus {
+    color: #2e9e5b;
+}
+
+.points-amount.minus {
+    color: #d24b4b;
+}
+
+.points-time {
+    font-size: 12px;
+
+    color: #999999;
+}
+
+.points-state {
+    padding: 4px 10px;
+
+    border-radius: 999px;
+
+    font-size: 12px;
+
+    color: #66707a;
+
+    background-color: #eef2f5;
+
+    white-space: nowrap;
+}
+
+.points-state.on,
+.points-state.done {
+    color: #2e9e5b;
+
+    background-color: rgba(46, 158, 91, 0.12);
+}
+
+.points-state.pending {
+    color: #d97a24;
+
+    background-color: rgba(239, 125, 58, 0.12);
+}
+
+.points-state.off,
+.points-state.canceled {
+    color: #c85050;
+
+    background-color: rgba(210, 75, 75, 0.1);
+}
+
+.points-empty {
+    margin: 12px 0 0;
+
+    font-size: 14px;
+    line-height: 1.7;
+
+    color: #999999;
+}
+
+/* ---------- 挂兑换物时的封面预览 ---------- */
+
+.publish-preview {
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+    max-width: 220px;
+    height: 120px;
+
+    margin-top: 10px;
+
+    border: 1px dashed #d8e0e8;
+    border-radius: 12px;
+
+    font-size: 12px;
+
+    color: #aaaaaa;
+
+    background-color: #f7fafc;
+    background-position: center;
+    background-size: cover;
+}
+
+/* ---------- 手机端适配 ---------- */
+
+@media (max-width: 768px) {
+    .points-balance-card {
+        align-items: flex-start;
+
+        flex-direction: column;
+    }
+
+    .points-number {
+        font-size: 32px;
+    }
+
+    .points-daily {
+        /* 竖排后 flex-basis 会变成高度，这里要收回来 */
+        flex: 1 1 auto;
+
+        flex-wrap: wrap;
+    }
+
+    .points-daily .settings-btn {
+        width: 100%;
+    }
+
+    .shop-list {
+        grid-template-columns: 1fr;
+    }
+
+    .points-row {
+        align-items: flex-start;
+    }
+}

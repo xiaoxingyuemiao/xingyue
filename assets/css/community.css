@@ -1,0 +1,690 @@
+/* ==============================
+   社区页（dongtai.html 专用）
+   风格基准：首页 index.html / 插画页 —— 白色圆角卡片 + 主色 #66ccff；动态排版参考 B 站
+   布局基准：插画页的 board-head / board-btn，两页右上角保持一致
+
+   ⚠️ 只写本页自己的样式，公共的 style.css 只读复用（见 AGENTS.md）
+   ============================== */
+
+.community-body {
+    background-color: var(--background-color);
+}
+
+.community-main {
+    flex: 1;
+
+    width: 100%;
+}
+
+.community-board {
+    width: 100%;
+    max-width: 720px;
+
+    margin: 0 auto;
+    padding: 28px 20px 60px;
+
+    box-sizing: border-box;
+}
+
+/* ---------- 标题行（与插画页一致） ---------- */
+
+.board-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 10px 14px;
+
+    margin-bottom: 18px;
+}
+
+.board-head h2 {
+    margin: 0;
+
+    font-size: 20px;
+
+    color: var(--text-color);
+}
+
+.board-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+
+    gap: 10px;
+}
+
+.board-count {
+    margin-right: 2px;
+
+    font-size: 14px;
+
+    color: #888888;
+}
+
+.board-btn {
+    display: inline-block;
+
+    padding: 8px 18px;
+
+    border: none;
+    border-radius: 999px;
+
+    font-size: 14px;
+    text-decoration: none;
+
+    color: #555555;
+    background-color: #eef2f5;
+
+    cursor: pointer;
+
+    transition: filter 0.2s ease;
+}
+
+.board-btn:hover {
+    filter: brightness(0.96);
+}
+
+/* display 规则会盖掉 [hidden]，加载更多按钮靠 hidden 控制显隐 */
+.board-btn[hidden] {
+    display: none;
+}
+
+/* 游客状态里的「去登录」按钮要单独占一行、居中 */
+.empty-btn {
+    display: block;
+
+    width: max-content;
+
+    margin: 14px auto 0;
+    padding: 8px 22px;
+
+    border-radius: 999px;
+
+    font-size: 14px;
+    text-decoration: none;
+
+    color: #ffffff;
+
+    background-color: var(--main-color);
+}
+
+.board-more {
+    display: flex;
+
+    justify-content: center;
+
+    margin-top: 18px;
+}
+
+.board-empty {
+    padding: 34px 16px;
+
+    border-radius: 18px;
+
+    font-size: 15px;
+    line-height: 1.8;
+    text-align: center;
+
+    color: #8a9099;
+
+    background-color: rgba(255, 255, 255, 0.97);
+
+    border: 1px solid #eeeeee;
+}
+
+/* ---------- 发布卡 ---------- */
+
+.publish-card {
+    box-sizing: border-box;
+
+    display: flex;
+
+    gap: 12px;
+
+    margin-bottom: 20px;
+    padding: 18px 20px;
+
+    border: 1px solid #eeeeee;
+    border-radius: 18px;
+
+    background-color: rgba(255, 255, 255, 0.97);
+
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+}
+
+.publish-avatar,
+.post-avatar {
+    display: flex;
+
+    flex: 0 0 44px;
+
+    align-items: center;
+    justify-content: center;
+
+    width: 44px;
+    height: 44px;
+
+    border-radius: 50%;
+
+    font-size: 20px;
+
+    color: #ffffff;
+
+    background-color: #dceefb;
+    background-position: center;
+    background-size: cover;
+}
+
+.publish-box {
+    min-width: 0;
+
+    flex: 1;
+}
+
+.publish-input {
+    box-sizing: border-box;
+
+    width: 100%;
+    min-height: 78px;
+
+    padding: 12px 14px;
+
+    border: 1px solid #e6ebf0;
+    border-radius: 12px;
+
+    font-size: 15px;
+    font-family: inherit;
+    line-height: 1.7;
+
+    color: var(--text-color);
+
+    background-color: #f7f9fb;
+
+    resize: vertical;
+
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.publish-input:focus {
+    border-color: var(--main-color);
+
+    background-color: #ffffff;
+}
+
+.publish-bar {
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    margin-top: 10px;
+}
+
+.publish-tool {
+    padding: 7px 14px;
+
+    border: none;
+    border-radius: 999px;
+
+    font-size: 14px;
+
+    color: #555555;
+
+    background-color: #eef2f5;
+
+    cursor: pointer;
+
+    transition: filter 0.2s ease;
+}
+
+.publish-tool:hover {
+    filter: brightness(0.96);
+}
+
+.publish-tip {
+    margin-left: auto;
+
+    font-size: 13px;
+
+    color: #a2a8b0;
+}
+
+.publish-submit {
+    padding: 8px 24px;
+
+    border: none;
+    border-radius: 999px;
+
+    font-size: 15px;
+
+    color: #ffffff;
+
+    background-color: var(--main-color);
+
+    cursor: pointer;
+
+    transition: filter 0.2s ease;
+}
+
+.publish-submit:hover {
+    filter: brightness(0.94);
+}
+
+.publish-submit:disabled {
+    color: #aaaaaa;
+
+    background-color: #eef2f5;
+
+    cursor: not-allowed;
+}
+
+.publish-file {
+    display: none;
+}
+
+.publish-status {
+    margin: 8px 0 0;
+
+    min-height: 18px;
+
+    font-size: 13px;
+    line-height: 1.6;
+
+    color: #8a9099;
+}
+
+/* 已选配图 */
+.publish-images {
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 8px;
+
+    margin-top: 10px;
+}
+
+.pick-cell {
+    position: relative;
+
+    width: 84px;
+    height: 84px;
+
+    border-radius: 10px;
+
+    background-color: #eef4fa;
+    background-position: center;
+    background-size: cover;
+}
+
+.pick-cell.loading {
+    font-size: 12px;
+    line-height: 84px;
+    text-align: center;
+
+    color: #8a9099;
+}
+
+.pick-cell.loading::before {
+    content: "上传中…";
+}
+
+.pick-remove {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+
+    width: 22px;
+    height: 22px;
+
+    border: none;
+    border-radius: 50%;
+
+    font-size: 12px;
+
+    color: #ffffff;
+
+    background-color: rgba(0, 0, 0, 0.55);
+
+    cursor: pointer;
+}
+
+/* ---------- 动态卡片 ---------- */
+
+.post-list {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 14px;
+}
+
+.post-card {
+    box-sizing: border-box;
+
+    display: flex;
+
+    gap: 12px;
+
+    padding: 18px 20px;
+
+    border: 1px solid #eeeeee;
+    border-radius: 18px;
+
+    background-color: rgba(255, 255, 255, 0.97);
+
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+}
+
+.post-body {
+    min-width: 0;
+
+    flex: 1;
+}
+
+.post-head {
+    display: flex;
+
+    flex-wrap: wrap;
+
+    align-items: baseline;
+
+    gap: 8px;
+}
+
+.post-author {
+    font-size: 15px;
+    font-weight: 600;
+
+    color: var(--text-color);
+}
+
+.post-uid,
+.post-time {
+    font-size: 12px;
+
+    color: #a2a8b0;
+}
+
+.post-text {
+    margin: 8px 0 0;
+
+    font-size: 15px;
+    line-height: 1.8;
+
+    color: #444a52;
+
+    white-space: pre-wrap;
+
+    overflow-wrap: anywhere;
+}
+
+/* ---------- 配图九宫格 ---------- */
+
+.post-imgs {
+    display: grid;
+
+    gap: 6px;
+
+    max-width: 480px;
+
+    margin-top: 12px;
+}
+
+.post-imgs.three {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.post-imgs.two {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.post-img {
+    aspect-ratio: 1;
+
+    border-radius: 10px;
+
+    background-color: #eef4fa;
+    background-position: center;
+    background-size: cover;
+
+    cursor: zoom-in;
+}
+
+/* 单图不铺满整行，按 4:3 显示，最多 320px 宽 */
+.post-imgs.one {
+    grid-template-columns: minmax(0, 320px);
+}
+
+.post-imgs.one .post-img {
+    aspect-ratio: 4 / 3;
+}
+
+/* ---------- 操作条 ---------- */
+
+.post-bar {
+    display: flex;
+
+    align-items: center;
+
+    gap: 18px;
+
+    margin-top: 12px;
+}
+
+.post-action {
+    padding: 4px 2px;
+
+    border: none;
+
+    font-size: 13px;
+
+    color: #8a9099;
+
+    background: transparent;
+
+    cursor: pointer;
+
+    transition: color 0.2s ease;
+}
+
+.post-action:hover {
+    color: var(--main-color);
+}
+
+.post-action.active {
+    color: #f0596b;
+}
+
+.post-action.danger:hover {
+    color: #d24b4b;
+}
+
+.post-action:disabled {
+    color: #c3c8cf;
+
+    cursor: default;
+}
+
+/* ---------- 大图查看 ---------- */
+
+.viewer {
+    position: fixed;
+    inset: 0;
+    z-index: 600;
+
+    display: none;
+
+    align-items: center;
+    justify-content: center;
+
+    background-color: rgba(0, 0, 0, 0.82);
+}
+
+.viewer.open {
+    display: flex;
+}
+
+.viewer-img {
+    max-width: 92vw;
+    max-height: 84vh;
+
+    border-radius: 8px;
+
+    object-fit: contain;
+}
+
+.viewer-close {
+    position: absolute;
+    top: 18px;
+    right: 22px;
+
+    border: none;
+
+    font-size: 22px;
+
+    color: #ffffff;
+
+    background: transparent;
+
+    cursor: pointer;
+}
+
+.viewer-index {
+    position: absolute;
+    bottom: 22px;
+    left: 50%;
+
+    transform: translateX(-50%);
+
+    font-size: 14px;
+
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.viewer-nav {
+    position: absolute;
+    top: 50%;
+
+    transform: translateY(-50%);
+
+    width: 44px;
+    height: 64px;
+
+    border: none;
+    border-radius: 12px;
+
+    font-size: 30px;
+
+    color: #ffffff;
+
+    background-color: rgba(255, 255, 255, 0.12);
+
+    cursor: pointer;
+}
+
+.viewer-nav:hover {
+    background-color: rgba(255, 255, 255, 0.22);
+}
+
+.viewer-prev {
+    left: 16px;
+}
+
+.viewer-next {
+    right: 16px;
+}
+
+/* 看大图时锁住页面滚动 */
+body.no-scroll {
+    overflow: hidden;
+}
+
+/* ==============================
+   手机端
+   ============================== */
+
+@media (max-width: 768px) {
+    .community-board {
+        padding: 20px 12px 44px;
+    }
+
+    .publish-card,
+    .post-card {
+        gap: 10px;
+
+        padding: 14px 14px;
+
+        border-radius: 16px;
+    }
+
+    .publish-avatar,
+    .post-avatar {
+        flex-basis: 38px;
+
+        width: 38px;
+        height: 38px;
+
+        font-size: 17px;
+    }
+
+    /* 输入框字号不小于 16px，避免 iOS 聚焦时自动放大页面 */
+    .publish-input {
+        min-height: 66px;
+
+        font-size: 16px;
+    }
+
+    .publish-bar {
+        flex-wrap: wrap;
+    }
+
+    .publish-tip {
+        order: 3;
+
+        margin-left: 0;
+    }
+
+    .publish-submit {
+        margin-left: auto;
+    }
+
+    .pick-cell {
+        width: 68px;
+        height: 68px;
+    }
+
+    .pick-cell.loading {
+        line-height: 68px;
+    }
+
+    .post-imgs {
+        max-width: 100%;
+    }
+
+    .post-imgs.one {
+        grid-template-columns: minmax(0, 260px);
+    }
+
+    .post-text {
+        font-size: 15px;
+    }
+
+    .viewer-nav {
+        width: 36px;
+        height: 52px;
+
+        font-size: 24px;
+    }
+
+    .viewer-prev {
+        left: 6px;
+    }
+
+    .viewer-next {
+        right: 6px;
+    }
+}

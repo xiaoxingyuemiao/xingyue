@@ -5,6 +5,7 @@
 //   GET/PUT  /me/settings   设置：API 提供商 + 我的角色（+ 用户选择同步的加密秘钥）
 //   GET/PUT  /me/sessions   对话记录：按角色分组
 //   POST     /me/delete     注销账号（需当前密码 + 邮箱验证码）
+// 另外还包了积分 / 兑换 / 社区动态 / 图片上传的接口（/me/points、/shop/*、/posts/*、/upload/image）
 //
 // 依赖：store.js（本地数据）、api-config.js（后端地址）、auth.js（拿登录凭证）
 // 暴露：window.Cloud
@@ -39,6 +40,10 @@ window.Cloud = (function () {
             },
             opts.headers || {}
         );
+        // 上传文件走 FormData：Content-Type 要让浏览器自己带 boundary
+        if (opts.body instanceof FormData) {
+            delete opts.headers["Content-Type"];
+        }
         let res;
         try {
             res = await fetch(base() + path, opts);
@@ -213,6 +218,89 @@ window.Cloud = (function () {
         return true;
     }
 
+    // ---------- 积分 ----------
+
+    // 余额 + 今日签到状态 + 流水（page 从 1 开始）
+    async function points(page, size) {
+        return await request("/me/points?page=" + (page || 1) + "&page_size=" + (size || 20));
+    }
+
+    // 每日登录领 1 分（后端幂等，同一天重复调用不会重复加）
+    async function dailyLogin() {
+        return await request("/points/daily-login", { method: "POST" });
+    }
+
+    // ---------- 积分兑换 ----------
+
+    async function shopItems(kind, page, size) {
+        let path = "/shop/items?page=" + (page || 1) + "&page_size=" + (size || 20);
+        if (kind) {
+            path += "&kind=" + encodeURIComponent(kind);
+        }
+        return await request(path);
+    }
+
+    // 我挂出来的兑换物（含待审核）
+    async function myItems() {
+        return await request("/shop/mine");
+    }
+
+    // 挂兑换物：普通用户提交后进「待站长审核」
+    async function publishItem(data) {
+        return await request("/shop/items", { method: "POST", body: JSON.stringify(data || {}) });
+    }
+
+    // 下单兑换：扣分 + 生成待发放的兑换单
+    async function redeem(itemId, contact) {
+        return await request("/shop/redeem", {
+            method: "POST",
+            body: JSON.stringify({ item_id: itemId, contact: contact || "" }),
+        });
+    }
+
+    async function myRedemptions(page, size) {
+        return await request("/me/redemptions?page=" + (page || 1) + "&page_size=" + (size || 20));
+    }
+
+    // ---------- 社区动态 ----------
+
+    async function posts(page, size) {
+        return await request("/posts?page=" + (page || 1) + "&page_size=" + (size || 10));
+    }
+
+    async function createPost(content, images) {
+        return await request("/posts", {
+            method: "POST",
+            body: JSON.stringify({ content: content || "", images: images || [] }),
+        });
+    }
+
+    // 点赞 / 取消赞（返回 { liked, like_count }）
+    async function likePost(id) {
+        return await request("/posts/" + id + "/like", { method: "POST" });
+    }
+
+    async function deletePost(id) {
+        return await request("/posts/" + id, { method: "DELETE" });
+    }
+
+    // ---------- 图片上传（动态配图） ----------
+
+    async function uploadImage(file) {
+        const form = new FormData();
+        form.append("file", file);
+        return await request("/upload/image", { method: "POST", body: form });
+    }
+
+    // 后端返回的图片路径是相对后端的（/storage/...），拼上后端地址才能显示
+    function assetUrl(path) {
+        const text = String(path || "");
+        if (text.charAt(0) === "/") {
+            return base() + text;
+        }
+        return text;
+    }
+
     // ================================
     // 秘钥加密（用户选择「同步到云端」时才用）
     // 密钥由 uid + 登录邮箱推导，前端可重建；数据库里存的是密文。
@@ -297,6 +385,19 @@ window.Cloud = (function () {
         sessions: sessions,
         saveSession: saveSession,
         deleteAccount: deleteAccount,
+        points: points,
+        dailyLogin: dailyLogin,
+        shopItems: shopItems,
+        myItems: myItems,
+        publishItem: publishItem,
+        redeem: redeem,
+        myRedemptions: myRedemptions,
+        posts: posts,
+        createPost: createPost,
+        likePost: likePost,
+        deletePost: deletePost,
+        uploadImage: uploadImage,
+        assetUrl: assetUrl,
         encryptText: encryptText,
         decryptText: decryptText,
     };
