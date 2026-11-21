@@ -230,6 +230,27 @@
     color: #999999;
 }
 
+/* 发货方式标注：自动到账用主色，实物等发放用暖橙（呼应价格色） */
+.merch-delivery {
+    align-self: flex-start;
+
+    margin: 8px 0 0;
+    padding: 3px 10px;
+
+    border-radius: 999px;
+
+    font-size: 12px;
+
+    background-color: rgba(239, 125, 58, 0.12);
+    color: #b0651f;
+}
+
+.merch-delivery.auto {
+    background-color: rgba(102, 204, 255, 0.16);
+
+    color: #1f7fc4;
+}
+
 .merch-meta {
     display: flex;
     flex-wrap: wrap;

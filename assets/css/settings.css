@@ -1744,3 +1744,71 @@
         align-items: flex-start;
     }
 }
+
+/* ---------- 挂兑换物：发货方式二选一 ---------- */
+
+.publish-delivery {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 8px;
+
+    margin-top: 4px;
+}
+
+.delivery-choice {
+    display: flex;
+
+    align-items: flex-start;
+
+    gap: 8px;
+
+    padding: 10px 12px;
+
+    border: 1px solid #e3e8ee;
+    border-radius: 12px;
+
+    font-size: 14px;
+
+    color: #555555;
+
+    cursor: pointer;
+
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.delivery-choice:hover {
+    border-color: var(--main-color);
+}
+
+.delivery-choice input {
+    margin-top: 2px;
+
+    accent-color: var(--main-color);
+
+    cursor: pointer;
+}
+
+/* ---------- 兑换单里虚拟物品的下载入口 ---------- */
+
+.order-download {
+    display: inline-block;
+
+    padding: 4px 14px;
+
+    border-radius: 999px;
+
+    font-size: 13px;
+    text-decoration: none;
+
+    color: #ffffff;
+
+    background-color: var(--main-color);
+
+    transition: filter 0.2s ease;
+}
+
+.order-download:hover {
+    filter: brightness(0.95);
+}

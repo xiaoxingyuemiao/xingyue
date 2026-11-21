@@ -33,6 +33,8 @@ window.Points = (function () {
             desc: document.getElementById("publish-desc"),
             price: document.getElementById("publish-price"),
             stock: document.getElementById("publish-stock"),
+            delivery: document.getElementById("publish-delivery"),
+            wait: document.getElementById("publish-wait"),
             imageBtn: document.getElementById("publish-image-btn"),
             imageFile: document.getElementById("publish-image-file"),
             preview: document.getElementById("publish-preview"),
@@ -192,7 +194,8 @@ window.Points = (function () {
         for (const item of data.items) {
             el.mineList.appendChild(row(
                 item.title,
-                item.price_points + " 分 · " + (item.stock < 0 ? "不限量" : "剩 " + item.stock + " 份"),
+                item.price_points + " 分 · " + (item.stock < 0 ? "不限量" : "剩 " + item.stock + " 份")
+                    + " · " + (item.delivery === "auto" ? "虚拟自动发放" : "实物需发放"),
                 tag("points-state " + item.status, names[item.status] || item.status)
             ));
         }
@@ -217,15 +220,31 @@ window.Points = (function () {
             const box = document.createElement("div");
             box.className = "points-row";
 
+            const auto = order.status === "done" && order.delivery === "auto";
+            let note = "-" + order.amount + " 分 · " + String(order.created_at).slice(0, 16);
+            if (order.status === "pending" && order.wait_days > 0) {
+                note += " · 预计 " + order.wait_days + " 天内发放";
+            }
+
             const main = document.createElement("div");
             main.className = "points-row-main";
             main.appendChild(tag("points-row-name", order.item_title));
-            main.appendChild(tag("points-row-note", "-" + order.amount + " 分 · " + String(order.created_at).slice(0, 16)));
+            main.appendChild(tag("points-row-note", note));
             box.appendChild(main);
 
             const side = document.createElement("div");
             side.className = "points-row-side";
-            side.appendChild(tag("points-state " + order.status, order.status_name));
+            side.appendChild(tag("points-state " + order.status,
+                auto ? "已自动发放" : order.status_name));
+            // 虚拟物品到账了就直接给下载入口，不用回插画页找
+            if (auto && order.item_image) {
+                const dl = document.createElement("a");
+                dl.className = "order-download";
+                dl.href = window.Cloud.assetUrl(order.item_image);
+                dl.setAttribute("download", order.item_title || "兑换物");
+                dl.textContent = "下载";
+                side.appendChild(dl);
+            }
             box.appendChild(side);
 
             el.orders.appendChild(box);
@@ -240,6 +259,10 @@ window.Points = (function () {
         el.publish.desc.value = "";
         el.publish.price.value = "";
         el.publish.stock.value = "";
+        el.publish.wait.value = "";
+        for (const box of el.publish.delivery.querySelectorAll("input")) {
+            box.checked = box.value === "manual";
+        }
         coverImage = "";
         el.publish.preview.textContent = "";
         el.publish.preview.style.backgroundImage = "";
@@ -282,6 +305,14 @@ window.Points = (function () {
             say(el.publish.status, "份数要么空着（不限量），要么填 1 以上的数字", false);
             return;
         }
+        const checked = el.publish.delivery.querySelector("input:checked");
+        const delivery = checked ? checked.value : "manual";
+        const waitRaw = el.publish.wait.value.trim();
+        const waitDays = delivery === "auto" || waitRaw === "" ? 0 : parseInt(waitRaw, 10);
+        if (delivery === "manual" && waitRaw !== "" && !(waitDays >= 0 && waitDays <= 365)) {
+            say(el.publish.status, "预计发货天数填 0 ~ 365 之间的整数", false);
+            return;
+        }
 
         el.publish.ok.disabled = true;
         say(el.publish.status, "正在提交…", true);
@@ -291,7 +322,9 @@ window.Points = (function () {
                 description: el.publish.desc.value.trim(),
                 image: coverImage,
                 price_points: price,
-                stock: stock
+                stock: stock,
+                delivery: delivery,
+                wait_days: waitDays
             });
             await loadMine();
             say(el.publish.status,

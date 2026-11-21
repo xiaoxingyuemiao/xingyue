@@ -31,7 +31,7 @@
 | `index.html` | 首页入口：**登录 / 注册 / 找回密码**（起始屏）+ 聊天 + Live2D 舞台 |
 | `user.html` | **个人中心**：个人资料 / API 设置 / 角色设定 / 对话记录 / **积分**（余额、明细、挂兑换物、兑换单）+ 退出登录 |
 | `chahua.html` | 插画页（一排自动排序、按图片真实比例自动换行的图墙 + 点开看大图，大图里可跳周边页兑换） |
-| `zhoubian.html` / `dongtai.html` | **周边**（站内唯一的兑换物浏览页：类型筛选 + 就地弹框用积分兑换）/ 社区（发布动态、配图、点赞、看大图） |
+| `zhoubian.html` / `dongtai.html` | **周边**（站内唯一的兑换物浏览页：类型筛选 + 卡片标注「虚拟自动到账 / 实物待发放」+ 就地弹框用积分兑换）/ 社区（发布动态、配图、点赞、看大图） |
 | `xingyao.html` / `yueci.html` / `xiaomiao.html` | 关于页（三个角色）|
 | `live2d.html` / `live2d-guide.html` | Live2D Param 介绍下载页 / **使用说明**（左边一层叠一层的目录 + 右边正文的文档页） |
 | `assets/js/store.js` | **数据层**：localStorage key 常量 + 读写封装 + 旧数据迁移（各页共用） |
@@ -45,9 +45,9 @@
 | `assets/js/settings.js` | 个人中心的 API / 角色 / 对话分区逻辑 |
 | `assets/js/user.js` | 个人中心的个人资料 + 退出登录逻辑 |
 | `assets/js/gallery.js` | 插画画廊逻辑 |
-| `assets/js/points.js` | 个人中心「积分」分区：余额与明细、每日签到、挂兑换物、兑换单（浏览与兑换已搬到周边页） |
+| `assets/js/points.js` | 个人中心「积分」分区：余额与明细、每日签到、挂兑换物（可选虚拟/实物与预计发货天数）、兑换单（虚拟单直接给下载入口；浏览与兑换已搬到周边页） |
 | `assets/js/community.js` | 社区页逻辑：发布动态（含配图上传）、列表与加载更多、点赞、删除、看大图 |
-| `assets/js/merch.js` | 周边页逻辑：按类型筛选兑换物、拼卡片、就地弹兑换确认框下单、带物品 id 深链自动打开确认框 |
+| `assets/js/merch.js` | 周边页逻辑：按类型筛选兑换物、拼卡片（含发货方式标注）、就地弹兑换确认框下单、带物品 id 深链自动打开确认框 |
 | `assets/js/live2d-guide.js` | 使用说明页的左侧目录：滚动高亮 / 分组折叠 / 手机端开合（页面没有它也照样能靠锚点跳转） |
 | `assets/js/common.js` | 子页面共用的导航栏 / 页脚 |
 | `assets/data/official-roles.js` | 官方角色设定（后台维护，push 即生效） |

@@ -747,6 +747,23 @@
 
                     <input class="settings-input settings-input-short" id="publish-stock" type="number" min="1" max="100000" placeholder="留空 = 不限量">
 
+                    <label class="settings-label">发货方式</label>
+
+                    <div class="publish-delivery" id="publish-delivery">
+                        <label class="delivery-choice">
+                            <input type="radio" name="publish-delivery" value="auto">
+                            <span>虚拟物品（下单自动到账，可下载）</span>
+                        </label>
+                        <label class="delivery-choice">
+                            <input type="radio" name="publish-delivery" value="manual" checked>
+                            <span>实物（等站长制作发放）</span>
+                        </label>
+                    </div>
+
+                    <label class="settings-label" for="publish-wait">预计发货天数（实物）</label>
+
+                    <input class="settings-input settings-input-short" id="publish-wait" type="number" min="0" max="365" placeholder="例：7，留空表示不写">
+
                     <label class="settings-label">封面图（可选）</label>
 
                     <div class="user-avatar-actions">
@@ -757,7 +774,8 @@
                     <div class="publish-preview" id="publish-preview"></div>
 
                     <p class="settings-tip">
-                        提交后先进「待站长审核」，站长通过后才会在积分商城里出现。
+                        提交后先进「待站长审核」，站长通过后才会在周边页上架。
+                        选「虚拟物品」的话，别人兑换当场就到账，不用你手动发。
                     </p>
 
                     <div class="modal-actions">

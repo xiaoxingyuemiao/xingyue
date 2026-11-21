@@ -20,6 +20,7 @@ window.Merch = (function () {
         redeem: {
             overlay: document.getElementById("redeem-overlay"),
             text: document.getElementById("redeem-text"),
+            tip: document.getElementById("redeem-tip"),
             contact: document.getElementById("redeem-contact"),
             ok: document.getElementById("redeem-ok"),
             cancel: document.getElementById("redeem-cancel"),
@@ -59,6 +60,16 @@ window.Merch = (function () {
         return box;
     }
 
+    // 发货方式：虚拟物品下单即到账，实物要等站长做和寄
+    function deliveryText(item) {
+        if (item.delivery === "auto") {
+            return "虚拟 · 下单自动到账";
+        }
+        return item.wait_days > 0
+            ? "实物 · 站长发放，约 " + item.wait_days + " 天内发货"
+            : "实物 · 需站长发放";
+    }
+
     // ---------- 卡片 ----------
 
     function card(item) {
@@ -82,6 +93,8 @@ window.Merch = (function () {
         info.appendChild(node("p", "merch-from", item.official
             ? "官方出品"
             : "成员 " + (item.creator_nickname || "小窝成员") + " 出品"));
+
+        info.appendChild(node("p", "merch-delivery" + (item.delivery === "auto" ? " auto" : ""), deliveryText(item)));
 
         const meta = node("div", "merch-meta");
         meta.appendChild(node("span", "merch-price", item.price_points + " 积分"));
@@ -214,6 +227,11 @@ window.Merch = (function () {
             : "「" + item.title + "」需要 " + item.price_points + " 分，你现在只有 " + balance + " 分，还差 "
                 + (item.price_points - balance) + " 分。";
         el.redeem.ok.disabled = !enough;
+        el.redeem.tip.textContent = item.delivery === "auto"
+            ? "这是虚拟物品：点确认扣掉积分后立刻发放，在个人中心「我的兑换单」里就能查看和下载。"
+            : "这是实物：点确认会立刻扣掉积分并生成一张「待发放」的兑换单，站长手工制作后按你留的地址邮寄"
+                + (item.wait_days > 0 ? "，预计 " + item.wait_days + " 天内发出" : "")
+                + "。收货人和地址请写清楚～";
         el.redeem.contact.value = "";
         el.redeem.status.textContent = "";
         el.redeem.status.style.color = "";
@@ -238,9 +256,12 @@ window.Merch = (function () {
             balance = data.balance;
             await load(true);
             // 弹窗留着说结果，避免「点了没反应」；确认按钮保持禁用，防止重复下单
-            el.redeem.status.textContent =
-                "兑换单 #" + data.id + " 已生成（待发放），扣了 " + data.amount + " 分，余额 " + data.balance + " 分。" +
-                "站长发放后会按你留的联系方式联系你～";
+            el.redeem.status.textContent = data.status === "done"
+                ? "「" + data.item_title + "」是虚拟物品，已经自动发放（扣了 " + data.amount + " 分，余额 " + data.balance
+                    + " 分），在个人中心「我的兑换单」里就能下载～"
+                : "兑换单 #" + data.id + " 已生成（待发放），扣了 " + data.amount + " 分，余额 " + data.balance + " 分。"
+                    + (data.wait_days > 0 ? "实物预计 " + data.wait_days + " 天内发出，" : "")
+                    + "站长发放后会按你留的联系方式联系你～";
             el.redeem.status.style.color = "#2e9e5b";
         } catch (e) {
             el.redeem.status.textContent = e.message;
