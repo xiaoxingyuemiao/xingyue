@@ -29,15 +29,14 @@
 | 路径 | 职责 |
 |---|---|
 | `index.html` | 首页入口：**登录 / 注册 / 找回密码**（起始屏）+ 聊天 + Live2D 舞台 |
-| `user.html` | **个人中心**：个人资料 / API 设置 / 角色设定 / 对话记录 + 退出登录 |
-| `chahua.html` | 插画页（横向长画廊） |
-| `zhoubian.html` / `dongtai.html` | 周边 / 动态（占位） |
-| `zidongyulan.html` | 自动预览页（暂空白；入口在插画画廊第三个画框上方） |
+| `user.html` | **个人中心**：个人资料 / API 设置 / 角色设定 / 对话记录 / **积分**（余额、明细、挂兑换物、兑换单）+ 退出登录 |
+| `chahua.html` | 插画页（一排自动排序、按图片真实比例自动换行的图墙 + 点开看大图，大图里可跳周边页兑换） |
+| `zhoubian.html` / `dongtai.html` | **周边**（站内唯一的兑换物浏览页：类型筛选 + 就地弹框用积分兑换）/ 社区（发布动态、配图、点赞、看大图） |
 | `xingyao.html` / `yueci.html` / `xiaomiao.html` | 关于页（三个角色）|
-| `live2d.html` / `live2d-guide.html` | Live2D Param 介绍下载页 / 使用说明 |
+| `live2d.html` / `live2d-guide.html` | Live2D Param 介绍下载页 / **使用说明**（左边一层叠一层的目录 + 右边正文的文档页） |
 | `assets/js/store.js` | **数据层**：localStorage key 常量 + 读写封装 + 旧数据迁移（各页共用） |
 | `assets/js/auth.js` | **登录模块**：Supabase 邮箱验证码 / 密码登录 / 注册 / 找回密码（REST，零依赖） |
-| `assets/js/cloud.js` | **云端同步**：个人资料 / API 设置 / 对话记录的云端读写 + 秘钥加密上传 + 注销账号 |
+| `assets/js/cloud.js` | **云端同步**：个人资料 / API 设置 / 对话记录的云端读写 + 秘钥加密上传 + 注销账号 + 积分 / 兑换 / 社区动态 / 图片上传 |
 | `assets/js/main.js` | 首页逻辑：登录流程、聊天、角色切换、情绪解析 |
 | `assets/js/live2d.js` | **Live2D 业务模块**：模型加载 / 角色切换模型 / 情绪表情动作 / 窗口交互 |
 | `assets/js/live2d-custom.js` | 自定义模型导入（文件夹 → 浏览器缓存 → 虚拟路径加载） |
@@ -46,11 +45,15 @@
 | `assets/js/settings.js` | 个人中心的 API / 角色 / 对话分区逻辑 |
 | `assets/js/user.js` | 个人中心的个人资料 + 退出登录逻辑 |
 | `assets/js/gallery.js` | 插画画廊逻辑 |
+| `assets/js/points.js` | 个人中心「积分」分区：余额与明细、每日签到、挂兑换物、兑换单（浏览与兑换已搬到周边页） |
+| `assets/js/community.js` | 社区页逻辑：发布动态（含配图上传）、列表与加载更多、点赞、删除、看大图 |
+| `assets/js/merch.js` | 周边页逻辑：按类型筛选兑换物、拼卡片、就地弹兑换确认框下单、带物品 id 深链自动打开确认框 |
+| `assets/js/live2d-guide.js` | 使用说明页的左侧目录：滚动高亮 / 分组折叠 / 手机端开合（页面没有它也照样能靠锚点跳转） |
 | `assets/js/common.js` | 子页面共用的导航栏 / 页脚 |
 | `assets/data/official-roles.js` | 官方角色设定（后台维护，push 即生效） |
 | `assets/data/models.js` | **模型配置**：每个模型的缩放 / 锚点 / 表情与动作映射 |
 | `assets/data/supabase-config.js` | Supabase 登录服务配置（Project URL + Publishable key） |
-| `assets/css/` | 各页面样式：`style.css`（全站公共）、`home.css`（首页）、`settings.css`（个人中心）、`live2d.css`、`gallery.css`（插画）、`auto-preview.css`（自动预览） |
+| `assets/css/` | 各页面样式：`style.css`（全站公共）、`home.css`（首页）、`settings.css`（个人中心）、`live2d.css`（Live2D Param 两页公共）、`live2d-guide.css`（使用说明页的文档版面）、`gallery.css`（插画）、`community.css`（社区）、`merch.css`（周边） |
 | `assets/vendor/oh-my-live2d.min.js` | 唯一第三方依赖（已 vendor 化，自包含 SDK） |
 | `assets/live2d/` | 模型文件：`default/`（其他模型按需添加） |
 | `docs/` | 网站定位、结构、Git 协作指南、AI 协作约定、流程图、云端同步、踩坑与错误记录（`docs/08-踩坑与错误记录.md` 是该目录**唯一可写**的文件） |
@@ -67,8 +70,8 @@
 > 为简洁起见下面只写文件名：`store.js` / `auth.js` / `cloud.js` / `live2d.js` / `live2d-custom.js` / `main.js` / `net-mock.js` 在 `assets/js/`；`official-roles.js` / `models.js` / `supabase-config.js` 在 `assets/data/`；SDK 是 `assets/vendor/oh-my-live2d.min.js`。
 
 - `index.html`：`net-mock.js` → SDK（vendor，缺失时回退 CDN）→ `store.js` → `official-roles.js` → `models.js` → `supabase-config.js` → `auth.js` → `cloud.js` → `live2d.js` → `live2d-custom.js` → `main.js`
-- `user.html`：`store.js` → `supabase-config.js` → `auth.js` → `cloud.js` → `live2d-custom.js` → `settings.js` → `user.js`
-- 其余子页面：`common.js`（插画页多一个 `gallery.js`）；`live2d.html` / `live2d-guide.html` 是纯静态页，不加载脚本
+- `user.html`：`store.js` → `api-config.js` → `auth.js` → `cloud.js` → `live2d-custom.js` → `settings.js` → `user.js` → `points.js`
+- 其余子页面：`common.js`（插画页多一个 `gallery.js`，社区页多 `store.js` → `api-config.js` → `auth.js` → `cloud.js` → `community.js`，周边页同理换成 `merch.js`）；`live2d.html` 不加载任何脚本；`live2d-guide.html` 只多加载 `live2d-guide.js`（左侧目录）
 
 **顺序有讲究**：`net-mock.js` 必须在 SDK 之前（拦截 SDK 的外网请求）；`supabase-config.js` 必须在 `auth.js` / `cloud.js` 之前；`store.js` 必须在 `cloud.js` 之前。
 
