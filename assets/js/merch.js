@@ -69,12 +69,20 @@ window.Merch = (function () {
         return box;
     }
 
+    const EMPTY_TEXT = "这里还没有上架的周边，去积分商城看看别的～";
+
+    // 空状态：换掉那句话再显示（游客、真的没货、加载失败都走这里）
+    function showEmpty(text) {
+        el.empty.querySelector("p").textContent = text;
+        el.empty.hidden = false;
+    }
+
     async function load() {
         if (!ready()) {
             el.list.textContent = "";
             el.count.textContent = "";
-            el.empty.hidden = false;
-            say("登录后就能看有哪些周边可以兑换啦～", "");
+            showEmpty("登录后就能看有哪些周边可以兑换啦～");
+            say("", "");
             return;
         }
 
@@ -86,10 +94,13 @@ window.Merch = (function () {
             }
             el.count.textContent = data.items.length > 0 ? "共 " + data.items.length + " 款周边" : "";
             el.empty.hidden = data.items.length > 0;
+            if (!data.items.length) {
+                showEmpty(EMPTY_TEXT);
+            }
             say("", "");
         } catch (e) {
-            el.empty.hidden = false;
-            say("周边没加载出来：" + e.message, "#e08b8b");
+            showEmpty("周边没加载出来，稍后再试试～");
+            say(e.message, "#d24b4b");
         }
     }
 

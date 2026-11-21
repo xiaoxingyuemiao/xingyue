@@ -1,16 +1,16 @@
 /* ==============================
    周边页（zhoubian.html 专用）
-   这一页的底色 / 导航 / 页脚深色化写在 zhoubian.html 的 <style> 里（宇宙引力场背景），
-   本文件只负责商品卡片，配色沿用那一套深色玻璃质感。
+   风格基准：首页 index.html / 插画页 / 社区页 —— 白色圆角卡片 + 主色 #66ccff
+   布局基准：插画页的 board-head / board-btn，卡片栅格与积分商城一致
 
    ⚠️ 只写本页自己的样式，公共的 style.css 只读复用（见 AGENTS.md）
    ============================== */
 
+.merch-body {
+    background-color: var(--background-color);
+}
+
 .merch-main {
-    display: flex;
-
-    flex-direction: column;
-
     flex: 1;
 
     width: 100%;
@@ -18,10 +18,10 @@
 
 .merch-board {
     width: 100%;
-    max-width: 1080px;
+    max-width: 1200px;
 
     margin: 0 auto;
-    padding: 30px 20px 60px;
+    padding: 28px 20px 60px;
 
     box-sizing: border-box;
 }
@@ -36,7 +36,7 @@
 
     gap: 10px 14px;
 
-    margin-bottom: 20px;
+    margin-bottom: 18px;
 }
 
 .board-head h2 {
@@ -44,9 +44,7 @@
 
     font-size: 20px;
 
-    color: #eef2fa;
-
-    text-shadow: 0 2px 18px rgba(0, 0, 0, 0.6);
+    color: var(--text-color);
 }
 
 .board-tools {
@@ -58,9 +56,11 @@
 }
 
 .board-count {
+    margin-right: 2px;
+
     font-size: 14px;
 
-    color: #9aa4b2;
+    color: #888888;
 }
 
 .board-btn {
@@ -73,23 +73,19 @@
     font-size: 14px;
     text-decoration: none;
 
-    color: #dfe5ef;
+    background-color: #eef2f5;
+    color: #555555;
 
-    background-color: rgba(255, 255, 255, 0.1);
-
-    transition: background-color 0.2s ease;
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .board-btn:hover {
-    background-color: rgba(255, 255, 255, 0.18);
+    background-color: rgba(102, 204, 255, 0.18);
+
+    color: var(--main-color);
 }
 
-/* 按钮靠 hidden 控制显隐，display 规则会盖掉 [hidden] */
-.board-btn[hidden] {
-    display: none;
-}
-
-/* ---------- 商品卡片 ---------- */
+/* ---------- 卡片栅格：按数量自动换行 ---------- */
 
 .merch-list {
     display: grid;
@@ -103,42 +99,53 @@
     box-sizing: border-box;
 
     display: flex;
-
     flex-direction: column;
 
-    overflow: hidden;
+    padding: 12px;
 
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid #eeeeee;
     border-radius: 18px;
 
-    background-color: rgba(10, 14, 22, 0.62);
+    background-color: rgba(255, 255, 255, 0.97);
 
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.merch-card:hover {
+    transform: translateY(-3px);
+
+    box-shadow: 0 10px 24px rgba(102, 204, 255, 0.3);
 }
 
 .merch-cover {
+    aspect-ratio: 16 / 10;
+
+    border-radius: 12px;
+
+    background-color: #f2f5f7;
+    background-position: center;
+    background-size: cover;
+
     display: flex;
     align-items: center;
     justify-content: center;
 
-    aspect-ratio: 16 / 10;
-
     font-size: 40px;
 
-    background-color: rgba(255, 255, 255, 0.05);
-    background-position: center;
-    background-size: cover;
+    overflow: hidden;
 }
 
 .merch-info {
-    display: flex;
+    min-width: 0;
 
+    flex: 1;
+
+    display: flex;
     flex-direction: column;
 
-    gap: 8px;
-
-    padding: 14px 16px 16px;
+    padding: 12px 4px 4px;
 }
 
 .merch-title {
@@ -146,126 +153,143 @@
 
     font-size: 16px;
     font-weight: 600;
-    line-height: 1.5;
 
-    color: #eef2fa;
+    color: var(--text-color);
 
-    overflow-wrap: anywhere;
+    /* 标题最长 100 字，卡片里最多两行 */
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
 }
 
 .merch-desc {
-    margin: 0;
+    margin: 6px 0 0;
 
     font-size: 13px;
-    line-height: 1.7;
+    line-height: 1.6;
 
-    color: #9aa4b2;
+    color: #777777;
 
-    overflow-wrap: anywhere;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
 }
 
 .merch-meta {
     display: flex;
-
+    flex-wrap: wrap;
     align-items: baseline;
     justify-content: space-between;
 
-    gap: 10px;
+    gap: 8px;
 
-    margin-top: 2px;
+    margin-top: 12px;
 }
 
+/* 价格和积分商城一个色，用户一眼认得出是花费 */
 .merch-price {
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 700;
 
-    color: var(--main-color);
+    color: #ef7d3a;
 }
 
 .merch-stock {
-    font-size: 12px;
+    font-size: 13px;
 
-    color: #8f98a6;
+    color: #888888;
 }
 
 .merch-buy {
-    margin-top: 6px;
+    display: block;
 
-    padding: 10px 14px;
+    margin-top: 12px;
+    padding: 10px 18px;
 
-    border: none;
     border-radius: 999px;
 
-    font-size: 14px;
+    font-size: 15px;
     text-align: center;
     text-decoration: none;
 
-    color: #06101c;
-
     background-color: var(--main-color);
+    color: #ffffff;
 
-    cursor: pointer;
-
-    transition: filter 0.2s ease;
+    transition: background-color 0.2s ease;
 }
 
 .merch-buy:hover {
-    filter: brightness(1.08);
+    background-color: #4db8f5;
 }
 
+/* 已兑完：灰掉且不再跳深链 */
 .merch-buy.sold {
-    color: #8f98a6;
+    background-color: #eef2f5;
 
-    background-color: rgba(255, 255, 255, 0.1);
-
-    cursor: default;
+    color: #999999;
 }
 
-/* ---------- 空状态 / 提示 ---------- */
+.merch-buy.sold:hover {
+    background-color: #eef2f5;
+}
+
+/* ---------- 空状态与提示 ---------- */
 
 .merch-empty {
-    padding: 40px 16px 8px;
+    padding: 40px 20px;
+
+    border: 1px dashed #dddddd;
+    border-radius: 18px;
+
+    background-color: rgba(255, 255, 255, 0.97);
 
     text-align: center;
 
-    user-select: none;
-}
-
-.merch-empty[hidden] {
-    display: none;
+    color: #888888;
 }
 
 .merch-empty p {
     margin: 10px 0 0;
 
-    font-size: 16px;
-    line-height: 1.9;
+    font-size: 15px;
+    line-height: 1.8;
+}
 
-    color: #9aa4b2;
+.merch-empty-icon {
+    font-size: 40px;
+}
 
-    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.6);
+/* display 之外的规则会盖掉 [hidden]，空状态靠 hidden 控制 */
+.merch-empty[hidden] {
+    display: none;
 }
 
 .merch-status {
     margin: 18px 0 0;
 
-    min-height: 18px;
+    min-height: 20px;
 
-    font-size: 13px;
-    line-height: 1.7;
-
-    color: #9aa4b2;
-
+    font-size: 14px;
     text-align: center;
+
+    color: #888888;
 }
 
 /* ==============================
-   手机端
+   手机端（≤768px）
    ============================== */
 
 @media (max-width: 768px) {
     .merch-board {
-        padding: 22px 12px 44px;
+        padding: 20px 12px 44px;
+    }
+
+    .board-head h2 {
+        font-size: 17px;
     }
 
     .merch-list {
@@ -274,7 +298,11 @@
         gap: 12px;
     }
 
-    .merch-info {
-        padding: 12px 14px 14px;
+    .merch-title {
+        font-size: 15px;
+    }
+
+    .merch-price {
+        font-size: 16px;
     }
 }

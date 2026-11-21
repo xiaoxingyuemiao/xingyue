@@ -10,9 +10,9 @@
 纯静态站点，**零构建、零依赖**，直接部署 GitHub Pages（`https://xiaoxingyuemiao.github.io/xingyue/`）。
 技术栈就是原生 HTML + CSS + JS，**不要引入 npm 包、打包工具、框架、CDN 依赖**。
 
-页面：`index.html`（登录 / 注册 / 找回密码 + 首页聊天 + Live2D 舞台）、`user.html`（个人中心四分区）、
-`chahua.html`（插画画廊）、`zhoubian.html`、`dongtai.html`、`xingyao.html` / `yueci.html` / `xiaomiao.html`、
-`live2d.html` / `live2d-guide.html`、`zidongyulan.html`（自动预览，暂空白）。
+页面：`index.html`（登录 / 注册 / 找回密码 + 首页聊天 + Live2D 舞台）、`user.html`（个人中心四分区 + 积分）、
+`chahua.html`（插画画廊）、`zhoubian.html`（周边）、`dongtai.html`（社区动态）、`xingyao.html` / `yueci.html` / `xiaomiao.html`、
+`live2d.html` / `live2d-guide.html`。
 
 **回答与注释一律用简体中文**，代码、路径、变量名保持原样。
 
@@ -52,7 +52,7 @@
 
 | 场景 | 约定 |
 | --- | --- |
-| 新页面 / 新模块的样式 | **写自己的独立 CSS 文件**（如 `assets/css/gallery.css`、`assets/css/auto-preview.css`），不要往 `home.css` 里追加 |
+| 新页面 / 新模块的样式 | **写自己的独立 CSS 文件**（如 `assets/css/gallery.css`、`assets/css/community.css`），不要往 `home.css` 里追加 |
 | 子页面的顶栏与页脚 | 用 `<div id="site-header"></div>` + `<div id="site-footer"></div>` 占位，由 `assets/js/common.js` 注入；并在引入它的 `<script>` 前定义 `const PAGE = "页面标识";` |
 | 读写本地数据 | 走 `assets/js/store.js` 的键常量，不要手写 localStorage 字符串 |
 | 第三方依赖 | 只有 `assets/vendor/oh-my-live2d.min.js`（已 vendor 化，离线可用），不要新增 |
