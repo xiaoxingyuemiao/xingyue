@@ -15,33 +15,68 @@
         <!-- 导航栏（由 assets/js/common.js 注入） -->
         <div id="site-header"></div>
 
-        <!-- 横向长画廊：画框与背景花草都由 assets/js/gallery.js 随机生成 -->
-        <main class="gallery">
 
-            <div class="gallery-viewport" id="gallery-viewport">
+        <main class="gallery-main">
 
-                <div class="gallery-canvas" id="gallery-canvas">
+            <!-- 图墙：标题行（右上角放跳转按钮）+ 一排自动排序 -->
+            <section class="gallery-board">
 
-                    <!-- 背景的花草树木 -->
-                    <div class="gallery-deco" id="gallery-deco"></div>
+                <div class="board-head">
 
-                    <!-- 画框（从左到右编号，编号只写在 data 属性里，不显示） -->
-                    <div class="gallery-frames" id="gallery-frames"></div>
+                    <h2>全部插画</h2>
 
-                    <!-- 「进入自动预览」按钮：位置由 gallery.js 算，挂在第三个画框正上方 -->
-                    <a class="frame-action" id="frame-action" href="zidongyulan.html">进入自动预览</a>
+                    <div class="board-tools">
+                        <span class="board-count" id="art-count"></span>
+                        <a class="board-btn board-btn-primary" href="zidongyulan.html">进入自动预览</a>
+                        <a class="board-btn" href="dongtai.html">去社区看看</a>
+                    </div>
+
+                </div>
+
+                <div class="art-list" id="art-list"></div>
+
+                <div class="board-empty" id="art-empty" hidden>
+                    这里还没有插画，等站长往 assets/data/artworks.js 里加几张～
+                </div>
+
+            </section>
+
+        </main>
+
+
+        <!-- 大图查看（居中弹窗，内容由 gallery.js 填） -->
+        <div class="lightbox" id="lightbox">
+
+            <div class="lightbox-mask" id="lightbox-mask"></div>
+
+            <div class="lightbox-box">
+
+                <button class="lightbox-close" id="lightbox-close" type="button" aria-label="关闭">✕</button>
+
+                <div class="lightbox-stage">
+                    <img class="lightbox-img" id="lightbox-img" alt="">
+                </div>
+
+                <div class="lightbox-meta">
+
+                    <div class="lightbox-text">
+                        <h3 id="lightbox-title"></h3>
+                        <p id="lightbox-by"></p>
+                    </div>
+
+                    <div class="lightbox-side">
+                        <span class="lightbox-index" id="lightbox-index"></span>
+                        <button class="lightbox-nav" id="lightbox-prev" type="button" aria-label="上一张">‹</button>
+                        <button class="lightbox-nav" id="lightbox-next" type="button" aria-label="下一张">›</button>
+                        <a class="lightbox-download" id="lightbox-download" href="#" download>下载原图</a>
+                    </div>
 
                 </div>
 
             </div>
 
-            <!-- 毛线球滚动条：拖它、点轨道、滚轮都能移动画廊 -->
-            <div class="yarn-bar" id="yarn-bar">
-                <div class="yarn-thread"></div>
-                <div class="yarn-ball" id="yarn-ball" title="拖动我去逛画廊"></div>
-            </div>
+        </div>
 
-        </main>
 
         <!-- 页脚（由 assets/js/common.js 注入） -->
         <div id="site-footer"></div>
@@ -52,6 +87,7 @@
         </script>
 
         <script src="assets/js/common.js"></script>
+        <script src="assets/data/artworks.js"></script>
         <script src="assets/js/gallery.js"></script>
     </body>
 </html>

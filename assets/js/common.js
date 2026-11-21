@@ -1,6 +1,6 @@
 // ================================
 // 星月小窝 —— 公共导航栏 & 页脚
-// 所有子页面共用（Live2D / 插画 / 周边 / 动态 / 关于三页）
+// 所有子页面共用（Live2D / 插画 / 周边 / 社区 / 关于三页）
 // ================================
 //
 // 使用方法（在每个子页面里）：
@@ -20,7 +20,7 @@
         { id: "live2d", name: "Live2D", href: "live2d.html" },
         { id: "chahua", name: "插画", href: "chahua.html" },
         { id: "zhoubian", name: "周边", href: "zhoubian.html" },
-        { id: "dongtai", name: "动态", href: "dongtai.html" },
+        { id: "dongtai", name: "社区", href: "dongtai.html" },
     ];
 
     // "关于"下拉里的角色页

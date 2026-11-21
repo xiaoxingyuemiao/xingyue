@@ -1,315 +1,474 @@
 /* ==============================
-   插画页：横向长画廊
-   （画框与背景花草由 assets/js/gallery.js 生成，这里只管长相）
+   插画页（chahua.html 专用）
+   风格基准：首页 index.html —— 整屏插画背景 + 压暗层 + 白色圆角卡片 + 主色 #66ccff
+
+   ⚠️ 只写本页自己的样式，公共的 style.css 只读复用（见 AGENTS.md）
    ============================== */
 
 .gallery-body {
-    overflow-x: hidden; /* 横向滚动交给画廊自己处理，页面本身不横滚 */
+    background-color: var(--background-color);
 }
 
-.gallery {
-    display: flex;
-    flex-direction: column;
-
-    /* 兜底值：JS 会按顶栏/页脚的实测高度设 inline height 覆盖它 */
-    height: calc(100vh - 190px);
-    min-height: 360px;
-
-    padding: 10px 0 14px;
-
-    box-sizing: border-box;
-}
-
-/* ---------- 滚动视口 ---------- */
-
-.gallery-viewport {
+.gallery-main {
     flex: 1;
 
-    overflow-x: auto;
-    overflow-y: hidden;
-
-    scroll-behavior: smooth;
-
-    /* 原生滚动条藏起来，用下面的毛线球代替 */
-    scrollbar-width: none;
+    width: 100%;
 }
 
-.gallery-viewport::-webkit-scrollbar {
-    display: none;
-}
+/* ==============================
+   图墙：一排自动排序，按图片真实比例定宽，排满自动换行
+   ============================== */
 
-/* ---------- 长画布 ---------- */
+.gallery-board {
+    /* 卡片里给 JS 用的行高变量：每张图都排成这么高，宽度按比例算出来 */
+    --row-h: 210px;
 
-.gallery-canvas {
-    position: relative;
+    width: 100%;
+    max-width: 1200px;
 
-    height: 100%;
-    width: 2000px; /* 真实宽度由 JS 按画框数量算出来 */
-
-    overflow: hidden;
-
-    /* 卡通自然风：淡淡的草地绿 */
-    background: linear-gradient(180deg, #f4fbf0 0%, #e9f5df 55%, #dfeece 100%);
-}
-
-/* ---------- 背景的花草树木 ---------- */
-
-.gallery-deco {
-    position: absolute;
-
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 118%; /* 比画布宽一点，视差平移时不会露边 */
-
-    pointer-events: none;
-
-    z-index: 0;
-}
-
-.deco-item {
-    position: absolute;
-
-    line-height: 1;
-
-    user-select: none;
-
-    transform-origin: 50% 100%;
-
-    animation-name: deco-sway;
-    animation-timing-function: ease-in-out;
-    animation-iteration-count: infinite;
-    animation-direction: alternate;
-}
-
-@keyframes deco-sway {
-    from {
-        transform: translateY(0) rotate(var(--rot, 0deg));
-    }
-
-    to {
-        transform: translateY(-12px) rotate(calc(var(--rot, 0deg) + 5deg));
-    }
-}
-
-/* ---------- 画框层 ---------- */
-
-.gallery-frames {
-    position: absolute;
-
-    left: 0;
-    top: 0;
-    right: 0;
-    bottom: 0;
-
-    z-index: 1;
-}
-
-/* 木制画框 */
-.frame {
-    position: absolute;
-
-    padding: 12px;
+    margin: 0 auto;
+    padding: 28px 20px 60px;
 
     box-sizing: border-box;
-
-    /* 木纹：一条条细纹 + 木头渐变 */
-    background:
-        repeating-linear-gradient(90deg, rgba(60, 36, 18, 0.07) 0 2px, transparent 2px 9px),
-        linear-gradient(155deg, #bd8654 0%, #a06a3b 55%, #8a5730 100%);
-
-    border-radius: 8px;
-
-    box-shadow:
-        0 12px 26px rgba(88, 60, 36, 0.26),
-        inset 0 0 0 2px rgba(255, 255, 255, 0.16);
-
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-.frame:hover {
-    transform: translateY(-6px);
-
-    box-shadow:
-        0 18px 32px rgba(88, 60, 36, 0.32),
-        inset 0 0 0 2px rgba(255, 255, 255, 0.22);
-}
-
-/* 画作区域：以后把 <img> 放进这里就会自动铺满 */
-.frame-art {
-    width: 100%;
-    height: 100%;
-
-    overflow: hidden;
-
-    border-radius: 4px;
-
-    /* 暂定木色（浅一号），贴上画之后就被盖住了 */
-    background:
-        repeating-linear-gradient(90deg, rgba(120, 84, 52, 0.12) 0 3px, rgba(120, 84, 52, 0.02) 3px 10px),
-        linear-gradient(160deg, #ddb489 0%, #cb9c69 100%);
-
-    box-shadow: inset 0 0 0 2px rgba(88, 60, 36, 0.22);
-}
-
-.frame-art img {
-    display: block;
-
-    width: 100%;
-    height: 100%;
-
-    object-fit: cover;
-}
-
-/* ---------- 「进入自动预览」按钮 ----------
-   挂在第三个画框正上方（位置由 gallery.js 计算），点它去自动预览页 */
-
-.frame-action {
-    position: absolute;
-
-    z-index: 2; /* 压在画框层（1）之上 */
-
-    display: inline-flex;
+.board-head {
+    display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
+
+    gap: 10px 14px;
+
+    margin-bottom: 18px;
+}
+
+.board-head h2 {
+    margin: 0;
+
+    font-size: 20px;
+
+    color: var(--text-color);
+}
+
+/* 右上角：数量 + 跳转按钮 */
+.board-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+
+    gap: 10px;
+}
+
+.board-count {
+    margin-right: 2px;
+
+    font-size: 14px;
+
+    color: #888888;
+}
+
+.board-btn {
+    display: inline-block;
 
     padding: 8px 18px;
 
     border-radius: 999px;
 
-    font-size: 15px;
-    font-weight: bold;
-    line-height: 1;
-
-    white-space: nowrap;
+    font-size: 14px;
     text-decoration: none;
 
+    background-color: #eef2f5;
+    color: #555555;
+
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.board-btn:hover {
+    background-color: rgba(102, 204, 255, 0.18);
+
+    color: var(--main-color);
+}
+
+.board-btn-primary {
+    background-color: var(--main-color);
+
     color: #ffffff;
+}
 
-    background: linear-gradient(160deg, #8ad8ff 0%, #66ccff 58%, #4fb8ee 100%);
+.board-btn-primary:hover {
+    background-color: #4db8f5;
 
-    box-shadow:
-        0 8px 18px rgba(79, 158, 205, 0.32),
-        inset 0 0 0 2px rgba(255, 255, 255, 0.35);
+    color: #ffffff;
+}
+
+.art-list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+
+    gap: 14px;
+}
+
+/* 一张图 = 一个按钮（键盘 Tab 能选中、回车能打开） */
+.art-item {
+    position: relative;
+
+    flex: 0 0 auto;
+
+    height: var(--row-h);
+    /* 宽度由 --ar（真实宽高比）算出来：gallery.js 读到图片尺寸后写进来 */
+    aspect-ratio: var(--ar, 1);
+    max-width: 100%;
+
+    padding: 0;
+
+    border: none;
+    border-radius: 12px;
+
+    background-color: #f2f5f7;
+
+    overflow: hidden;
+
+    cursor: pointer;
 
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.frame-action:hover {
-    transform: translateY(-2px);
+.art-item img {
+    width: 100%;
+    height: 100%;
 
-    box-shadow:
-        0 12px 22px rgba(79, 158, 205, 0.42),
-        inset 0 0 0 2px rgba(255, 255, 255, 0.5);
+    object-fit: cover;
+
+    display: block;
+
+    /* 图不允许被拖出去 */
+    -webkit-user-drag: none;
+    user-select: none;
 }
 
-/* ---------- 毛线球滚动条 ---------- */
+.art-item:hover,
+.art-item:focus-visible {
+    transform: translateY(-3px);
 
-.yarn-bar {
+    box-shadow: 0 10px 24px rgba(102, 204, 255, 0.3);
+}
+
+.art-item:focus-visible {
+    outline: 2px solid var(--main-color);
+    outline-offset: 2px;
+}
+
+/* 标题压在图下方，手机端也看得见 */
+.art-caption {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    padding: 20px 12px 9px;
+
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.6));
+
+    font-size: 14px;
+
+    color: #ffffff;
+    text-align: left;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+
+    pointer-events: none;
+}
+
+.board-empty {
+    padding: 40px 20px;
+
+    border: 1px dashed #dddddd;
+    border-radius: 18px;
+
+    font-size: 15px;
+    text-align: center;
+
+    color: #888888;
+}
+
+/* 上面没给 .board-empty 定 display，hidden 属性照常生效；这条只是防以后加规则时踩坑 */
+.board-empty[hidden] {
+    display: none;
+}
+
+/* ==============================
+   大图查看（居中弹窗）
+   ============================== */
+
+.lightbox {
+    position: fixed;
+    inset: 0;
+
+    display: none;
+    align-items: center;
+    justify-content: center;
+
+    padding: 24px;
+
+    box-sizing: border-box;
+
+    z-index: 600;
+}
+
+.lightbox.open {
+    display: flex;
+}
+
+.lightbox-mask {
+    position: absolute;
+    inset: 0;
+
+    background-color: rgba(0, 0, 0, 0.72);
+}
+
+.lightbox-box {
     position: relative;
 
-    height: 46px;
+    display: flex;
+    flex-direction: column;
 
-    margin: 8px 30px 0;
+    gap: 12px;
 
-    flex-shrink: 0;
+    width: 100%;
+    max-width: 1040px;
+
+    max-height: calc(100vh - 48px);
+}
+
+.lightbox-stage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 120px;
+
+    padding: 10px;
+
+    box-sizing: border-box;
+
+    background-color: rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+
+    overflow: hidden;
+}
+
+.lightbox-img {
+    max-width: 100%;
+    max-height: calc(100vh - 220px);
+
+    object-fit: contain;
+
+    display: block;
+
+    border-radius: 8px;
+}
+
+.lightbox-close {
+    position: absolute;
+    top: -8px;
+    right: -4px;
+
+    width: 34px;
+    height: 34px;
+
+    border: none;
+    border-radius: 50%;
+
+    background-color: rgba(255, 255, 255, 0.92);
+
+    font-size: 15px;
+    line-height: 1;
+
+    color: #555555;
+
+    cursor: pointer;
+
+    z-index: 2;
+}
+
+.lightbox-close:hover {
+    background-color: #ffffff;
+
+    color: var(--main-color);
+}
+
+/* 底部信息条：白色圆角卡片（与站内卡片同款规格） */
+.lightbox-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 16px;
+
+    padding: 14px 18px;
+
+    background-color: rgba(255, 255, 255, 0.97);
+    border-radius: 18px;
+
+    box-sizing: border-box;
+}
+
+.lightbox-text h3 {
+    margin: 0 0 4px;
+
+    font-size: 17px;
+
+    color: var(--text-color);
+}
+
+.lightbox-text p {
+    margin: 0;
+
+    font-size: 14px;
+
+    color: #888888;
+}
+
+.lightbox-side {
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+}
+
+.lightbox-index {
+    margin-right: 4px;
+
+    font-size: 13px;
+
+    color: #888888;
+}
+
+.lightbox-nav {
+    width: 32px;
+    height: 32px;
+
+    border: 1px solid #dddddd;
+    border-radius: 50%;
+
+    background-color: #ffffff;
+
+    font-size: 18px;
+    line-height: 1;
+
+    color: #555555;
 
     cursor: pointer;
 }
 
-/* 毛线：一条断断续续的线 */
-.yarn-thread {
-    position: absolute;
+.lightbox-nav:hover {
+    border-color: var(--main-color);
 
-    left: 16px;
-    right: 16px;
-    top: 50%;
-
-    height: 3px;
-
-    margin-top: -1.5px;
-
-    border-radius: 3px;
-
-    background-image: linear-gradient(90deg, #cfe3bd 0 11px, transparent 11px 19px);
-    background-size: 19px 3px;
-
-    opacity: 0.85;
+    color: var(--main-color);
 }
 
-/* 毛线球本体 */
-.yarn-ball {
-    position: absolute;
+.lightbox-download {
+    padding: 8px 18px;
 
-    left: 0;
-    top: 50%;
+    border-radius: 999px;
 
-    width: 40px;
-    height: 40px;
+    font-size: 14px;
+    text-decoration: none;
 
-    margin-top: -20px;
+    background-color: var(--main-color);
 
-    border-radius: 50%;
-
-    /* 两圈斜纹模拟毛线缠绕 */
-    background:
-        repeating-linear-gradient(42deg, rgba(255, 255, 255, 0.38) 0 3px, transparent 3px 7px),
-        repeating-linear-gradient(-40deg, rgba(255, 255, 255, 0.22) 0 3px, transparent 3px 9px),
-        radial-gradient(circle at 34% 30%, #ffd9e7 0%, #f2a5c4 58%, #d97fa8 100%);
-
-    box-shadow:
-        0 6px 14px rgba(176, 108, 143, 0.38),
-        inset -3px -4px 8px rgba(150, 80, 115, 0.22);
-
-    cursor: grab;
-
-    touch-action: none;
-
-    /* 位置用 transform 走（GPU 合成，不触发重排），拖动才跟手 */
-    transform: translateX(var(--ball-x, 0px)) scale(var(--ball-scale, 1));
-
-    transition: transform 0.15s ease;
+    color: #ffffff;
 }
 
-.yarn-ball:hover {
-    --ball-scale: 1.08;
+.lightbox-download:hover {
+    background-color: #4db8f5;
+
+    color: #ffffff;
 }
 
-/* 拖动中：稍微放大，并且关掉过渡 —— 否则每帧都要补间，手感会发黏 */
-.yarn-ball.dragging {
-    --ball-scale: 1.14;
-
-    cursor: grabbing;
-
-    transition: none;
+/* 弹窗打开时锁住页面滚动 */
+body.no-scroll {
+    overflow: hidden;
 }
 
-/* ---------- 手机端 ---------- */
+/* ==============================
+   手机端（≤768px）：行高缩小，一行两张左右
+   ============================== */
 
 @media (max-width: 768px) {
+    .gallery-hero {
+        min-height: 300px;
 
-    /* 高度由 JS 统一算，这里不再重复设置 */
-
-    .frame {
-        padding: 9px;
+        padding: 30px 14px;
     }
 
-    .frame-action {
-        padding: 7px 14px;
-
-        font-size: 13px;
+    .hero-card {
+        padding: 22px 18px;
     }
 
-    .yarn-bar {
-        height: 42px;
-
-        margin: 6px 14px 0;
+    .hero-card h1 {
+        font-size: 26px;
     }
 
-    .yarn-ball {
-        width: 36px;
-        height: 36px;
+    .hero-card p {
+        font-size: 15px;
 
-        margin-top: -18px;
+        margin-bottom: 18px;
+    }
+
+    .gallery-board {
+        /* 手机上正好一排两张方图 */
+        --row-h: 168px;
+
+        padding: 20px 12px 44px;
+    }
+
+    .board-head h2 {
+        font-size: 17px;
+    }
+
+    .art-list {
+        gap: 10px;
+    }
+
+    .art-caption {
+        padding: 16px 8px 7px;
+
+        font-size: 12px;
+    }
+
+    .lightbox {
+        padding: 12px;
+    }
+
+    .lightbox-box {
+        max-height: calc(100vh - 24px);
+    }
+
+    .lightbox-img {
+        max-height: calc(100vh - 190px);
+    }
+
+    .lightbox-meta {
+        flex-direction: column;
+        align-items: stretch;
+
+        gap: 10px;
+
+        padding: 12px 14px;
+    }
+
+    .lightbox-text {
+        text-align: center;
+    }
+
+    .lightbox-side {
+        justify-content: center;
+    }
+
+    .lightbox-close {
+        top: -4px;
+        right: 0;
     }
 }
